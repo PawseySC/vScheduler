@@ -1,0 +1,24 @@
+# retreives host and user identy number in guacamole
+from tabulate import tabulate
+from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.database import Database as MyDatabase
+my_connection = MyDatabase.connect_guaca_db()
+my_cursor = my_connection.cursor()
+
+
+def entity(feed):
+    try:
+        sentence = []
+        print (feed) if MyPrintCondition.fprint else 0
+        entity_ids = "SELECT entity_id, name FROM guacamole_entity WHERE name = '%s'" %(feed)
+        my_cursor.execute(entity_ids)
+        entity_id_results = my_cursor.fetchall()
+        if MyPrintCondition.fprint:
+            for row_entity_id in entity_id_results:
+                entity_id = row_entity_id[0]
+                name = row_entity_id[1]
+                sentence.insert(len(sentence), [entity_id , name])
+        print("\n", tabulate(sentence, headers=['entity_id', 'name'])) if MyPrintCondition.fprint else 0
+        return  entity_id_results
+    except:
+        print ("error: user group record not found in guacamole database") if MyPrintCondition.fprint else 0
