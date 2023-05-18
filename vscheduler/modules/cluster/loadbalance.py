@@ -25,15 +25,15 @@ for i in range (MyCredentials.range[0], MyCredentials.range[1]):
             x = [[node, '0']]
         else:
             x = np.append(x, [[node, '0']], axis = 0)
-print (x)
+print (x) if MyPrintCondition.fprint else 0
 y = x[x[:, 1].argsort()]
-print (y)
+print ("sorted as:", y) if MyPrintCondition.fprint else 0
 
 node_entity = entity(y[len(y)-1, 0])        
 node_group = guacamole_user_group(node_entity[0][0])
 pool_entity = entity(MyCredentials.pool)
 pool_group = guacamole_user_group(pool_entity[0][0])
 
-print('node_entity',node_entity)
-print('pool_entity',pool_entity)
+print('node_entity',node_entity) if MyPrintCondition.fprint else 0
+print('pool_entity',pool_entity) if MyPrintCondition.fprint else 0
 connection_permission(node_entity[0][1], pool_entity[0][0])

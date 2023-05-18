@@ -27,9 +27,19 @@ def guacamole_connection(node):
 def connection_permission(conn, pool):
     try:
         conn_name = guacamole_connection(conn)
-        allocation = "UPDATE guacamole_connection_permission SET connection_id = '%s' WHERE entity_id = '%s'" %(conn_name[0][0], pool)      # when simeltanous multiple booking allowed
-        my_cursor.execute(allocation)
-        my_connection.commit()
-        print(my_cursor.rowcount, "record(s) affected by updating pool connection permission") if MyPrintCondition.fprint else 0
+        check = "SELECT connection_id, entity_id FROM guacamole_connection_permission WHERE entity_id = '%s'" %(pool)                           # check if pool has any connection
+        my_cursor.execute(check)
+        check_results = my_cursor.fetchall()
+        # print ("len(check_results)", len(check_results))
+        if len(check_results) == 0:
+            assign = "INSERT INTO guacamole_connection_permission (connection_id, entity_id) VALUES ('%s','%s')" %(conn_name[0][0], pool)       # when no coonection assigned to pool yet
+            my_cursor.execute(assign)
+            my_connection.commit()
+            print(my_cursor.rowcount, "record(s) inserted") if MyPrintCondition.fprint else 0 
+        else:
+            allocation = "UPDATE guacamole_connection_permission SET connection_id = '%s' WHERE entity_id = '%s'" %(conn_name[0][0], pool)      # when simeltanous multiple booking allowed
+            my_cursor.execute(allocation)
+            my_connection.commit()
+            print(my_cursor.rowcount, "record(s) affected by updating pool connection permission") if MyPrintCondition.fprint else 0
     except:
         print (f"error updating the record for entity_id <", conn_name, "> and guacamole_connection_permission <", pool, ">") if MyPrintCondition.fprint else 0
