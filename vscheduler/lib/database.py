@@ -40,5 +40,6 @@ class Database:
                             charset='utf8')
             return db_con
         except:
+            print ("error connecting guaca db")
             mailFunction("db error","error connecting guaca database", "", "")
             quit()

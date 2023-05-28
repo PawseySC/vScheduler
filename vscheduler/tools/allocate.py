@@ -45,10 +45,10 @@ class Process(multiprocessing.Process):
         elif not users and group_check:                                                             # if user's not logged in -> revert it back to general pool
             update(group_check[0][1], pool_group[0][0])
         else:
-            print ("skipping<", self.hostname, "> as no ones logged in (or due to broken ssh) and has no member in guacamole connection group") if MyPrintCondition.fprint else 0
+            print ("skipping <", self.hostname, "> as no ones logged in (or due to broken ssh) and has no member in guacamole connection group") if MyPrintCondition.fprint else 0
             # think about this: user might have some light stuff open and e.g. waiting for mc to copy from object storage
             # or if they disconnected th session waiting for repeatative work to be done
-            # above "else" will take this into consideration or remve the node link for that user? 
+            # above "else" will take this into consideration or remove the node link for that user? 
             # TO BE TESTED
 
 
