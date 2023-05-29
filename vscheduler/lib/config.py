@@ -1,5 +1,6 @@
 # configs used by all modules
 import os
+from pathlib import Path
 
 class Credentials:
     # booked db credentials
@@ -17,10 +18,10 @@ class Credentials:
     guaca_port = 3306
 
     # local pub key location for ssh into Nebula nodes
-    local_username = os.getlogin()      # management instance 
+    home = str(Path.home()) 
     ssh_username = 'admin'              # destination node admin
     key = 'id_rsa'                      # management instance private ssh key associated with public key authorized in destination nodes
-    ssh_key = f'/home/{local_username}/.ssh/{key}'
+    ssh_key = f'{home}/.ssh/{key}'
 
     # max allowed booking time and session wall time for general pool in hours
     booking_session = 24
