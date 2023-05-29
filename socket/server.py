@@ -1,3 +1,4 @@
+#!/home/ubuntu/pool/vs/bin/python
 import socket
 import threading
 from vscheduler.modules.cluster.emptypool import empty
