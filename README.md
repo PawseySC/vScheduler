@@ -1,3 +1,9 @@
+**Visualisation Scheduler - Pawsey Supercomputing Centre**
+-----------------------------------------------------------
+
+Apply below *Pres-setup* instruction for client-server code in `main` branch and *Setup* steps for vscheduler in `SQL` branch; `API` version will be developed and added.
+
+
 ## Pre-setup
 
 1. Have `socket/server.py` run as a service on management instance; leave ip as blank and set the port.
