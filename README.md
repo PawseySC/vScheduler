@@ -1,12 +1,16 @@
 **Visualisation Scheduler - Pawsey Supercomputing Centre**
 -----------------------------------------------------------
 
-Apply below *Pres-setup* instruction for client-server code in `main` branch and *Setup* steps for vscheduler in `SQL` branch; `API` version will be developed and added.
+Apply below *Pres-setup* instruction for client-server communication and *Setup* step for vscheduler in `SQL` branch; `API` version to be developed.
 
 
 ## Pre-setup
 
-1. Have `socket/server.py` run as a service on management instance; leave ip as blank and set the port.
+1. Locate `socket/mgmt*.py` files in management instance and `socket/comp*.py` files in each compute/vis nodes.
+
+2. Have `socket/*server.py` run as a service on management and compute/vis instances; leave ip as blank and set the port.
+
+e.g. in management (same for compute/vis node):
 
 Create new service in `/etc/systemd/system/socket-server.service` as below:
 ```
@@ -16,7 +20,7 @@ Description=socket-server
 [Service]
 User=ubuntu
 Type=simple
-ExecStart=/home/ubuntu/visualisation_scheduler/vs/bin/python3 /home/ubuntu/visualisation_scheduler/socket/server.py
+ExecStart=/home/ubuntu/visualisation_scheduler/vs/bin/python3 /home/ubuntu/visualisation_scheduler/vscheduler/socket/mgmt-server.py
 Restart=always
 
 [Install]
@@ -29,7 +33,7 @@ systemctl enable socket-server.service
 systemctl start socket-server.service
 ```
 
-2. Locate `socket/client.py` on each destination node in `/etc/profile.d/client.py` and set server's ip and port to run it at each user login attempt by adding below line to `/etc/profile`:
+2. Locate `socket/*client.py` on management and compute/vis nodes in `/etc/profile.d/client.py` and set server's ip and port; For `mgmt-client.py` set ips of all destination nodes in a list where ip of management instance only is needed to be set in each `comp-client.py`. To run the script at each user login attempt in compute/vis node, add below line to `/etc/profile` on each node:
 ```
 /usr/bin/python3 /etc/profile.d/client.py
 ```
