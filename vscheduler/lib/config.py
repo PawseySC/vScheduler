@@ -31,18 +31,18 @@ class Credentials:
     exception = ['admin']
 
     # nodes identification -> 0 will be added to nodes number 1 to 9: w01, w02, ..., w10, w11, ...
-    node_name = 'w'
-    # windows_node_name = 'w'
-    # linux_node_name = 'nid'
-    range = [1,4]
-    # windows_booking = 'ON'
-    # windows_general = 'OFF'
-    # windows_booking_pool_range = [1,7]
-    # windows_general_pool_range = [7,16]
-    # linux_booking = 'OFF'
-    # linux_general = 'ON'
-    # linux_booking_pool_range = [1,4]
-    # linux_general_pool_range = [4,32]
+    # node_name = 'w'
+    windows_node_name = 'w'
+    linux_node_name = 'nid'
+    # range = [1,4]
+    windows_booking = True
+    windows_general = False
+    windows_booking_pool_range = [1,4]
+    windows_general_pool_range = [4,7]
+    linux_booking = False
+    linux_general = True
+    linux_booking_pool_range = [1,4]
+    linux_general_pool_range = [4,7]
     pool = 'pool'                       # name of general pool connection group in guacamole
     domain = 'example.domain'           # e.g.: w01.example.domain
 

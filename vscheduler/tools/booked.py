@@ -101,15 +101,36 @@ class Process(multiprocessing.Process):
 def main():
     MyBrackets.what_time(MyBrackets.now, MyBrackets.start_bracket, MyBrackets.end_bracket)
     if not initiate.node:
-        for i in range (MyCredentials.range[0], MyCredentials.range[1]):
-            node = MyCredentials.node_name + '0' + str(i) if i <= 9 else MyCredentials.node_name + str(i)
-            p = Process(i, initiate.user, node)
+        # for i in range (MyCredentials.range[0], MyCredentials.range[1]):
+        #     node = MyCredentials.node_name + '0' + str(i) if i <= 9 else MyCredentials.node_name + str(i)
+        #     p = Process(i, initiate.user, node)
+        #     p.start()       # Create a new process and invoke the Process.run() method
+        #     p.join()        # Process.join() to wait for task completion
+        if MyCredentials.windows_booking or MyCredentials.linux_booking:
+            if MyCredentials.windows_booking:
+                for i in range (MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]):
+                    node = MyCredentials.windows_node_name + '0' + str(i) if i <= 9 else MyCredentials.windows_node_name + str(i)
+                    p = Process(i, initiate.user, node)
+                    p.start()       # Create a new process and invoke the Process.run() method
+                    p.join()        # Process.join() to wait for task completion
+            if MyCredentials.linux_booking:
+                for i in range (MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]):
+                    node = MyCredentials.linux_node_name + '0' + str(i) if i <= 9 else MyCredentials.linux_node_name + str(i)
+                    p = Process(i, initiate.user, node)
+                    p.start()       # Create a new process and invoke the Process.run() method
+                    p.join()        # Process.join() to wait for task completion
+        else:
+            print ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
+    else:
+        if (MyCredentials.windows_node_name in initiate.node and 
+                int(initiate.node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]) or 
+                (MyCredentials.linux_node_name in initiate.node and 
+                int(initiate.node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]))):
+            p = Process("", initiate.user, initiate.node)
             p.start()       # Create a new process and invoke the Process.run() method
             p.join()        # Process.join() to wait for task completion
-    else:
-        p = Process("", initiate.user, initiate.node)
-        p.start()       # Create a new process and invoke the Process.run() method
-        p.join()        # Process.join() to wait for task completion
+        else:
+            print ("<", initiate.node, "> is not in bookable range") if MyPrintCondition.fprint else 0
 
 
 if __name__ == '__main__':
