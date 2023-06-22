@@ -56,13 +56,13 @@ def main():
     if not initiate.node:
         if MyCredentials.windows_general or MyCredentials.linux_general:
             if MyCredentials.windows_general:
-                for i in range (MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]):
+                for i in range (MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
                     node = MyCredentials.windows_node_name + '0' + str(i) if i <= 9 else MyCredentials.windows_node_name + str(i)
                     p = Process(i, initiate.user, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
             if MyCredentials.linux_general:
-                for i in range (MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]):
+                for i in range (MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
                     node = MyCredentials.linux_node_name + '0' + str(i) if i <= 9 else MyCredentials.linux_node_name + str(i)
                     p = Process(i, initiate.user, node)
                     p.start()       # Create a new process and invoke the Process.run() method

@@ -1,5 +1,6 @@
 # logs off user from node
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.node import Node as MyNode
 from vscheduler.modules.cluster.ostype import find_os
 
@@ -23,7 +24,7 @@ def logoff(user, node):
             
             if any(user in x for x in stdout_query_copy):
                 for line in stdout_query_copy:
-                    if line.split()[1] == user:
+                    if line.split()[1] == user and user not in MyCredentials.exception:
                         stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command("logoff %s" % (line.split()[2]))
                         std_print(stdin_logoff, stdout_logoff, stderr_logoff)
                         print (f"session for", user, "was killed on", node) if MyPrintCondition.fprint else 0
@@ -38,7 +39,7 @@ def logoff(user, node):
             
             if any(user in x for x in stdout_query_copy):
                 for line in stdout_query_copy:
-                    if line.split()[0] == user:
+                    if line.split()[0] == user and user not in MyCredentials.exception:
                         stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command("sudo pkill -KILL -u %s" % (line.split()[0]))
                         std_print(stdin_logoff, stdout_logoff, stderr_logoff)
                         print (f"session for", user, "was killed on", node) if MyPrintCondition.fprint else 0

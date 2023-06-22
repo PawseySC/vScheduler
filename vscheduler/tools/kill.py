@@ -43,13 +43,13 @@ def main():
     if not initiate.node:
         if MyCredentials.windows_booking or MyCredentials.windows_general:
             if MyCredentials.windows_booking:
-                for i in range (MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]):
+                for i in range (MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
                     node = MyCredentials.windows_node_name + '0' + str(i) if i <= 9 else MyCredentials.windows_node_name + str(i)
                     p = Process(i, initiate.user, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
             if MyCredentials.windows_general:
-                for i in range (MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]):
+                for i in range (MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
                     node = MyCredentials.windows_node_name + '0' + str(i) if i <= 9 else MyCredentials.windows_node_name + str(i)
                     p = Process(i, initiate.user, node)
                     p.start()       # Create a new process and invoke the Process.run() method
@@ -58,13 +58,13 @@ def main():
             print ("There is no Windows partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
         if MyCredentials.linux_booking or MyCredentials.linux_general:
             if MyCredentials.linux_booking:
-                for i in range (MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]):
+                for i in range (MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
                     node = MyCredentials.linux_node_name + '0' + str(i) if i <= 9 else MyCredentials.linux_node_name + str(i)
                     p = Process(i, initiate.user, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
             if MyCredentials.linux_general:
-                for i in range (MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]):
+                for i in range (MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
                     node = MyCredentials.linux_node_name + '0' + str(i) if i <= 9 else MyCredentials.linux_node_name + str(i)
                     p = Process(i, initiate.user, node)
                     p.start()       # Create a new process and invoke the Process.run() method
