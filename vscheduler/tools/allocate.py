@@ -4,8 +4,8 @@ from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.modules.cluster.who import who
-from vscheduler.modules.cluster.session import session
-from vscheduler.modules.cluster.logoff import logoff
+#from vscheduler.modules.cluster.session import session
+# from vscheduler.modules.cluster.logoff import logoff
 from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.guaca.guacausergroup import guacamole_user_group
 from vscheduler.modules.guaca.checkgroup import check_group
@@ -26,6 +26,7 @@ class Process(multiprocessing.Process):
         print("\n==>Process id: {}".format(self.id)) if MyPrintCondition.fprint and self.id else 0
 
         users = who(self.hostname) if not self.username else [self.username]                        # retreives node logged in users
+        print ("users=>", users)
         node_entity = entity(self.hostname)        
         node_group = guacamole_user_group(node_entity[0][0])
         group_check = check_group (node_group[0][0])
@@ -35,13 +36,13 @@ class Process(multiprocessing.Process):
 
         if users:
             for user in users:
-                length = session(self.hostname, user)
+                #length = session(self.hostname, user)
                 user_entity = entity(user)  
                 if not group_check or group_check[0][0] != node_group[0][0]:                        # if user's connected to a node -> remove it from general poll & asigne it to that node connection group
                     update(user_entity[0][0], node_group[0][0])                 
-                elif group_check and int(length) > (MyCredentials.general_pool_wall_time)*3600:     # if session's left open or longer than allowed -> kill the session & revert the user back into general pool 
-                    update(group_check[0][1], pool_group[0][0])
-                    logoff(user, self.hostname)
+                #elif group_check and int(length) > (MyCredentials.general_pool_wall_time)*3600:     # if session's left open or longer than allowed -> kill the session & revert the user back into general pool 
+                    #update(group_check[0][1], pool_group[0][0])
+                    #logoff(user, self.hostname)
         elif not users and group_check:                                                             # if user's not logged in -> revert it back to general pool
             update(group_check[0][1], pool_group[0][0])
         else:

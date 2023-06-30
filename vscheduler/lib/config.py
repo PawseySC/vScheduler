@@ -37,12 +37,12 @@ class Credentials:
     # range = [1,4]
     windows_booking = True
     windows_general = False
-    windows_booking_pool_range = [1,4]
-    windows_general_pool_range = [4,7]
+    windows_booking_range = [1,4]
+    windows_general_range = [4,7]
     linux_booking = False
     linux_general = True
-    linux_booking_pool_range = [1,4]
-    linux_general_pool_range = [4,7]
+    linux_booking_range = [1,4]
+    linux_general_range = [4,7]
     pool = 'pool'                       # name of general pool connection group in guacamole
     domain = 'example.domain'           # e.g.: w01.example.domain
 

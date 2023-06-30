@@ -8,6 +8,7 @@ from vscheduler.modules.cluster.ostype import find_os
 def who(node: str) -> str:
     my_connection = MyNode.connect_node(node)
     node_os = find_os(node)
+    print ("node_os=>", node_os)
     users =[]
     try:
 

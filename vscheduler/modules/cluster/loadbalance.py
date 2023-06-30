@@ -3,38 +3,48 @@ import multiprocessing, click
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
-from vscheduler.modules.cluster.usage import cpu
+# from vscheduler.modules.cluster.usage import cpu
 from vscheduler.modules.cluster.who import who
 from vscheduler.modules.guaca.entity import entity
-from vscheduler.modules.guaca.guacausergroup import guacamole_user_group
-from vscheduler.modules.guaca.checkgroup import check_group
-from vscheduler.modules.guaca.update import update
+# from vscheduler.modules.guaca.guacausergroup import guacamole_user_group
+# from vscheduler.modules.guaca.checkgroup import check_group
+# from vscheduler.modules.guaca.update import update
 from vscheduler.modules.guaca.connperm import connection_permission
-import numpy as np
+# import numpy as np
 
 
-def loadbalance():
-    x = np.zeros((2,3))
-    for i in range (MyCredentials.range[0], MyCredentials.range[1]):
-        node = MyCredentials.node_name + '0' + str(i) if i <= 9 else MyCredentials.node_name + str(i)
-        if cpu(node):
-            if i == 1:
-                x = [[node, cpu(node), len(who(node))]]
-            else:
-                x = np.append(x, [[node, cpu(node), len(who(node))]], axis = 0)
-        else:
-            if i == 1:
-                x = [[node, '0', len(who(node))]]
-            else:
-                x = np.append(x, [[node, '0', len(who(node))]], axis = 0)
-    print (x) if MyPrintCondition.fprint else 0
-    y = x[x[:, 2].argsort()]            # 1 -> sort based on cpu usage, 2 -> sort based on number of connections; sorts in ascending order
-    print ("sorted as:\n", y) if MyPrintCondition.fprint else 0
+def loadbalance(usage_data):
+    # x = {}
+    # for i in range (MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
+    #     node = MyCredentials.linux_node_name + '0' + str(i) if i <= 9 else MyCredentials.linux_node_name + str(i)
+        # if cpu(node):
+        #     if i == 1:
+        #         x = [[node, cpu(node), len(who(node))]]
+        #     else:
+        #         x = np.append(x, [[node, cpu(node), len(who(node))]], axis = 0)
+        # else:
+        #     if i == 1:
+        #         x = [[node, '0', len(who(node))]]
+        #     else:
+        #         x = np.append(x, [[node, '0', len(who(node))]], axis = 0)
+    #     x[node] = [0, len(who(node))]
+        
+    # print (x) if MyPrintCondition.fprint else 0
+    # y = x[x[:, 2].argsort()]            # 1 -> sort based on cpu usage, 2 -> sort based on number of connections; sorts in ascending order
+    # y = dict(sorted(x.items(), key=lambda item: item[1]))
+    # print ("sorted as:\n", y) if MyPrintCondition.fprint else 0
+    sorted_usage_data = dict(sorted(usage_data.items(), key=lambda item: item[1], reverse=True))
+    print ("sorted usage_data:", sorted_usage_data)
+    print ("list(sorted_usage_data.values())[0][0]=>", list(sorted_usage_data.values())[0][0])
+    # print ("list(y.keys()[0])=>", list(y.keys())[0])
+    # print("list(y.values())[0][1]=>", list(y.values())[0][1])
 
-    node_entity = entity(y[0, 0])        
-    node_group = guacamole_user_group(node_entity[0][0])
+    node_entity = entity(list(sorted_usage_data.values())[0][0])
+    # node_entity = entity(list(y.keys())[0])
+    # node_entity = entity(y[0, 0])        
+    # node_group = guacamole_user_group(node_entity[0][0])
     pool_entity = entity(MyCredentials.pool)
-    pool_group = guacamole_user_group(pool_entity[0][0])
+    # pool_group = guacamole_user_group(pool_entity[0][0])
 
     print('node_entity',node_entity) if MyPrintCondition.fprint else 0
     print('pool_entity',pool_entity) if MyPrintCondition.fprint else 0

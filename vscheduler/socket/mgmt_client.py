@@ -1,46 +1,29 @@
-# multiconn-client.py
+import socket, time
 
-import sys
-import socket
-import selectors
-import types
+def client_program():
+    hosts = ["192.168.2.66", "192.168.2.144"]
+    port = 65002
+    all_data = {}
 
-sel = selectors.DefaultSelector()
-messages = [b"Message 1 from client.", b"Message 2 from client."]
+    for host in hosts:
+        client_socket = socket.socket()  # instantiate
+        client_socket.connect((host, port))  # connect to the server
 
-hosts = ["127.0.0.1"]
-port = 54321
+        message = "Requesting data from " + str(host)
 
-import socket, os, pickle
+        while True:
+            client_socket.send(message.encode())  # send message
+            data = client_socket.recv(1024).decode()  # receive response
 
-# IP = socket.gethostbyname(socket.gethostname())
-# IP = "127.0.0.1"
-IPs = ["127.0.0.1"]
-PORT = 54321
-# host = socket.gethostname()
-# user = os.getlogin()
-# ADDR = (IP, PORT)
-SIZE = 1024
-FORMAT = "utf-8"
-DISCONNECT_MSG = "!DISCONNECT"
-
-def start_connections():
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    connected = True
-    for IP in IPs:
-        while connected:
+            print (f"Received from {host}: {data}")  # show in terminal
+            all_data[host] = data.split(",")
+            if data:
+                break
         
-            ADDR = (IP, PORT)
-            client.connect(ADDR)
-            print(f"[CONNECTED] MGMT client connected to COMP server at {IP}:{PORT}")
-            msg = "mgmt"
+        client_socket.close()  # close the connection
+        time.sleep(0.1)
 
-            client.send((msg).encode(FORMAT))
+    return all_data
 
-            #msg = client.recv(SIZE).decode(FORMAT)
-            msg = client.recv(SIZE)
-            print(f"[COMP SERVER] sent: {msg}")
-            connected = False
-# if __name__ == "__main__":
-#     start_connections()
+# if __name__ == '__main__':
+#     client_program()
