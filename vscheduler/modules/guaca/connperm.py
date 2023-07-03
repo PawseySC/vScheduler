@@ -9,7 +9,7 @@ my_cursor = my_connection.cursor()
 def guacamole_connection(node):
     try:
         sentence = []
-        connection = "select connection_id, connection_name from guacamole_connection WHERE connection_name = '%s'" %(node)
+        connection = "SELECT connection_id, connection_name FROM guacamole_connection WHERE connection_name = '%s'" %(node)
         my_cursor.execute(connection)
         connection_results = my_cursor.fetchall()
         if MyPrintCondition.fprint:

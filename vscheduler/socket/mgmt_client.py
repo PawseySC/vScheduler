@@ -7,7 +7,11 @@ def client_program():
 
     for host in hosts:
         client_socket = socket.socket()  # instantiate
-        client_socket.connect((host, port))  # connect to the server
+        try:
+            client_socket.connect((host, port))  # connect to the server
+        except socket.error as e:
+            print (f"Caught exception socket.error: {e}")
+            continue
 
         message = "Requesting data from " + str(host)
 

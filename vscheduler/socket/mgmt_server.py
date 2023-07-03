@@ -3,6 +3,8 @@ from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.modules.cluster.emptypool import empty
 from vscheduler.modules.cluster.revertuser import revert
 from vscheduler.modules.cluster.loadbalance import loadbalance
+from vscheduler.modules.cluster.logoff import logoff
+from vscheduler.modules.cluster.checkpool import checkpool
 from vscheduler.socket.mgmt_client import client_program as data_agent
 
 IP = ""
@@ -29,19 +31,22 @@ def handle_client(conn, addr):
             print ("msg.split(",")[1]=>user=>", msg.split(",")[1])
             revert(msg.split(",")[1])
         else:
-            # removes connected node from general pool in guaca
-            print ("empty now")
-            empty(msg.split(",")[0], msg.split(",")[1])
+            if len(checkpool(node, MyCredentials.pool)):        # if user goes to static url of specific node
+                # removes connected node from general pool in guaca
+                print ("empty now")
+                empty(msg.split(",")[0], msg.split(",")[1])
 
-            # put user member of connected node in guaca by triggering valloc 
-            print("valloc now")
-            subprocess.run(['valloc', '-n', node, '-u', user, '-v'])
+                # put user member of connected node in guaca by triggering valloc 
+                print("valloc now")
+                subprocess.run(['valloc', '-n', node, '-u', user, '-v'])
 
-            # calls mgmt_client to collect usage data in vis nodes as feed for loadbalance
-            usage_data = data_agent()
-            print ("usage_data=>", usage_data)
-            print ("load balance now")
-            loadbalance(usage_data)
+                # calls mgmt_client to collect usage data in vis nodes as feed for loadbalance
+                usage_data = data_agent()
+                print ("usage_data=>", usage_data)
+                print ("load balance now")
+                loadbalance(usage_data)
+            else:
+                logoff(user, node)
 
         conn.send(msg.encode(FORMAT))
         connected = False
