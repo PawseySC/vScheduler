@@ -16,7 +16,7 @@ def main():
     connected = True
     while connected:
         msg = [host, user]
-        client.send((msg[0]+","+msg[1]).encode(FORMAT))
+        client.send((msg[0] + "," + msg[1]).encode(FORMAT))
         msg = client.recv(SIZE)
         print(f"[MGMT SERVER] sent: {msg}")
         connected = False

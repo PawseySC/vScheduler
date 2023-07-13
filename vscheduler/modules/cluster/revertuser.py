@@ -9,6 +9,9 @@ def revert(user):
     pool_group = guacamole_user_group(pool_entity[0][0])
 
     user_entity = entity(user)
+    print ("pool_entity=>", pool_entity)
+    print ("pool_group=>", pool_group)
+    print ("user_entity=>", user_entity)
     update(user_entity[0][0], pool_group[0][0])
 
 # if __name__ == "__main__":

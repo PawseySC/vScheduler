@@ -6,7 +6,7 @@ ADDR = (IP, PORT)
 SIZE = 1024
 FORMAT = "utf-8"
 hostname = socket.gethostname()
-exception = [""]
+exception = ["root"]
 
 def handle_client(conn, addr):
     print(f"[NEW MGMT CONNECTION TO VIS NODE] {addr}")
