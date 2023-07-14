@@ -1,26 +1,27 @@
 **Visualisation Scheduler - Pawsey Supercomputing Centre**
 -----------------------------------------------------------
 
-Apply below *Pres-setup* instruction for client-server communication and *Setup* step for vscheduler in `SQL` branch; `API` version to be developed.
+Apply below *Pre-setup* instruction for client-server communication and *Setup* step for vscheduler in `SQL` branch (`API` version to be developed).
 
 
 ## Pre-setup
 
-1. Locate `socket/mgmt*.py` files in management instance and `socket/comp*.py` files in each compute/vis nodes.
+1. Leave `vscheduler/socket/mgmt*.py` files in management instance and add `vscheduler/socket/vis*.py` files to each vis nodes.
 
-2. Have `socket/*server.py` run as a service on management and compute/vis instances; leave ip as blank and set the port.
+2. Have `vscheduler/socket/*server.py` run as a service on management and vis instances; leave ip as blank and make sure those have different ports.
 
-e.g. in management (same for compute/vis node):
+**For management instance:**
 
-Create new service in `/etc/systemd/system/socket-server.service` as below:
+Create new service in `/etc/systemd/system/mgmt_socket.service` as below:
 ```
 [Unit]
-Description=socket-server
+Description=mgmt_socket
 
 [Service]
 User=ubuntu
 Type=simple
-ExecStart=/home/ubuntu/visualisation_scheduler/vs/bin/python3 /home/ubuntu/visualisation_scheduler/vscheduler/socket/mgmt-server.py
+ExecStart=/home/ubuntu/visualisation_scheduler/vs/bin/python3 /home/ubuntu/visualisation_scheduler/vscheduler/socket/mgmt_server.py
+Environment="PATH=/home/ubuntu/visualisation_scheduler/vs/bin"
 Restart=always
 
 [Install]
@@ -29,16 +30,49 @@ WantedBy=multi-user.target
 and enable/start it:
 ```
 systemctl daemon-reload
-systemctl enable socket-server.service
-systemctl start socket-server.service
+systemctl enable mgmt_socket.service
+systemctl start mgmt_socket.service
 ```
 
-2. Locate `socket/*client.py` on management and compute/vis nodes in `/etc/profile.d/client.py` and set server's ip and port; For `mgmt-client.py` set ips of all destination nodes in a list where ip of management instance only is needed to be set in each `comp-client.py`. To run the script at each user login attempt in compute/vis node, add below line to `/etc/profile` on each node:
+**For vis nodes:**
+
+Create new service in `/etc/systemd/system/vis_socket.service` as below:
 ```
-/usr/bin/python3 /etc/profile.d/client.py
+[Unit]
+Description=vis_socket
+
+[Service]
+User=admin
+Type=simple
+ExecStart=/usr/bin/python3 <FOLDER>/vis_server.py
+Restart=always
+StandardInput=tty-force
+
+[Install]
+WantedBy=multi-user.target
+```
+and enable/start it:
+```
+systemctl daemon-reload
+systemctl enable vis_socket.service
+systemctl start vis_socket.service
 ```
 
-3. Arrange admin access for management instance on each destination node by:
+2. Locate `vscheduler/socket/vis_client*.py` on vis nodes in `/etc/profile.d/` and set management instance (server) ip and port; For `mgmt_client.py`, set ips of all destination nodes in a list. 
+
+3. To run the login script at each user login event in vis nodes, add below line to EOF `/etc/profile`:
+```
+/usr/bin/python3 /etc/profile.d/vis_client_login.py
+```
+
+4. To run the logout script at each user logout event in vis nodes, add below line to EOF `/etc/bash.bash_logout`:
+```
+/usr/bin/python3 /etc/profile.d/vis_client_logout.py
+```
+
+> Note: Steps 3 & 4 are for bash sessions only. For desktop sessions, you need to edit relevant desktop manager files to trigger scripts at login/out events.
+
+5. Arrange admin access for management instance on each destination node by:
 ```
 sudo adduser admin
 sudo usermod -aG sudo admin
@@ -56,12 +90,11 @@ To have the script running environment clean and isolated, install all packages 
 
 ```
 sudo apt install python3-pip
+# next install and setup virtualenv:
 pip install --user virtualenv && PATH=$PATH:$HOME/.local/bin    # it's a good practice to have PATH in .bashrc
-# OR
-sudo apt install python3-virtualenv
-# then:
 virtualenv vs                           
 # OR 
+sudo apt install python3-virtualenv
 python -m venv vs
 # finally:
 source vs/bin/activate
