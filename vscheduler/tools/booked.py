@@ -44,6 +44,7 @@ class Process(multiprocessing.Process):
                     reservations = user_reservations_by_user_id(user_identity[0][0])                # retreives user booking records
                 else: 
                     print (f"user <", user, "> does not exist in booked db")
+                    logoff(user, self.hostname)
                     continue    
                 # print (f"reservations for", user, reservations)
                 if instances:
