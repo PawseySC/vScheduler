@@ -1,4 +1,5 @@
 import socket, time
+from vscheduler.general.alert import mailFunction
 
 def client_program():
     hosts = ["192.168.2.66", "192.168.2.144"]
@@ -11,6 +12,7 @@ def client_program():
             client_socket.connect((host, port))  # connect to the server
         except socket.error as e:
             print (f"Caught exception socket.error: {e}")
+            mailFunction("socket error","error connecting vis node socket server" + e, "", "")
             continue
 
         message = "Requesting data from " + str(host)

@@ -12,7 +12,12 @@ exception = ["admin"]
 def main():
     if user not in exception:
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client.connect(ADDR)
+        try:
+            client.connect(ADDR)
+        except socket.error as e:
+            print (f"Caught exception socket.error: {e}")
+            os.system(f'pkill -KILL -u {user}')
+
         print(f"[CONNECTED] VIS CLIENT TO MGMT SERVER AT {IP}:{PORT}")
 
         connected = True
