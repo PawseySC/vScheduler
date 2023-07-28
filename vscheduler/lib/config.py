@@ -52,5 +52,4 @@ class Credentials:
     email_server = '127.0.0.1'
 
     # Log level: INFO, DEBUG, WARNING, ERROR, CRITICAL
-    file_log_level = 'INFO'
-    stream_log_level = 'CRITICAL'
+    log_level = 'INFO'
