@@ -1,5 +1,6 @@
 # allocates least busy node to general pool conection group
 import multiprocessing, click
+from vscheduler.log.log import Capture_log
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
@@ -12,6 +13,8 @@ from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.guaca.connperm import connection_permission
 # import numpy as np
 
+pool_records = Capture_log("pool", __file__)
+logger = pool_records.log_agent()
 
 def loadbalance(usage_data):
     # x = {}
@@ -34,8 +37,8 @@ def loadbalance(usage_data):
     # y = dict(sorted(x.items(), key=lambda item: item[1]))
     # print ("sorted as:\n", y) if MyPrintCondition.fprint else 0
     sorted_usage_data = dict(sorted(usage_data.items(), key=lambda item: item[1], reverse=True))
-    print ("sorted usage_data:", sorted_usage_data)
-    print ("list(sorted_usage_data.values())[0][0]=>", list(sorted_usage_data.values())[0][0])
+    logger.info (f"sorted usage_data: {sorted_usage_data}")
+    logger.info ("list(sorted_usage_data.values())[0][0]=>", str(list(sorted_usage_data.values())[0][0]))
     # print ("list(y.keys()[0])=>", list(y.keys())[0])
     # print("list(y.values())[0][1]=>", list(y.values())[0][1])
 
@@ -46,6 +49,6 @@ def loadbalance(usage_data):
     pool_entity = entity(MyCredentials.pool)
     # pool_group = guacamole_user_group(pool_entity[0][0])
 
-    print('node_entity',node_entity) if MyPrintCondition.fprint else 0
-    print('pool_entity',pool_entity) if MyPrintCondition.fprint else 0
+    logger.info (f"node_entity: {node_entity}")
+    logger.info (f"pool_entity: {pool_entity}")
     connection_permission(node_entity[0][1], pool_entity[0][0])
