@@ -5,7 +5,7 @@ from vscheduler.lib.database import Database as MyDatabase
 my_connection = MyDatabase.connect_guaca_db()
 my_cursor = my_connection.cursor()
 
-pool_records = Capture_log("pool", __file__)
+pool_records = Capture_log("booking/pool", __file__)
 logger = pool_records.log_agent()
 
 def modify(x,y):
@@ -19,10 +19,10 @@ def modify(x,y):
         print (f"{my_cursor.rowcount} record(s) affected") if MyPrintCondition.fprint else 0
         logger.info (f"{my_cursor.rowcount} record(s) affected")
         if my_cursor.rowcount:
-            print("session link was removed for member entiry id <", x,"> in user group id <", y,">") if MyPrintCondition.fprint and x else 0
-            print("session link was removed for user group id <", y,">") if MyPrintCondition.fprint and not x else 0
-            logger.info ("session link was removed for member entiry id < {x} > in user group id < {y} >") if x else 0
-            logger.info ("session link was removed for user group id < {y} >") if not x else 0
+            print(f"session link was removed for member entiry id < {x} > in user group id < {y} >") if MyPrintCondition.fprint and x else 0
+            print(f"session link was removed for user group id < {y} >") if MyPrintCondition.fprint and not x else 0
+            logger.info (f"session link was removed for member entiry id < {x} > in user group id < {y} >") if x else 0
+            logger.info (f"session link was removed for user group id < {y} >") if not x else 0
     except:
         print (f"error deleting recorde for member_entity_id < {x} > and user_group_id < {y} >") if MyPrintCondition.fprint else 0
         logger.error (f"error deleting recorde for member_entity_id < {x} > and user_group_id < {y} >")

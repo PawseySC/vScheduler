@@ -29,6 +29,6 @@ def empty(node, user):
     if node_entity is not None and pool_entity is not None:
         del_connection(node_entity[0][1], pool_entity[0][0])
     else:
-        mailFunction(f"NoneType error","NoneType object is not subscriptable\nvscheduler > modules > cluster > emptypool > empty > del_connection (line 27)\nnode_entity = entity({node}) = {node_entity}\npool_entity = entity({MyCredentials.pool}) = {pool_entity}", "", "")
+        mailFunction("NoneType error",f"NoneType object is not subscriptable\nvscheduler > modules > cluster > emptypool > empty > del_connection (line 30)\nnode_entity = entity({node}) = {node_entity}\npool_entity = entity({MyCredentials.pool}) = {pool_entity}", "", "")
         logger.critical (f"NoneType object is not subscriptable, node_entity is empty")
         exit

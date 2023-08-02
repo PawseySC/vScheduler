@@ -38,7 +38,7 @@ def loadbalance(usage_data):
     # print ("sorted as:\n", y) if MyPrintCondition.fprint else 0
     sorted_usage_data = dict(sorted(usage_data.items(), key=lambda item: item[1], reverse=True))
     logger.info (f"sorted usage_data: {sorted_usage_data}")
-    logger.info ("list(sorted_usage_data.values())[0][0]=>", str(list(sorted_usage_data.values())[0][0]))
+    logger.info (f"list(sorted_usage_data.values())[0][0]=> {list(sorted_usage_data.values())[0][0]}")
     # print ("list(y.keys()[0])=>", list(y.keys())[0])
     # print("list(y.values())[0][1]=>", list(y.values())[0][1])
 

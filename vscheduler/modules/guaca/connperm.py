@@ -26,7 +26,7 @@ def guacamole_connection(node):
         return connection_results if connection_results else ""
     except:
         print (f"error fetching connection identification records for < {node} >") if MyPrintCondition.fprint else 0
-        logger.error(f"error fetching connection identification records for < {node} >")
+        logger.error (f"error fetching connection identification records for < {node} >")
     
 def connection_permission(conn, pool):
     try:
@@ -49,7 +49,7 @@ def connection_permission(conn, pool):
             logger.info (f"{my_cursor.rowcount} record(s) affected by updating pool connection permission")
     except:
         print (f"error updating the record for entity_id < {conn_name} > and guacamole_connection_permission < {pool} >") if MyPrintCondition.fprint else 0
-        logger.error(f"error updating the record for entity_id < {conn_name} > and guacamole_connection_permission < {pool} >")
+        logger.error (f"error updating the record for entity_id < {conn_name} > and guacamole_connection_permission < {pool} >")
 
 
 def del_connection(conn, pool):
@@ -70,4 +70,4 @@ def del_connection(conn, pool):
             logger.info (f"guacamole general pool < {pool} > has no connection")
     except:
         print (f"error emptying the pool < {pool} > from entity_id < {conn_name} >") if MyPrintCondition.fprint else 0
-        logger.info (f"error emptying the pool < {pool} > from entity_id < {conn_name} >")
+        logger.error (f"error emptying the pool < {pool} > from entity_id < {conn_name} >")

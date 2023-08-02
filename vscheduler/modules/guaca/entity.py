@@ -6,7 +6,7 @@ from vscheduler.lib.database import Database as MyDatabase
 my_connection = MyDatabase.connect_guaca_db()
 my_cursor = my_connection.cursor()
 
-pool_records = Capture_log("pool", __file__)
+pool_records = Capture_log("booking/pool", __file__)
 logger = pool_records.log_agent()
 
 def entity(feed):
@@ -25,5 +25,5 @@ def entity(feed):
         logger.info ("\n" + tabulate(sentence, headers=['entity_id', 'name']))
         return  entity_id_results
     except:
-        print ("error: user group record not found in guacamole database") if MyPrintCondition.fprint else 0
-        logger.error(f"user group record not found in guacamole database")
+        print (f"error: user group record for {feed} was not found in guacamole database") if MyPrintCondition.fprint else 0
+        logger.error(f"user group record for {feed} was not found in guacamole database")

@@ -5,7 +5,7 @@ from vscheduler.lib.database import Database as MyDatabase
 my_connection = MyDatabase.connect_guaca_db()
 my_cursor = my_connection.cursor()
 
-pool_records = Capture_log("pool", __file__)
+pool_records = Capture_log("booking/pool", __file__)
 logger = pool_records.log_agent()
 
 def insert(x,y):

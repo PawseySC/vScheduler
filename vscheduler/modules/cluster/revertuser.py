@@ -11,7 +11,7 @@ logger = pool_records.log_agent()
 
 def revert(user):
     pool_entity = entity(MyCredentials.pool)
-    logger.info ("pool_entity: {pool_entity}")
+    logger.info (f"pool_entity: {pool_entity}")
     if pool_entity is not None:
         pool_group = guacamole_user_group(pool_entity[0][0])
     else:
@@ -20,9 +20,9 @@ def revert(user):
         exit
 
     user_entity = entity(user)
-    logger.info ("pool_entity: {pool_entity}")
-    logger.info ("pool_group: {pool_group}")
-    logger.info ("user_entity: {user_entity}")
+    logger.info (f"pool_entity: {pool_entity}")
+    logger.info (f"pool_group: {pool_group}")
+    logger.info (f"user_entity: {user_entity}")
     update(user_entity[0][0], pool_group[0][0])
 
 # if __name__ == "__main__":

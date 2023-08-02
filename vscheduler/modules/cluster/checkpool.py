@@ -1,11 +1,15 @@
 # checks the general pool connection node
 from tabulate import tabulate
+from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.guaca.connperm import guacamole_connection
 my_connection = MyDatabase.connect_guaca_db()
 my_cursor = my_connection.cursor()
+
+pool_records = Capture_log("pool", __file__)
+logger = pool_records.log_agent()
 
 def checkpool(node, pool):
     pool_entity = entity(pool)
@@ -21,8 +25,12 @@ def checkpool(node, pool):
                 entity_id = row_query[1]
                 sentence.insert(len(sentence), [connection_id , entity_id])
         print ("=>EMPTY") if MyPrintCondition.fprint and not query_results else 0 
+        logger.info ("=>EMPTY")
         print ("\n", tabulate(sentence, headers=['connection_id', 'entity_id'])) if MyPrintCondition.fprint and query_results else 0
-        print(query_results)
+        logger.info ("\n" + tabulate(sentence, headers=['connection_id', 'entity_id']))
+        print (f"query_results: {query_results}")
+        logger.info (f"query_results: {query_results}")
         return query_results if query_results else ""
     except:
-        print (f"error fetching pool info for node <", node, "> and pool <", pool, ">") if MyPrintCondition.fprint else 0
+        print (f"error fetching pool info for node < {node} > and pool < {pool} >") if MyPrintCondition.fprint else 0
+        logger.error (f"error fetching pool info for node < {node} > and pool < {pool} >")

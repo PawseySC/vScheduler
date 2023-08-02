@@ -15,8 +15,8 @@ def client_program():
         try:
             client_socket.connect((host, port))         # connect to the server
         except socket.error as e:
-            logger.critical (f"Caught exception socket.error: {e}")
-            mailFunction("socket error","error connecting vis node socket server" + e, "", "")
+            logger.critical (f"Caught exception socket.error: {e} {host} {port}")
+            mailFunction("socket error","error connecting vis node socket server\n" + e + " " + host + " " + port, "", "")
             continue
 
         message = "Requesting data from " + str(host)
