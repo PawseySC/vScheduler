@@ -8,6 +8,7 @@ from vscheduler.modules.cluster.loadbalance import loadbalance
 from vscheduler.modules.cluster.logoff import logoff
 from vscheduler.modules.cluster.checkpool import checkpool
 from vscheduler.socket.mgmt_client import client_program as data_agent
+from vscheduler.modules.guaca.fill_pool import fillup as fill_up
 
 IP = ""
 PORT = 65001
@@ -48,10 +49,15 @@ def handle_client(conn, addr):
             subprocess.run(['valloc', '-n', node, '-u', user, '-v'])
 
             # calls mgmt_client to collect usage data in vis nodes as feed for loadbalance
-            usage_data = data_agent()
-            logger.info (f"Usage data obtained from accessible nodes: {usage_data}")
-            logger.info ("Load balancing...")
-            loadbalance(usage_data)
+            if MyCredentials.load_balance:
+                logger.warning ("load_balance = TRUE")
+                usage_data = data_agent()
+                logger.info (f"Usage data obtained from accessible nodes: {usage_data}")
+                logger.info ("Load balancing...")
+                loadbalance(usage_data)
+            else:
+                logger.warning ("load_balance = FALSE")
+                fill_up(node)
             # else:
             #     print("logging off")
                 # logoff(user, node)

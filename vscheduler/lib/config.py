@@ -53,3 +53,6 @@ class Credentials:
 
     # Log level: INFO, DEBUG, WARNING, ERROR, CRITICAL
     log_level = 'INFO'
+    
+    # load balance
+    load_balance = False
