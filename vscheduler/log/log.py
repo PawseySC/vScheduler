@@ -19,22 +19,6 @@ class Capture_log(object):
         specified_logger.addHandler(handler)
         return specified_logger
     
-    def log_pool(self):
-        pool_logger = self.extendable_logger('pool_logs ' + self.location, '/home/ubuntu/visualisation_scheduler/vscheduler/log/pool.log')
-        return pool_logger
-    
-    def log_booking(self):
-        booking_logger = self.extendable_logger('booking_logs ' + self.location, '/home/ubuntu/visualisation_scheduler/vscheduler/log/booking.log')
-        return booking_logger
-
-    def log_socket(self):
-        socket_logger = self.extendable_logger('socket_logs ' + self.location, '/home/ubuntu/visualisation_scheduler/vscheduler/log/socket.log')
-        return socket_logger
-    
-    def log_db(self):
-        database_logger = self.extendable_logger('database_logs ' + self.location, '/home/ubuntu/visualisation_scheduler/vscheduler/log/database.log')
-        return database_logger
-    
     def log_agent(self):
         agent_logger = self.extendable_logger(self.flag + " " + self.location, '/home/ubuntu/visualisation_scheduler/vscheduler/log/log.log')
         return agent_logger
