@@ -1,5 +1,6 @@
 # sync script for bookable partition
 import multiprocessing, click
+from vscheduler.log.log import Capture_log
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
@@ -17,7 +18,8 @@ from vscheduler.modules.guaca.insert import insert
 from vscheduler.modules.guaca.update import update
 from vscheduler.modules.guaca.modify import modify
 
-
+booking_records = Capture_log("booking", __file__)
+logger = booking_records.log_agent()
 
 # Process class
 class Process(multiprocessing.Process):
@@ -31,6 +33,7 @@ class Process(multiprocessing.Process):
     def run(self):
         # time.sleep(1)
         print("\n==>Process id: {}".format(self.id)) if MyPrintCondition.fprint and self.id else 0
+        logger.info ("\n==>Process id: {}".format(self.id)) if self.id else 0
         instances = reservation_instances(MyBrackets.start_bracket, MyBrackets.end_bracket)     # retreives booking records within time brackets
         resource_id = host_by_name(self.hostname)                                               # retreives node resource id
         series_ids = resource_reservations(resource_id) if resource_id else exit                # retreives node series ids
@@ -39,13 +42,17 @@ class Process(multiprocessing.Process):
             if series_ids:
                 if instances:
                     for instance in instances:
-                        print (instance)
+                        print (f"instance: {instance}") if MyPrintCondition.fprint else 0
+                        logger.info (f"instance: {instance}")
                         if not any(instance[3] in x for x in series_ids):
-                            print ("booking does not belong to <", self.hostname, "> - skipping") if MyPrintCondition.fprint else 0
+                            print (f"booking does not belong to < {self.hostname} > - skipping") if MyPrintCondition.fprint else 0
+                            logger.info (f"booking does not belong to < {self.hostname} > - skipping")
                         else:                                          
                             print ("\nfound a match") if MyPrintCondition.fprint else 0
+                            logger.info ("\nfound a match")
                             if instance[1] <= MyBrackets.now and instance[2] >= MyBrackets.now:         # if the booking is current
                                 print ("booking for the current time") if MyPrintCondition.fprint else 0
+                                logger.info ("booking for the current time")
                                 reservations = user_reservations_by_instance_id(instance[0])            # retreives user booking records
                                 node_user = user_details_by_user_id(reservations[0][1])                 # retreives user identification
                                 user_entity = entity(node_user[0][3])
@@ -54,6 +61,7 @@ class Process(multiprocessing.Process):
                                 group_check = check_group (user_group[0][0])
                                 if deleted(instance[3])[0][1] == 2:                                     # checks if booking is deleted
                                     print ("deleted booking") if MyPrintCondition.fprint else 0
+                                    logger.info ("deleted booking")
                                     modify(user_entity[0][0], user_group[0][0])
                                 else:
                                     self.found = True
@@ -65,15 +73,19 @@ class Process(multiprocessing.Process):
                                                 update(user_entity[0][0], user_group[0][0])
                                                 break
                             else:
-                                print ("booking not for the current time") if MyPrintCondition.fprint else 0             
+                                print ("booking not for the current time") if MyPrintCondition.fprint else 0
+                                logger.info ("booking not for the current time")
                 else:
-                    print (f"no current booking for <", self.hostname, "> in the time bracket set in the config - skipping") if MyPrintCondition.fprint else 0
+                    print (f"no current booking for < {self.hostname} > in the time bracket set in the config - skipping") if MyPrintCondition.fprint else 0
+                    logger.info (f"no current booking for < {self.hostname} > in the time bracket set in the config - skipping")
                     quit()
             else:
-                print (f"no booking for <", self.hostname, "> - skipping") if MyPrintCondition.fprint else 0
+                print (f"no booking for < {self.hostname} > - skipping") if MyPrintCondition.fprint else 0
+                logger.info (f"no booking for < {self.hostname} > - skipping")
                 quit()
         else:
-            print (f"no resource in booked with name <", self.hostname, "> - skipping") if MyPrintCondition.fprint else 0
+            print (f"no resource in booked with name < {self.hostname} > - skipping") if MyPrintCondition.fprint else 0
+            logger.info (f"no resource in booked with name < {self.hostname} > - skipping")
             quit()
         
         if self.found == False:
@@ -98,6 +110,7 @@ def main():
                     p.join()        # Process.join() to wait for task completion
         else:
             print ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
+            logger.info ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg")
     else:
         if (MyCredentials.windows_node_name in initiate.node and 
                 int(initiate.node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]) or 
@@ -107,8 +120,8 @@ def main():
             p.start()       # Create a new process and invoke the Process.run() method
             p.join()        # Process.join() to wait for task completion
         else:
-            print ("<", initiate.node, "> is not in bookable range") if MyPrintCondition.fprint else 0
-
+            print (f"< {initiate.node} > is not in bookable range") if MyPrintCondition.fprint else 0
+            logger.info (f"< {initiate.node} > is not in bookable range")
 
 
 if __name__ == '__main__':

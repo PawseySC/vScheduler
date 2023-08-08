@@ -1,5 +1,6 @@
 # quota script
 import multiprocessing, click, time
+from vscheduler.log.log import Capture_log
 from tabulate import tabulate
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import Initiation as initiate
@@ -7,6 +8,8 @@ from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.modules.cluster.logoff import logoff
 from vscheduler.modules.cluster.who import who
 
+records = Capture_log("booking/pool", __file__)
+logger = records.log_agent()
 
 # Process class
 class Process(multiprocessing.Process):
@@ -20,13 +23,15 @@ class Process(multiprocessing.Process):
     def run(self):
         # time.sleep(1)
         print ("\n==>> Process id: {}".format(self.id)) if MyPrintCondition.fprint and self.id else 0
+        logger.info ("\n==>Process id: {}".format(self.id)) if self.id else 0
         users = who(self.hostname) if not self.username else [self.username]                        # retreives node logged in users
         sentence = []
         if users:
             if not self.username:
                 for user in users:
                     sentence.insert(len(sentence), [user])
-                print ("\n", tabulate(sentence, headers=[self.hostname + ' logged in users']))
+                print ("\n", tabulate(sentence, headers=[self.hostname + " logged in users"])) if MyPrintCondition.fprint else 0
+                logger.info ("\n" + tabulate(sentence, headers=[self.hostname + " logged in users"]))
             
             # answer = input("Do you want above sessions to be killed? (Y/N)") if not self.username else input("Do you want to kill <", self.username,"> sessions on < ", self.hostname,"> ? (Y/N)")
             # print ("answer", answer)
@@ -36,7 +41,8 @@ class Process(multiprocessing.Process):
             # else:
                 # print ("skipped", self.hostname, "sessions")
         else:
-            print ("no one is logged in <", self.hostname, "> , skipping")
+            print (f"no one is logged in < {self.hostname} > , skipping") if MyPrintCondition.fprint else 0
+            logger.info (f"no one is logged in < {self.hostname} > , skipping")
 
 
 def main():
@@ -56,6 +62,7 @@ def main():
                     p.join()        # Process.join() to wait for task completion
         else:
             print ("There is no Windows partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
+            logger.info ("There is no Windows partition; To enable it edit vscheduler confilg")
         if MyCredentials.linux_booking or MyCredentials.linux_general:
             if MyCredentials.linux_booking:
                 for i in range (MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
@@ -71,6 +78,7 @@ def main():
                     p.join()        # Process.join() to wait for task completion
         else:
             print ("There is no Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
+            logger.info ("There is no Linux partition; To enable it edit vscheduler confilg")
     else:
         p = Process("", initiate.user, initiate.node)
         p.start()       # Create a new process and invoke the Process.run() method
