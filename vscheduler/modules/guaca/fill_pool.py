@@ -3,7 +3,7 @@
 from vscheduler.log.log import Capture_log
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.modules.guaca.entity import entity
-from vscheduler.modules.guaca.connperm import connection_permission
+from vscheduler.modules.guaca.conn_permission import connection_permission
 
 pool_records = Capture_log("pool", __file__)
 logger = pool_records.log_agent()

@@ -5,7 +5,7 @@ from tabulate import tabulate
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
-from vscheduler.modules.cluster.logoff import logoff
+from vscheduler.modules.cluster.log_off import logoff
 from vscheduler.modules.cluster.who import who
 
 records = Capture_log("booking/pool", __file__)

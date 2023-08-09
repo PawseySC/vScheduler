@@ -4,7 +4,7 @@ from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.modules.guaca.entity import entity
-from vscheduler.modules.guaca.connperm import guacamole_connection
+from vscheduler.modules.guaca.conn_permission import guacamole_connection
 my_connection = MyDatabase.connect_guaca_db()
 my_cursor = my_connection.cursor()
 

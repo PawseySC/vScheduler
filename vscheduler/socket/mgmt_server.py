@@ -2,11 +2,11 @@
 import socket, time, threading, subprocess
 from vscheduler.log.log import Capture_log
 from vscheduler.lib.config import Credentials as MyCredentials
-from vscheduler.modules.cluster.emptypool import empty
-from vscheduler.modules.cluster.revertuser import revert
-from vscheduler.modules.cluster.loadbalance import loadbalance
-from vscheduler.modules.cluster.logoff import logoff
-from vscheduler.modules.cluster.checkpool import checkpool
+from vscheduler.modules.guaca.empty_pool import empty
+from vscheduler.modules.guaca.revert_user import revert
+from vscheduler.modules.cluster.load_balance import loadbalance
+from vscheduler.modules.cluster.log_off import logoff
+from vscheduler.modules.guaca.check_pool import checkpool
 from vscheduler.socket.mgmt_client import client_program as data_agent
 from vscheduler.modules.guaca.fill_pool import fillup as fill_up
 

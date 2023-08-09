@@ -1,6 +1,6 @@
 # find os of remote node
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
-from vscheduler.lib.node import Node as MyNode
+from vscheduler.lib.ssh import Node as MyNode
 
 
 def find_os(node):

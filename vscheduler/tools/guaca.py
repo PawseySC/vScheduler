@@ -13,7 +13,7 @@ from vscheduler.modules.booked.instances import reservation_instances           
 from vscheduler.modules.booked.deleted import deleted                                  # retreives status id of each reservation instances
 from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.guaca.guacausergroup import guacamole_user_group
-from vscheduler.modules.guaca.checkgroup import check_group
+from vscheduler.modules.guaca.check_group import check_group
 from vscheduler.modules.guaca.insert import insert
 from vscheduler.modules.guaca.update import update
 from vscheduler.modules.guaca.modify import modify

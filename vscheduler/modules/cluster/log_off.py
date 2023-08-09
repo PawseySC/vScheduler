@@ -2,8 +2,8 @@
 from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.config import Credentials as MyCredentials
-from vscheduler.lib.node import Node as MyNode
-from vscheduler.modules.cluster.ostype import find_os
+from vscheduler.lib.ssh import Node as MyNode
+from vscheduler.modules.cluster.os_type import find_os
 
 booking_records = Capture_log("booking", __file__)
 logger = booking_records.log_agent()

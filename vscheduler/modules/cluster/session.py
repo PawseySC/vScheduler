@@ -1,8 +1,8 @@
 # returns the user session in remote node in sec
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
-from vscheduler.lib.node import Node as MyNode
+from vscheduler.lib.ssh import Node as MyNode
 from vscheduler.lib.config import Credentials as MyCredentials
-from vscheduler.modules.cluster.ostype import find_os
+from vscheduler.modules.cluster.os_type import find_os
 
 
 def session(node: str, user) -> str:

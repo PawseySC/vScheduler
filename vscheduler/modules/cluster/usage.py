@@ -1,7 +1,7 @@
 # get remote node usage info
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
-from vscheduler.lib.node import Node as MyNode
-from vscheduler.modules.cluster.ostype import find_os
+from vscheduler.lib.ssh import Node as MyNode
+from vscheduler.modules.cluster.os_type import find_os
 
 
 def std_print(stdin, stdout, stderr, remove):

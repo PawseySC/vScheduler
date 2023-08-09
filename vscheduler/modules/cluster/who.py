@@ -1,9 +1,9 @@
 # returns who's logged in each node
 from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
-from vscheduler.lib.node import Node as MyNode
+from vscheduler.lib.ssh import Node as MyNode
 from vscheduler.lib.config import Credentials as MyCredentials
-from vscheduler.modules.cluster.ostype import find_os
+from vscheduler.modules.cluster.os_type import find_os
 
 booking_records = Capture_log("booking", __file__)
 logger = booking_records.log_agent()

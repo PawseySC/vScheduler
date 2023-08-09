@@ -12,7 +12,7 @@ from vscheduler.modules.cluster.who import who                                  
 from vscheduler.modules.booked.user import user_details_by_username                # retreives user identification in booked
 from vscheduler.modules.booked.instances import reservation_instances              # retreives reservation instance id, series id, and timeline of bookings for determined time bracket
 from vscheduler.modules.booked.deleted import deleted                              # retreives status id of each reservation instances
-from vscheduler.modules.cluster.logoff import logoff
+from vscheduler.modules.cluster.log_off import logoff
 
 booking_records = Capture_log("booking", __file__)
 logger = booking_records.log_agent()

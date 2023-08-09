@@ -9,7 +9,7 @@ from vscheduler.modules.cluster.who import who
 # from vscheduler.modules.cluster.logoff import logoff
 from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.guaca.guacausergroup import guacamole_user_group
-from vscheduler.modules.guaca.checkgroup import check_group
+from vscheduler.modules.guaca.check_group import check_group
 from vscheduler.modules.guaca.update import update
 
 records = Capture_log("booking/pool", __file__)

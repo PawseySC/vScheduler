@@ -10,7 +10,7 @@ from vscheduler.modules.guaca.entity import entity
 # from vscheduler.modules.guaca.guacausergroup import guacamole_user_group
 # from vscheduler.modules.guaca.checkgroup import check_group
 # from vscheduler.modules.guaca.update import update
-from vscheduler.modules.guaca.connperm import connection_permission
+from vscheduler.modules.guaca.conn_permission import connection_permission
 # import numpy as np
 
 pool_records = Capture_log("pool", __file__)

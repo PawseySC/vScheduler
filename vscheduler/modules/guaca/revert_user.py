@@ -17,7 +17,7 @@ def revert(user):
     else:
         mailFunction("NoneType error",f"NoneType object is not subscriptable\nvscheduler > modules > cluster > revertuser > revert (line 16)\npool_group = guacamole_user_group({pool_entity}) = {pool_group}", "", "")
         logger.critical (f"NoneType object is not subscriptable\nvscheduler > modules > cluster > revertuser > revert (line 16)\npool_group = guacamole_user_group({pool_entity}) = {pool_group}")
-        exit
+        pass
 
     user_entity = entity(user)
     logger.info (f"pool_entity: {pool_entity}")
