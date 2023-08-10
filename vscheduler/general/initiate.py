@@ -8,7 +8,7 @@ class PrintCondition():
     fprint = True if '-v' in sys.argv[1:] or '--verbose' in sys.argv[1:] else False
 
 class Initiation:
-    node = user = ''
+    node = user = ""
     
     for arg in range (1, arg_num-1):
         if sys.argv[arg] == '-u':

@@ -8,7 +8,7 @@ from vscheduler.modules.cluster.who import who
 #from vscheduler.modules.cluster.session import session
 # from vscheduler.modules.cluster.logoff import logoff
 from vscheduler.modules.guaca.entity import entity
-from vscheduler.modules.guaca.guaca_user_group import guacamole_user_group
+from vscheduler.modules.guaca.guacausergroup import guacamole_user_group
 from vscheduler.modules.guaca.check_group import check_group
 from vscheduler.modules.guaca.update import update
 

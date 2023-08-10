@@ -41,8 +41,8 @@ def user_reservations_by_instance_id(id):
         logger.info ("\n" + tabulate(sentence, headers=['reservation_instance_id', 'user_id']))
         return reservation_users_results
     except:
-        print (f"error in retreiving reservation for user with reservation instance id < {id} >") if MyPrintCondition.fprint else 0
-        logger.error (f"error in retreiving reservation for user with reservation instance id < {id} >")
+        print (f"error in retreiving reservation for user with instance id < {id} >") if MyPrintCondition.fprint else 0
+        logger.error (f"error in retreiving reservation for user with instance id < {id} >")
 
 
 def user_reservations():

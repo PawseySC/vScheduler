@@ -3,8 +3,7 @@ from vscheduler.log.log import Capture_log
 from vscheduler.general.alert import mailFunction
 
 def client_program():
-    # hosts = ["192.168.2.66", "192.168.2.144"]
-    hosts = ["146.118.12.34", "146.118.12.35", "146.118.12.37"]
+    hosts = ["192.168.2.66", "192.168.2.144"]
     port = 65002
     all_data = {}
 
@@ -28,12 +27,11 @@ def client_program():
 
             logger.info (f"Received from {host}: {data}")
             all_data[host] = data.split(",")
-            time.sleep(0.1)
             if data:
                 break
         
         client_socket.close()  # close the connection
-        
+        time.sleep(0.1)
 
     return all_data
 

@@ -1,20 +1,15 @@
 # get remote node usage info
-from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.ssh import Node as MyNode
 from vscheduler.modules.cluster.os_type import find_os
 
-pool_records = Capture_log("pool", __file__)
-logger = pool_records.log_agent()
 
 def std_print(stdin, stdout, stderr, remove):
     stdout_copy = []
     if stderr:
-        print ("Errors:", stderr.read()) if MyPrintCondition.fprint else 0
-        logger.error ("Errors:", stderr.read())
+        print("Errors:", stderr.read()) if MyPrintCondition.fprint else 0
     for line in stdout:
         print (line.strip('\n')) if MyPrintCondition.fprint else 0
-        logger.info (line.strip('\n'))
         stdout_copy = str(line.strip('\n')).replace("Available Physical Memory: ",'') if remove == "avail" else str(line.strip('\n')).replace("Total Physical Memory:     ",'')
         stdout_copy = stdout_copy.replace("\r",'')
     return stdout_copy
@@ -39,17 +34,14 @@ def mem(node):
         elif node_os == 'Linux':
             stdin_query , stdout_query, stderr_query = connection.exec_command("free -h")        
             stdout_query_copy = std_print(stdin_query, stdout_query, stderr_query)
-            print (f"stdout_query_copy[1][3], stdout_query_copy[1][1]: {stdout_query_copy[1][3]}, {stdout_query_copy[1][1]}") if MyPrintCondition.fprint else 0
-            logger.info (f"stdout_query_copy[1][3], stdout_query_copy[1][1]: {stdout_query_copy[1][3]}, {stdout_query_copy[1][1]}")
+            print (stdout_query_copy[1][3], stdout_query_copy[1][1])
             return (stdout_query_copy[1][3], stdout_query_copy[1][1])
         else:
-            print (f"no os found for < {node} >") if MyPrintCondition.fprint else 0
-            logger.warning (f"no os found for < {node} >")
+            print (f"no os found for <", node, ">") if MyPrintCondition.fprint else 0
             exit
         connection.close()
     except:
-        print (f"Could not connect to ndoe < {node} > to query memory usage") if MyPrintCondition.fprint else 0
-        logger.error (f"Could not connect to ndoe < {node} > to query memory usage")
+        print (f"Could not connect to ndoe <", node,"> to query memory usage") if MyPrintCondition.fprint else 0
 
 
 def cpu(node):
@@ -76,13 +68,11 @@ def cpu(node):
                 if line.split()[11] != '%idle':
                     return (line.split()[11])
         else:
-            print (f"no os found for < {node} >") if MyPrintCondition.fprint else 0
-            logger.warning (f"no os found for < {node} >")
+            print (f"no os found for <", node, ">") if MyPrintCondition.fprint else 0
             exit
         connection.close()
     except:
-        print (f"Could not connect to ndoe < {node} > to query cpu usage") if MyPrintCondition.fprint else 0
-        logger.error (f"Could not connect to ndoe < {node} > to query cpu usage")
+        print (f"Could not connect to ndoe <", node,"> to query cpu usage") if MyPrintCondition.fprint else 0
 
 
 def gpu(node):
@@ -109,10 +99,8 @@ def gpu(node):
             stdin_query , stdout_query, stderr_query = connection.exec_command('lshw -C display')        
             return stdout_query[1][3]   # this needs to be like above
         else:
-            print (f"no os found for < {node} >") if MyPrintCondition.fprint else 0
-            logger.warning (f"no os found for < {node} >")
+            print (f"no os found for <", node, ">") if MyPrintCondition.fprint else 0
             exit
         connection.close()
     except:
-        print (f"Could not connect to ndoe < {node} > to query cpu usage") if MyPrintCondition.fprint else 0
-        logger.error (f"Could not connect to ndoe < {node} > to query cpu usage")
+        print (f"Could not connect to ndoe <", node,"> to query cpu usage") if MyPrintCondition.fprint else 0

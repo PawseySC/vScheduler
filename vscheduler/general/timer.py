@@ -15,7 +15,6 @@ class Brackets:
     def what_time(now, start_bracket, end_bracket):
         time_records = Capture_log("general", __file__)
         logger = time_records.log_agent()
-        
         local_timezone = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
         print (
                 f"now in system local timezome,", local_timezone, ":", datetime.datetime.now(), 

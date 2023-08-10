@@ -2,7 +2,7 @@
 from vscheduler.log.log import Capture_log
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.modules.guaca.entity import entity
-from vscheduler.modules.guaca.guaca_user_group import guacamole_user_group
+from vscheduler.modules.guaca.guacausergroup import guacamole_user_group
 from vscheduler.modules.guaca.update import update
 from vscheduler.general.alert import mailFunction
 

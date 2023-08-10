@@ -21,7 +21,7 @@ except:
     sys.exit(1)
 
 
-warnings.filterwarnings(action="ignore",module=".*paramiko.*")
+warnings.filterwarnings(action='ignore',module='.*paramiko.*')
 if os.path.isfile(MyCredentials.ssh_key):
     key = paramiko.RSAKey.from_private_key_file(MyCredentials.ssh_key)
 else:

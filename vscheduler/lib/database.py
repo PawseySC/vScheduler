@@ -8,7 +8,6 @@ from vscheduler.general.alert import mailFunction
 
 module_records = Capture_log("database", __file__)
 logger_module = module_records.log_agent()
-
 try:
     import pymysql
 except:
@@ -34,7 +33,7 @@ class Database:
                             passwd=MyCredentials.booked_passwd,
                             db=MyCredentials.booked_db, 
                             port=MyCredentials.booked_port,
-                            charset="utf8")
+                            charset='utf8')
             return db_con
         except:
             print ("error connecting booked db") if MyPrintCondition.fprint else 0
@@ -52,7 +51,7 @@ class Database:
                             passwd=MyCredentials.guaca_passwd,
                             db=MyCredentials.guaca_db,
                             port=MyCredentials.guaca_port, 
-                            charset="utf8")
+                            charset='utf8')
             return db_con
         except:
             print ("error connecting guaca db") if MyPrintCondition.fprint else 0

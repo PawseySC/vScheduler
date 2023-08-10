@@ -48,15 +48,12 @@ def logoff(user, node):
             
             if any(user in x for x in stdout_query_copy):
                 for line in stdout_query_copy:
-                    if line.split()[0] == user and user not in MyCredentials.exception:
-                    # if line.split()[0] == user:
+                    # if line.split()[0] == user and user not in MyCredentials.exception:
+                    if line.split()[0] == user:
                         stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command("sudo pkill -KILL -u %s" % (line.split()[0]))
                         std_print(stdin_logoff, stdout_logoff, stderr_logoff)
                         print (f"session for {user} was killed on {node}") if MyPrintCondition.fprint else 0
                         logger.info (f"session for {user} was killed on {node}")
-                    elif user in MyCredentials.exception:
-                        print (f"{user} is exception") if MyPrintCondition.fprint else 0
-                        logger.info (f"{user} is exception")
                     else:
                         continue
             else:
@@ -65,7 +62,7 @@ def logoff(user, node):
             
         else:
             print (f"no os found for < {node} >") if MyPrintCondition.fprint else 0
-            logger.warning (f"no os found for < {node} >")
+            logger.info (f"no os found for < {node} >")
             exit
         connection.close()
 

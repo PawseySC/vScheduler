@@ -3,8 +3,8 @@ from vscheduler.lib.config import Credentials as MyCredentials
 
 class Capture_log(object):
     """
-    Logging class to call in methods capture event 
-    logs into dedicated log file for booking and pool.
+    Logging class to call in methods and capture event 
+    logs into separate files for booking and pool.
     """
     def __init__(self, flag, location):
         self.formatter = logging.Formatter('[%(asctime)s] %(name)s %(levelname)s %(message)s')

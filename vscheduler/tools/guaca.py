@@ -12,7 +12,7 @@ from vscheduler.modules.booked.user import user_details_by_user_id              
 from vscheduler.modules.booked.instances import reservation_instances                  # retreives reservation instance id, series id, and timeline of bookings for determined time bracket
 from vscheduler.modules.booked.deleted import deleted                                  # retreives status id of each reservation instances
 from vscheduler.modules.guaca.entity import entity
-from vscheduler.modules.guaca.guaca_user_group import guacamole_user_group
+from vscheduler.modules.guaca.guacausergroup import guacamole_user_group
 from vscheduler.modules.guaca.check_group import check_group
 from vscheduler.modules.guaca.insert import insert
 from vscheduler.modules.guaca.update import update
