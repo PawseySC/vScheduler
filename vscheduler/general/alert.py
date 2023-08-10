@@ -18,12 +18,12 @@ def mailFunction(subject, content, url, file):
     if filename:
         for f in filename:
             file_path = os.path.join(url, f)
-            attachment = open(file_path, "rb")
+            attachment = open(file_path, 'rb')
             part = MIMEBase('application', 'octet-stream')
             part.set_payload((attachment).read())
             attachment.close()
             encoders.encode_base64(part)
-            part.add_header('Content-Disposition', "attachment; filename= %s" % f)
+            part.add_header('Content-Disposition', f'attachment; filename= {f}')
             msg.attach(part)
 
     msg['Subject'] = subject
