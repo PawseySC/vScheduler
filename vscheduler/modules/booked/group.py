@@ -24,7 +24,7 @@ def group_id(user_id):
         return group_results
     except:
         print (f"group error; user id < {user_id} > is not available in booked\n") if MyPrintCondition.fprint else 0
-        logger.error (f"group error; user id < {user_id} > is not available in booked\n")
+        logger.error (f"group error; user id < {user_id} > is not available in booked")
 
 
 def group_name(group_id):
@@ -42,7 +42,7 @@ def group_name(group_id):
         return group_results
     except:
         print (f"group error; group id < {group_id} > is not available in booked to extract its name\n") if MyPrintCondition.fprint else 0
-        logger.error (f"group error; group id < {group_id} > is not available in booked to extract its name\n")
+        logger.error (f"group error; group id < {group_id} > is not available in booked to extract its name")
 
 
 def group_members(group_id):
@@ -62,4 +62,4 @@ def group_members(group_id):
         return id
     except:
         print (f"member error; group id < {group_id} > is not available in booked to extract its members\n") if MyPrintCondition.fprint else 0
-        logger.error (f"member error; group id < {group_id} > is not available in booked to extract its members\n")
+        logger.error (f"member error; group id < {group_id} > is not available in booked to extract its members")

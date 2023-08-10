@@ -24,7 +24,7 @@ def host_by_name(hostname):
         return resources_results if resources_results else ""
     except:
         print (f"Resource Error; node < {hostname} > is not a resource in booked\n") if MyPrintCondition.fprint else 0
-        logger.error (f"Resource Error; node < {hostname} > is not a resource in booked\n")
+        logger.error (f"Resource Error; node < {hostname} > is not a resource in booked")
 
 
 def host_by_id(id):
@@ -42,4 +42,4 @@ def host_by_id(id):
         return resources_name
     except:
         print (f"Resource Error; node id < {id} > is not a resource in booked\n") if MyPrintCondition.fprint else 0
-        logger.error (f"Resource Error; node id < {id} > is not a resource in booked\n")
+        logger.error (f"Resource Error; node id < {id} > is not a resource in booked")

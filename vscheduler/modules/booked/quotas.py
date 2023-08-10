@@ -33,11 +33,11 @@ def quotas(resources_id, groups_id):
             enforced_time_start = row_quota[8]
             enforced_time_end = row_quota[9]
             sentence.insert(len(sentence), [quota_id , quota_limit, unit, duration, resource_id, group_id, schedule_id, enforced_days, enforced_time_start, enforced_time_end])
-        print ("EMPTY") if MyPrintCondition.fprint and not quota_results else 0
-        logger.info ("EMPTY")
+        print ("EMPTY quota_results") if MyPrintCondition.fprint and not quota_results else 0
+        logger.info ("EMPTY quota_results")
         print ("\n", tabulate(sentence, headers=['quota_id', 'quota_limit', 'unit', 'duration', 'resource_id', 'group_id', 'schedule_id', 'enforced_days', 'enforced_time_start', 'enforced_time_end'])) if MyPrintCondition.fprint and quota_results else 0
         logger.info ("\n" + tabulate(sentence, headers=['quota_id', 'quota_limit', 'unit', 'duration', 'resource_id', 'group_id', 'schedule_id', 'enforced_days', 'enforced_time_start', 'enforced_time_end']))
         return quota_results if quota_results else ""
     except:
         print (f"quota error; resource id < {resources_id} > or group id < {groups_id} > was not found in booked\n") if MyPrintCondition.fprint else 0
-        logger.error (f"quota error; resource id < {resources_id} > or group id < {groups_id} > was not found in booked\n")
+        logger.error (f"quota error; resource id < {resources_id} > or group id < {groups_id} > was not found in booked")

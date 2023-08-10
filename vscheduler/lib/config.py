@@ -54,5 +54,5 @@ class Credentials:
     # Log level: INFO, DEBUG, WARNING, ERROR, CRITICAL
     log_level = 'INFO'
     
-    # load balance
+    # load balance; if False, it allocates nodes in order to the pool, if True, allocation model applies. 
     load_balance = False
