@@ -6,9 +6,9 @@ Apply below *Pre-setup* instruction for client-server communication and *Setup* 
 
 ## Pre-setup
 
-1. Leave `vscheduler/socket/mgmt*.py` files in management instance and add `vscheduler/socket/vis*.py` files to each vis nodes.
+1. Leave `vscheduler/socket/mgmt*.py` files in management instance and add `vscheduler/socket/vis*.py` files to each vis node.
 
-2. Have `vscheduler/socket/*server.py` run as a service on management and vis instances; leave ip as blank and make sure those have different ports.
+2. Have `vscheduler/socket/*server.py` run as a service on management and vis nodes; leave ip as blank and make sure those have different ports.
 
 **For management instance:**
 
@@ -91,11 +91,8 @@ To have the script running environment clean and isolated, install all packages 
 ```
 sudo apt install python3-pip
 # next install and setup virtualenv:
-pip install --user virtualenv && PATH=$PATH:$HOME/.local/bin    # it's a good practice to have PATH in .bashrc
-virtualenv vs                           
-# OR 
 sudo apt install python3-virtualenv
-python -m venv vs
+virtualenv vs
 # finally:
 source vs/bin/activate
 (vs) $ pip install -e .                 # run in setup.py directory to install all required pacjkages inside virtual environment
@@ -109,9 +106,41 @@ Above will install follwing major packages along with their dependencies in pyth
 - numpy 1.24.3
 - tabulate 0.9.0
 - rich 13.3.5
+- jinja2 3.1.2
 ```
 It's a good practice to source virtual environment in `.bashrc`.
 
-2. Set all parameters in `lib/config.py`
+2. Setup local MySQL database for report:
+```
+sudo apt install mysql-server
+sudo mysql
+create database report;
+use report;
+create table booking (
+    -> id int,
+    -> node varchar(255),
+    -> user varchar(255),
+    -> start datetime,
+    -> end datetime
+    -> );
+mysql> create table pool (
+    -> id int,
+    -> node varchar(255),
+    -> user varchar(255),
+    -> start datetime,
+    -> end datetime
+    -> );
+use mysql;
+create user 'report_writer'@'%' IDENTIFIED WITH mysql_native_password BY 'PASSWORD';
+grant all privileges on report.* to 'report_writer'@'%';
+flush privileges;
+quit
+```
+To access remotely, add `bind-address            = 0.0.0.0` to `sudo vim /etc/mysql/mysql.conf.d/mysqld.cnf` and restart MySQ: server:
+```
+sudo systemctl restart mysql
+```
 
-3. Enjoy the code! By having virtual environment activated, run `vmanage`, `vsync`, `vquota`, `valloc`, `vinfo`, `vreport`, `vcontrol`, `vkill` commands. For more info, run any of these commands with `-h`.
+3. Set all parameters in `vscheduler/lib/config.py`
+
+4. Enjoy the code! By having virtual environment always activated (add `source vscheduler/vs/bin/activate` to _~/.bashrc_), run `vmanage`, `vsync`, `vquota`, `valloc`, `vinfo`, `vreport`, `vcontrol`, `vkill` commands. For more info, run any of these commands with `-h`.
