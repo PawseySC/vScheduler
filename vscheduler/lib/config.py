@@ -17,6 +17,13 @@ class Credentials:
     guaca_db = 'guacamole_db'
     guaca_port = 3306
 
+    # report db credentials
+    report_host = 'localhost'
+    report_user = 'report_writer'
+    report_passwd = '1234'
+    report_db = 'report'
+    report_port = 3306
+
     # local pub key location for ssh into Nebula nodes
     home = str(Path.home()) 
     ssh_username = 'admin'              # destination node admin

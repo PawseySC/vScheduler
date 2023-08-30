@@ -75,5 +75,5 @@ class Database:
         except pymysql.Error as e:
             print (f"error connecting report db\n{e}") if MyPrintCondition.fprint else 0
             mailFunction("db error", f"error connecting report database\n{e}", "", "")
-            logger_guaca.critical (f"error connecting report database\{e}")
+            logger_guaca.critical (f"error connecting report database\n{e}")
             quit()

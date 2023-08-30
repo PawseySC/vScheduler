@@ -122,7 +122,7 @@ def pool_report_generator(hostname, username, start, end):
     directory = str(Path.home()) + "/visualisation_scheduler/vscheduler/reports"
     os.makedirs(directory) if not os.path.exists(directory) else 0
     
-    fig.write_image(f"{directory}/fig1.svg")
+    fig.write_image(f"{directory}/fig1.png")
     fig.show()
 
 
