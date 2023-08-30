@@ -31,7 +31,7 @@ class Process(multiprocessing.Process):
         user = ""
         # time.sleep(1)
         print ("\n==>> Process id: {}".format(self.id)) if MyPrintCondition.fprint and self.id else 0
-        logger.info ("\n==>Process id: {}".format(self.id)) if self.id else 0
+        logger.info ("==>Process id: {}".format(self.id)) if self.id else 0
 
         resource_id = host_by_name(self.hostname)                                                   # retreives node resource id
         series_ids = resource_reservations(resource_id[0][0]) if resource_id else quit()  # NO BOOKING AT ALL               # retreives node series ids

@@ -32,7 +32,7 @@ class Process(multiprocessing.Process):
         resource_id = groups_id = ""
         # time.sleep(1)
         print("\n==>Process id: {}\n".format(self.id)) if MyPrintCondition.fprint and self.id else 0
-        logger.info ("\n==>Process id: {}".format(self.id)) if self.id else 0
+        logger.info ("==>Process id: {}".format(self.id)) if self.id else 0
         user_id = user_details_by_username(self.username)[0][0] if self.username else ""
         groups_ids = group_id(user_id) if user_id else ""
         resource_id = host_by_name(self.hostname)[0][0] if self.hostname and host_by_name(self.hostname) else ""

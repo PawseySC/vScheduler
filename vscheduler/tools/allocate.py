@@ -26,7 +26,7 @@ class Process(multiprocessing.Process):
     def run(self):
         # time.sleep(1)
         print ("\n==>Process id: {}".format(self.id)) if MyPrintCondition.fprint and self.id else 0
-        logger.info ("\n==>Process id: {}".format(self.id)) if self.id else 0
+        logger.info ("==>Process id: {}".format(self.id)) if self.id else 0
 
         users = who(self.hostname) if not self.username else [self.username]                        # retreives users logged in to the node
         print ("users=>", users)
