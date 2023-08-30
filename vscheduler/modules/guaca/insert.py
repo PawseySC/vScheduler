@@ -11,10 +11,15 @@ logger = pool_records.log_agent()
 def insert(x,y):
     try:
         allocation = "INSERT INTO guacamole_user_group_member (member_entity_id, user_group_id) VALUES ('%s','%s')" %(x, y)  # WHERE member_entity_id
-        my_cursor.execute(allocation)
-        my_connection.commit()
-        print (f"{my_cursor.rowcount} record(s) inserted") if MyPrintCondition.fprint else 0  
-        logger.info (f"{my_cursor.rowcount} record(s) inserted")  
+        my_connection.ping()  # reconnecting mysql in case of connection timed out
+        with my_connection.cursor() as cursor:
+            cursor.execute(allocation)
+            my_connection.commit()
+        print (f"{cursor.rowcount} record(s) inserted") if MyPrintCondition.fprint else 0  
+        logger.info (f"{cursor.rowcount} record(s) inserted")  
+
+        my_connection.close()
+        
     except:
         print (f"error inserting record for user member entity id < {x} > in group id < {y} >") if MyPrintCondition.fprint else 0
         logger.error (f"error inserting record for user member entity id < {x} > in group id < {y} >")

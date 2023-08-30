@@ -11,9 +11,10 @@ logger = pool_records.log_agent()
 def fillup(node):
     logger.info (f"Current node in the pool is {node}")
     current_number = int(node.replace(MyCredentials.linux_node_name, ""))
-
+    logger.info (f"current_number+1: {current_number+1}")
     if current_number+1 in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
         current_number +=1
+        logger.info (f"current_number: {current_number}")
     else:
         current_number = MyCredentials.linux_general_range[0]
 

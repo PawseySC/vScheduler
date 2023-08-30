@@ -14,15 +14,20 @@ def modify(x,y):
             reset = "DELETE FROM guacamole_user_group_member WHERE member_entity_id = '%s' AND user_group_id = '%s'" %(x, y)
         else:
             reset = "DELETE FROM guacamole_user_group_member WHERE user_group_id = '%s'" %(y)
-        my_cursor.execute(reset)
-        my_connection.commit()
-        print (f"{my_cursor.rowcount} record(s) affected") if MyPrintCondition.fprint else 0
-        logger.info (f"{my_cursor.rowcount} record(s) affected")
-        if my_cursor.rowcount:
+        my_connection.ping()  # reconnecting mysql in case of connection timed out
+        with my_connection.cursor() as cursor:
+            cursor.execute(reset)
+            my_connection.commit()
+        print (f"{cursor.rowcount} record(s) affected") if MyPrintCondition.fprint else 0
+        logger.info (f"{cursor.rowcount} record(s) affected")
+        if cursor.rowcount:
             print(f"session link was removed for member entiry id < {x} > in user group id < {y} >") if MyPrintCondition.fprint and x else 0
             print(f"session link was removed for user group id < {y} >") if MyPrintCondition.fprint and not x else 0
             logger.info (f"session link was removed for member entiry id < {x} > in user group id < {y} >") if x else 0
             logger.info (f"session link was removed for user group id < {y} >") if not x else 0
+
+        my_connection.close()
+        
     except:
         print (f"error deleting recorde for member_entity_id < {x} > and user_group_id < {y} >") if MyPrintCondition.fprint else 0
         logger.error (f"error deleting recorde for member_entity_id < {x} > and user_group_id < {y} >")

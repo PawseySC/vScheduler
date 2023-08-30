@@ -13,8 +13,10 @@ def check_group(user_group):
     try:
         sentence = []
         check_group = "SELECT user_group_id, member_entity_id FROM guacamole_user_group_member WHERE user_group_id = '%s'" %(user_group)
-        my_cursor.execute(check_group)
-        check_group_results = my_cursor.fetchall()
+        my_connection.ping()  # reconnecting mysql in case of connection timed out
+        with my_connection.cursor() as cursor:
+            cursor.execute(check_group)
+            check_group_results = cursor.fetchall()
         if len(check_group_results) == 0:
             print ("EMPTY check_group") if MyPrintCondition.fprint else 0
             logger.info ("EMPTY check_group")
@@ -26,7 +28,9 @@ def check_group(user_group):
                 sentence.insert(len(sentence), [user_group_id , member_entity_id])
         print ("\n", tabulate(sentence, headers=['user_group_id', 'member_entity_id'])) if MyPrintCondition.fprint else 0
         logger.info ("\n" + tabulate(sentence, headers=['user_group_id', 'member_entity_id']))
+
+        my_connection.close()
         return check_group_results
     except:
         print ("error in checking guacamole user group member") if MyPrintCondition.fprint else 0
-        logger.error ("error in checking guacamole user group member") if MyPrintCondition.fprint else 0
+        logger.error ("error in checking guacamole user group member")
