@@ -117,19 +117,19 @@ sudo mysql
 create database report;
 use report;
 create table booking (
-    -> id int,
-    -> node varchar(255),
-    -> user varchar(255),
-    -> start datetime,
-    -> end datetime
-    -> );
+    id int,
+    node varchar(255),
+    user varchar(255),
+    start datetime,
+    end datetime
+    );
 mysql> create table pool (
-    -> id int,
-    -> node varchar(255),
-    -> user varchar(255),
-    -> start datetime,
-    -> end datetime
-    -> );
+    id int,
+    node varchar(255),
+    user varchar(255),
+    start datetime,
+    end datetime
+    );
 use mysql;
 create user 'report_writer'@'%' IDENTIFIED WITH mysql_native_password BY 'PASSWORD';
 grant all privileges on report.* to 'report_writer'@'%';
