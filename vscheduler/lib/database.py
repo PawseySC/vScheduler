@@ -36,10 +36,10 @@ class Database:
                             port=MyCredentials.booked_port,
                             charset="utf8")
             return db_con
-        except:
-            print ("error connecting booked db") if MyPrintCondition.fprint else 0
-            mailFunction("db error", "error connecting booked database", "", "")
-            logger_booked.critical ("error connecting booked database")
+        except pymysql.Error as e:
+            print (f"error connecting booked db\n{e}") if MyPrintCondition.fprint else 0
+            mailFunction("db error", f"error connecting booked database\n{e}", "", "")
+            logger_booked.critical (f"error connecting booked database\n{e}")
             quit()
 
     def connect_guaca_db():
@@ -54,8 +54,8 @@ class Database:
                             port=MyCredentials.guaca_port, 
                             charset="utf8")
             return db_con
-        except:
-            print ("error connecting guaca db") if MyPrintCondition.fprint else 0
-            mailFunction("db error", "error connecting guaca database", "", "")
-            logger_guaca.critical ("error connecting guaca database")
+        except pymysql.Error as e:
+            print (f"error connecting guaca db\n{e}") if MyPrintCondition.fprint else 0
+            mailFunction("db error", f"error connecting guaca database\n{e}", "", "")
+            logger_guaca.critical (f"error connecting guaca database\n{e}")
             quit()
