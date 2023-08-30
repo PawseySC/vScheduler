@@ -46,3 +46,14 @@ def user_details_by_username(logged_in_user):
     except:
         print (f"Users Error, no record for current logged in user < {logged_in_user} > in booked") if MyPrintCondition.fprint else 0
         logger.error (f"Users Error, no record for current logged in user < {logged_in_user} > in booked")
+
+def user_details():
+    try:
+        users = "SELECT user_id, fname, lname, username, email FROM users"
+        my_cursor.execute(users)
+        users_results = my_cursor.fetchall()
+        users_results_copy = user_details_print(users_results)
+        return users_results_copy
+    except:
+        print ("Users Error, no record for users in booked") if MyPrintCondition.fprint else 0
+        logger.error ("Users Error, no record for users in booked")

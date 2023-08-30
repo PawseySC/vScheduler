@@ -12,7 +12,8 @@ from vscheduler.lib.config import Credentials as MyCredentials
 def mailFunction(subject, content, url, file):
     msg = MIMEMultipart()
     body = content
-    msg.attach(MIMEText(body, 'plain'))
+    # msg.attach(MIMEText(body, 'plain'))
+    msg.attach(MIMEText(body, 'html'))
 
     filename = file
     if filename:
