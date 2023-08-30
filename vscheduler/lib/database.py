@@ -59,3 +59,21 @@ class Database:
             mailFunction("db error", f"error connecting guaca database\n{e}", "", "")
             logger_guaca.critical (f"error connecting guaca database\n{e}")
             quit()
+
+    def connect_report_db():
+        databse_records = Capture_log("database", __file__)
+        logger_guaca = databse_records.log_agent()
+        try:
+            db_con = pymysql.connect(
+                            host=MyCredentials.report_host,
+                            user=MyCredentials.report_user, 
+                            passwd=MyCredentials.report_passwd,
+                            db=MyCredentials.report_db,
+                            port=MyCredentials.report_port, 
+                            charset="utf8")
+            return db_con
+        except pymysql.Error as e:
+            print (f"error connecting report db\n{e}") if MyPrintCondition.fprint else 0
+            mailFunction("db error", f"error connecting report database\n{e}", "", "")
+            logger_guaca.critical (f"error connecting report database\{e}")
+            quit()
