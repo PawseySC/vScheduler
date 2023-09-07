@@ -116,23 +116,25 @@ sudo apt install mysql-server
 sudo mysql
 create database report;
 use report;
-create table booking (
+create table windows (
     id int,
     node varchar(255),
     user varchar(255),
+    pool varchar(255),
     start datetime,
     end datetime
     );
-mysql> create table pool (
+mysql> create table linux (
     id int,
     node varchar(255),
     user varchar(255),
+    pool varchar(255),
     start datetime,
     end datetime
     );
 use mysql;
-create user 'report_writer'@'%' IDENTIFIED WITH mysql_native_password BY 'PASSWORD';
-grant all privileges on report.* to 'report_writer'@'%';
+create user 'reporter'@'%' IDENTIFIED WITH mysql_native_password BY 'PASSWORD';
+grant all privileges on report.* to 'reporter'@'%';
 flush privileges;
 quit
 ```
