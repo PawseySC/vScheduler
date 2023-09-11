@@ -117,20 +117,22 @@ sudo mysql
 create database report;
 use report;
 create table windows (
-    id int,
-    node varchar(255),
-    user varchar(255),
-    pool varchar(255),
-    start datetime,
-    end datetime
+    id MEDIUMINT NOT NULL AUTO_INCREMENT,
+    node VARCHAR(255),
+    user VARCHAR(255),
+    pool VARCHAR(255),
+    start DATETIME,
+    end DATETIME,
+    PRIMARY KEY (id)
     );
 mysql> create table linux (
-    id int,
-    node varchar(255),
-    user varchar(255),
-    pool varchar(255),
-    start datetime,
-    end datetime
+    id MEDIUMINT NOT NULL AUTO_INCREMENT,
+    node VARCHAR(255),
+    user VARCHAR(255),
+    pool VARCHAR(255),
+    start DATETIME,
+    end DATETIME,
+    PRIMARY KEY (id)
     );
 use mysql;
 create user 'reporter'@'%' IDENTIFIED WITH mysql_native_password BY 'PASSWORD';
