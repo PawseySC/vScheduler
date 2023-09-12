@@ -1,7 +1,7 @@
 **Visualisation Scheduler - Pawsey Supercomputing Centre**
 -----------------------------------------------------------
 
-Apply below *Pre-setup* instruction for client-server communication and *Setup* step for vscheduler in `SQL` branch (`API` version to be developed).
+Apply below *Pre-setup* instruction for client-server communication and *Setup* section for vscheduler in `SQL` branch (`API` version to be developed).
 
 
 ## Pre-setup
@@ -107,6 +107,8 @@ Above will install follwing major packages along with their dependencies in pyth
 - tabulate 0.9.0
 - rich 13.3.5
 - jinja2 3.1.2
+- plotly 5.16.1
+- kaleido 0.2.1
 ```
 It's a good practice to source virtual environment in `.bashrc`.
 
@@ -116,7 +118,7 @@ sudo apt install mysql-server
 sudo mysql
 create database report;
 use report;
-create table windows (
+CREATE TABLE windows (
     id MEDIUMINT NOT NULL AUTO_INCREMENT,
     node VARCHAR(255),
     user VARCHAR(255),
@@ -125,7 +127,7 @@ create table windows (
     end DATETIME,
     PRIMARY KEY (id)
     );
-mysql> create table linux (
+CREATE TABLE linux (
     id MEDIUMINT NOT NULL AUTO_INCREMENT,
     node VARCHAR(255),
     user VARCHAR(255),
@@ -140,7 +142,7 @@ grant all privileges on report.* to 'reporter'@'%';
 flush privileges;
 quit
 ```
-To access remotely, add `bind-address            = 0.0.0.0` to `sudo vim /etc/mysql/mysql.conf.d/mysqld.cnf` and restart MySQ: server:
+To access remotely, add `bind-address            = 0.0.0.0` to `/etc/mysql/mysql.conf.d/mysqld.cnf` and restart MySQ: server:
 ```
 sudo systemctl restart mysql
 ```
