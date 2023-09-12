@@ -1,3 +1,4 @@
+from pathlib import Path
 from email.message import EmailMessage
 from email.utils import make_msgid
 import mimetypes, smtplib
@@ -36,7 +37,9 @@ def email_with_embeded_image(body):
 
 
     # now open the image and attach it to the email
-    with open('/home/ubuntu/visualisation_scheduler/vscheduler/reports/fig1.png', 'rb') as img:
+    directory = str(Path.home()) + "/visualisation_scheduler/vscheduler/modules/reports"
+    with open(f'{directory}/fig1.png', 'rb') as img:
+
 
         # know the Content-Type of the image
         maintype, subtype = mimetypes.guess_type(img.name)[0].split('/')

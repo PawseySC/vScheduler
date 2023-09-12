@@ -30,7 +30,7 @@ class Process(multiprocessing.Process):
 
         users = who(self.hostname) if not self.username else [self.username]                        # retreives users logged in to the node
         print ("users=>", users)
-        logger.info ("users=>", users)
+        logger.info (f"users=> {users}")
 
         node_entity = entity(self.hostname)        
         node_group = guacamole_user_group(node_entity[0][0])

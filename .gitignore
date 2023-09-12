@@ -2,3 +2,4 @@ __pycache__/
 vscheduler.egg-info/
 vs/
 *.log
+*.png
