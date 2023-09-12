@@ -23,6 +23,8 @@ class Credentials:
     report_passwd = '1234'
     report_db = 'report'
     report_port = 3306
+    report_windows_table = 'windows'
+    report_linux_table = 'linux'
 
     # local pub key location for ssh into Nebula nodes
     home = str(Path.home()) 
