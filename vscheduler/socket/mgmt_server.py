@@ -9,6 +9,8 @@ from vscheduler.modules.cluster.log_off import logoff
 from vscheduler.modules.guaca.check_pool import checkpool
 from vscheduler.socket.mgmt_client import client_program as data_agent
 from vscheduler.modules.guaca.fill_pool import fillup as fill_up
+from vscheduler.modules.reports.record_log_io import record_login
+from vscheduler.modules.reports.record_log_io import record_logout
 
 IP = ""
 PORT = 65001
@@ -37,6 +39,7 @@ def handle_client(conn, addr):
         if "logout" in msg.split(","):
             logger.info (f"LOGOUT attempt for {user}")
             revert(msg.split(",")[1])
+            record_logout(user, node, MyCredentials.report_linux_table, "general")
         # executes at login attempts
         else:
             # if len(checkpool(node, MyCredentials.pool)):        # if user goes to static url of specific node
@@ -48,6 +51,9 @@ def handle_client(conn, addr):
             logger.info (f"Assigning {user} to {node} through valloc")
             subprocess.run(['valloc', '-n', node, '-u', user, '-v'])
 
+            # record login time
+            record_login(user, node, MyCredentials.report_linux_table, "general")
+            
             # calls mgmt_client to collect usage data in vis nodes as feed for loadbalance
             if MyCredentials.load_balance:
                 logger.warning ("load_balance = TRUE")
