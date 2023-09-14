@@ -19,8 +19,12 @@ Notes:
     Specifying <node> without <user> will check the current bookings of the specific node against all users.
     Specifying <node> & <user> will check the current bookings of the specific node against specific user.
     Specifying no <node> & <user> will check the current bookings for all nodes against all users.
+    Specifying <date> is only considered for report.
+    Specifying no <date> considers whole database records.
+    Specifying only one date considers current date for end.
     '''
-    usage = '%s [-h --help] [-v --verbose] [-l --license] [-u user] [-n node] \n %s' % (sys.argv[0], help_text)
+    # usage = '%s [-h --help] [-v --verbose] [-l --license] [-u user] [-n node] [-d YYYY-MM-DD YYYY-MM-DD]\n %s' % (sys.argv[0], help_text)
+    usage = '%prog [-h --help] [-v --verbose] [-l --license] [-u user] [-n node] [-d YYYY-MM-DD YYYY-MM-DD]\n' + help_text
     parser = OptionParser(version=version, usage=usage)
 
     def license(title, prog, version):
@@ -41,12 +45,13 @@ Notes:
         This program is to manage web-based user desktop sessions established 
         through Apache Guacamole (www.guacamole.apache.org). Access could be on the 
         go or through reservations via booked scheduler (www.bookedscheduler.com). 
-        Remote desktop link is provided in end user Guacamole dashboard.
+        Remote desktop link is populated at end user Guacamole dashboard.
         
         ''' %(title, prog, version))
 
     parser.add_option('-u', dest='<user>', help='check the script against particular user')
     parser.add_option('-n', dest='<node>', help='check the script against particular node')
+    parser.add_option('-d', dest='<date>', help='date bracket used only for report')
     parser.add_option('-v', '--verbose', action='store_true', help='verbose/debug mode')
     parser.add_option('-l', '--license', action='store_true', help='license')
 
