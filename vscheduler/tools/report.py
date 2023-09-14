@@ -6,23 +6,23 @@ from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.general.timer import Brackets as MyBrackets
-from vscheduler.general.alert import mailFunction
-from vscheduler.modules.booked.reservation import user_reservations
-from vscheduler.modules.booked.deleted import deleted_records
-from vscheduler.modules.booked.host import host_by_name                            # retreives host identification in booked
-from vscheduler.modules.booked.resource import resource_reservations               # retreives series id of each resource
-from vscheduler.modules.booked.reservation import user_reservations_by_user_id     # retreives reservation instance id of bookings for each user
-from vscheduler.modules.booked.user import user_details_by_username                # retreives user identification in booked
-from vscheduler.modules.booked.instances import reservation_instances              # retreives reservation instance id, series id, and timeline of bookings for determined time bracket
-from vscheduler.modules.booked.deleted import deleted                              # retreives status id of each reservation instances
-from vscheduler.modules.cluster.who import who                                     # who's logged in each node
+# from vscheduler.general.alert import mailFunction
+# from vscheduler.modules.booked.reservation import user_reservations
+# from vscheduler.modules.booked.deleted import deleted_records
+# from vscheduler.modules.booked.host import host_by_name                            # retreives host identification in booked
+# from vscheduler.modules.booked.resource import resource_reservations               # retreives series id of each resource
+# from vscheduler.modules.booked.reservation import user_reservations_by_user_id     # retreives reservation instance id of bookings for each user
+# from vscheduler.modules.booked.user import user_details_by_username                # retreives user identification in booked
+# from vscheduler.modules.booked.instances import reservation_instances              # retreives reservation instance id, series id, and timeline of bookings for determined time bracket
+# from vscheduler.modules.booked.deleted import deleted                              # retreives status id of each reservation instances
+# from vscheduler.modules.cluster.who import who                                     # who's logged in each node
 # from vscheduler.modules.cluster.log_off import logoff
 
-from vscheduler.modules.guaca.report_pool import pool_report_generator
+from vscheduler.modules.reports.report_pool import pool_report_generator
 
 from tabulate import tabulate
-my_connection = MyDatabase.connect_booked_db()
-my_cursor = my_connection.cursor()
+# my_connection = MyDatabase.connect_booked_db()
+# my_cursor = my_connection.cursor()
 
 records = Capture_log("booking/pool", __file__)
 logger = records.log_agent()
@@ -89,7 +89,12 @@ class Process(multiprocessing.Process):
             if self.username:
                 print (f"\nonly for given username: {self.username}") if MyPrintCondition.fprint and self.id else 0
                 logger.info (f"\nonly for given username: {self.username}") if MyPrintCondition.fprint and self.id else 0
-                pool_report_generator(self.hostname, self.username, '2023-05-01 00:00:00', '2023-09-01 00:00:00')
+                # pool_report_generator(self.hostname, self.username, '2023-05-01 00:00:00', '2023-09-01 00:00:00')
+                start = '2000-01-01' if not initiate.start else initiate.start
+                end = MyBrackets.local_time if not initiate.end else initiate.end
+                print (f"start: {start}")
+                print (f"end: {end}")
+                pool_report_generator(self.hostname, self.username, start, end)
             else:
                 print ("\nreport for all usernames because username is not given") if MyPrintCondition.fprint and self.id else 0
                 logger.info ("\nreport for all usernames because username is not given") if MyPrintCondition.fprint and self.id else 0

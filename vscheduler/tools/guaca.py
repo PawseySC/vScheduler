@@ -93,7 +93,7 @@ class Process(multiprocessing.Process):
 
 
 def main():
-    MyBrackets.what_time(MyBrackets.now, MyBrackets.start_bracket, MyBrackets.end_bracket)
+    MyBrackets.what_time(MyBrackets.now, MyBrackets.local_time, MyBrackets.start_bracket, MyBrackets.end_bracket)
     if not initiate.node:
         if MyCredentials.windows_booking or MyCredentials.linux_booking:
             if MyCredentials.windows_booking:

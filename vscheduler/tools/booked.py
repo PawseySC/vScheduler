@@ -128,7 +128,7 @@ class Process(multiprocessing.Process):
 
 
 def main():
-    MyBrackets.what_time(MyBrackets.now, MyBrackets.start_bracket, MyBrackets.end_bracket)
+    MyBrackets.what_time(MyBrackets.now, MyBrackets.local_time, MyBrackets.start_bracket, MyBrackets.end_bracket)
     if not initiate.node:
         # for i in range (MyCredentials.range[0], MyCredentials.range[1]):
         #     node = MyCredentials.node_name + '0' + str(i) if i <= 9 else MyCredentials.node_name + str(i)

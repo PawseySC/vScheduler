@@ -9,23 +9,24 @@ from vscheduler.lib.config import Credentials as MyCredentials
 class Brackets:
 
     now = datetime.datetime.utcnow()
+    local_time = datetime.datetime.now()
     start_bracket = now - datetime.timedelta(hours=MyCredentials.booking_session)
     end_bracket = now + datetime.timedelta(hours=MyCredentials.booking_session)
     
-    def what_time(now, start_bracket, end_bracket):
+    def what_time(now, local_time, start_bracket, end_bracket):
         time_records = Capture_log("general", __file__)
         logger = time_records.log_agent()
         
         local_timezone = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
         print (
-                f"now in system local timezome,", local_timezone, ":", datetime.datetime.now(), 
+                f"now in system local timezome,", local_timezone, ":", local_time, 
                 "\nnow in UTC: ", now, 
                 "\nstart Bracket in UTC: ", start_bracket, 
                 "\nend Bracket in UTC: ", end_bracket, 
                 "\nDifference: ", end_bracket-start_bracket, "\n"
             ) if MyPrintCondition.fprint else 0
         logger.info (
-                f"\nnow in system local timezome,", local_timezone, ":", datetime.datetime.now(), 
+                f"\nnow in system local timezome,", local_timezone, ":", local_time, 
                 "\nnow in UTC: ", now, 
                 "\nstart Bracket in UTC: ", start_bracket, 
                 "\nend Bracket in UTC: ", end_bracket, 
