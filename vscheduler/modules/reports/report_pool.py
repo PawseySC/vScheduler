@@ -6,12 +6,12 @@ from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.general.timer import Brackets as MyBrackets
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.database import Database as MyDatabase
-from vscheduler.modules.booked.host import host_by_name
-from vscheduler.modules.booked.resource import resource_reservations
-from vscheduler.modules.booked.reservation import user_reservations
-from vscheduler.modules.booked.deleted import deleted_records
-from vscheduler.modules.booked.user import user_details
-from vscheduler.modules.booked.instances import reservation_instances
+# from vscheduler.modules.booked.host import host_by_name
+# from vscheduler.modules.booked.resource import resource_reservations
+# from vscheduler.modules.booked.reservation import user_reservations
+# from vscheduler.modules.booked.deleted import deleted_records
+# from vscheduler.modules.booked.user import user_details
+# from vscheduler.modules.booked.instances import reservation_instances
 from vscheduler.general.alert import mailFunction
 from vscheduler.general.alert2 import email_with_embeded_image
 import datetime
@@ -94,8 +94,8 @@ def pool_report_generator(hostname, username, start, end):
         #     color = "white"
         # html_report.write("<tr style='background-color:" + str(color) +"'>\n<td>" + str(node) + "</td>\n<td>" + str(date_from) + "</td>\n<td>" + str(date_to) + "</td>\n<td>" + str(duration) + "</td>\n<td>" + "" + "</td>\n<td>" + "" + "</td>\n<td>" + name + "</td>\n<td>" + "" + "</td>\n<td>")
 
-    print(tabulate(sentence, headers=['node', 'start', 'end', 'duration', 'user', 'email', 'first name', 'last name'])) if MyPrintCondition.fprint else 0
-    logger.info ("\n" + tabulate(sentence, headers=['node', 'start', 'end', 'duration', 'user', 'email', 'first name', 'last name']))
+    print(tabulate(sentence, headers=['node', 'start', 'end', 'duration', 'user', 'email', 'first name', 'last name'], tablefmt='psql')) if MyPrintCondition.fprint else 0
+    logger.info ("\n" + tabulate(sentence, headers=['node', 'start', 'end', 'duration', 'user', 'email', 'first name', 'last name'], tablefmt='psql'))
     print (f"in total: {accumulation}")
 
 
@@ -125,6 +125,7 @@ def pool_report_generator(hostname, username, start, end):
     directory = str(Path.home()) + "/visualisation_scheduler/vscheduler/modules/reports"
     os.makedirs(directory) if not os.path.exists(directory) else 0
     
+    # fig.write_image(f"{directory}/fig1.png", scale=6)
     fig.write_image(f"{directory}/fig1.png")
     fig.show()
 
