@@ -1,3 +1,4 @@
+import os, time
 from pathlib import Path
 from email.message import EmailMessage
 from email.utils import make_msgid
@@ -14,13 +15,18 @@ def email_with_embeded_image(body):
     # set the plain text body
     msg.set_content('This is a plain text body.')
 
+    directory = str(Path.home()) + "/visualisation_scheduler/vscheduler/modules/reports"
+
+    if os.path.exists(f'{directory}/fig1.png'):
     # now create a Content-ID for the image
-    image_cid = make_msgid(domain='xyz.com')
+        image_cid = make_msgid(domain='xyz.com')
+        msg.add_alternative(body.format(image_cid=1), subtype='html')
+    
     # if `domain` argument isn't provided, it will 
     # use your computer's name
 
     # set an alternative html body
-    msg.add_alternative(body.format(image_cid=image_cid[1:-1]), subtype='html')
+    
     # msg.add_alternative("""\
     # <html>
     #     <body>
@@ -37,20 +43,29 @@ def email_with_embeded_image(body):
 
 
     # now open the image and attach it to the email
-    directory = str(Path.home()) + "/visualisation_scheduler/vscheduler/modules/reports"
-    with open(f'{directory}/fig1.png', 'rb') as img:
-
-
-        # know the Content-Type of the image
-        maintype, subtype = mimetypes.guess_type(img.name)[0].split('/')
-
-        # attach it
-        msg.get_payload()[1].add_related(img.read(), 
-                                            maintype=maintype, 
-                                            subtype=subtype, 
-                                            cid=image_cid)
-
-
+    
+    
+        with open(f'{directory}/fig1.png', 'rb') as img:
+            # know the Content-Type of the image
+            maintype, subtype = mimetypes.guess_type(img.name)[0].split('/')
+            # attach it
+            msg.get_payload()[1].add_related(img.read(), 
+                                                maintype=maintype, 
+                                                subtype=subtype, 
+                                                cid='1')
+        
+    
+    if os.path.exists(f'{directory}/fig2.png'):
+        image_cid2 = make_msgid(domain='xyz2.com')
+        msg.add_alternative(body.format(image_cid=2), subtype='html')
+        with open(f'{directory}/fig2.png', 'rb') as img_pie:
+            # know the Content-Type of the image
+            maintype, subtype = mimetypes.guess_type(img_pie.name)[0].split('/')
+            # attach it
+            msg.get_payload()[1].add_related(img_pie.read(), 
+                                                maintype=maintype, 
+                                                subtype=subtype, 
+                                                cid='2')
     # the message is ready now
     # you can write it to a file
     # or send it using smtplib
@@ -58,3 +73,5 @@ def email_with_embeded_image(body):
     sender = smtplib.SMTP('mail-server.pawsey.org.au')
     sender.send_message(msg)            # python 3
     sender.quit()
+    time.sleep(3)
+    [os.remove(directory + "/" + file) for file in os.listdir(directory) if file.endswith('.png')]

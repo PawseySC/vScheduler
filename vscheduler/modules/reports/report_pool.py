@@ -1,24 +1,22 @@
-import os, sys
+import os, warnings
+warnings.filterwarnings('ignore')
+import pandas as pd
+import calmap, matplotlib
 from pathlib import Path
 from tabulate import tabulate
+# from pretty_html_table import build_table
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
 from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
-from vscheduler.general.timer import Brackets as MyBrackets
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.database import Database as MyDatabase
-# from vscheduler.modules.booked.host import host_by_name
-# from vscheduler.modules.booked.resource import resource_reservations
-# from vscheduler.modules.booked.reservation import user_reservations
-# from vscheduler.modules.booked.deleted import deleted_records
-# from vscheduler.modules.booked.user import user_details
-# from vscheduler.modules.booked.instances import reservation_instances
 from vscheduler.general.alert import mailFunction
 from vscheduler.general.alert2 import email_with_embeded_image
-import datetime
-from datetime import timedelta
 from jinja2 import Template
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+import datetime
+
 
 my_connection = MyDatabase.connect_report_db()
 
@@ -27,15 +25,6 @@ logger = records.log_agent()
 
 
 def pool_report_generator(hostname, username, start, end):
-    counter = 0
-    # directory = str(Path.home()) + "/visualisation_scheduler/vscheduler/reports" #+ str(hostname) + '\\' + str((MyBrackets.now.date() - timedelta(1)).year) + "/" + str((MyBrackets.now.date() - timedelta(1)).month) + '\\' + str((MyBrackets.now.date() - timedelta(1)).day)
-    # os.makedirs(directory) if not os.path.exists(directory) else 0
-    # html_report = open(directory + "/" + str(MyBrackets.now.date() - timedelta(1)) + ".html", "w")
-    # html_report.write ("<!DOCTYPE html>\n<html>\n<head>\n<script type='text/javascript' src='https://www.gstatic.com/charts/loader.js'></script>\n<style>\nbody{\nfont-family: monospace\n}\ntable {\nborder-collapse: collapse;\n}\ntable, td, th {\nborder: 1px solid grey;\n}\n</style>\n</head>\n<body>\n<img src='https://pawsey.org.au/wp-content/themes/project/img/pawsey-logo-beige.png' style='width: 150px'>\n<h3>" + str(MyBrackets.now.date() - timedelta(1)) + "\t/\t" + str(hostname) + "</h3>\n<table>\n<col>\n<colgroup span='2'></colgroup>\n<thead>\n<tr>\n<td colspan='5' style='background-color: #4caf4f66; text-align: center; font-weight: bold'>Node</td>\n<td colspan='5' style='background-color: #af4c7166; text-align: center; font-weight: bold'>General Partition</td>\n<td colspan='1' style='background-color: #4c8faf87; text-align: center; font-weight: bold'>Identification</td>\n</tr>\n</thead>\n<thead style='background-color: #80808073'>\n<tr style='text-align: left;'>\n<th>Start Date-Time</th>\n<th>End Date-Time</th>\n<th>Duration</th>\n<th>First Name</th>\n<th>Last Name</th>\n<th>Username</th>\n<th>email</th>\n</tr>\n</thead>\n<tbody>\n")
-
-    
-    # try:
-    # statistics
     sentence = []
     query = ""
     accumulation = 0
@@ -68,6 +57,32 @@ def pool_report_generator(hostname, username, start, end):
                         
     # print (query)
     actual_usage_report = f"SELECT * FROM {MyCredentials.report_linux_table}" + query
+    actual_usage_report_results = pd.read_sql(actual_usage_report, my_connection)
+    actual_usage_report_results["email"] = ""
+    actual_usage_report_results["first name"] = ""
+    actual_usage_report_results["last name"] = ""
+    actual_usage_report_results["institute"] = ""
+
+    columns_title = ["id", "node", "start", "end", "duration", "pool", "user", "email", "first name", "last name"]
+    
+    actual_usage_report_results3 = actual_usage_report_results
+    actual_usage_report_results3 = actual_usage_report_results3.reindex(columns=columns_title)
+    actual_usage_report_results3["duration"] = actual_usage_report_results3["end"] - actual_usage_report_results3["start"]
+    actual_usage_report_results3_list = actual_usage_report_results3.values.tolist()
+
+    actual_usage_report_results = actual_usage_report_results.drop(columns=["id"])
+    columns_title = ["node", "start", "end", "duration", "pool", "user", "email", "first name", "last name"]
+    actual_usage_report_results = actual_usage_report_results.reindex(columns=columns_title)
+    print (actual_usage_report_results.values.tolist())
+    actual_usage_report_results["duration"] = actual_usage_report_results["end"] - actual_usage_report_results["start"]
+    actual_usage_report_results2 = actual_usage_report_results
+    actual_usage_report_results_list = actual_usage_report_results.values.tolist()
+    actual_usage_report_results = actual_usage_report_results.set_index("node")
+    actual_usage_report_results_html = actual_usage_report_results.to_html(classes="table table-stripped", border="collpase")
+    print (actual_usage_report_results_list)
+    print (tabulate(actual_usage_report_results, headers='keys', tablefmt='psql'))
+    print ("sum: ", actual_usage_report_results['duration'].sum())
+    logger.info ("\n" + tabulate(actual_usage_report_results, headers='keys', tablefmt='psql'))
     with my_connection.cursor() as my_cursor:
         my_cursor.execute(actual_usage_report)
         actual_usage_report_results = my_cursor.fetchall()
@@ -87,47 +102,113 @@ def pool_report_generator(hostname, username, start, end):
                 accumulation += duration
             sentence.insert(len(sentence), [node, date_from, date_to, duration, user, '', '', ''])
         
-        # counter = counter + 1
-        # if counter%2 == 0:
-        #     color = "#001fff0d"
-        # else:
-        #     color = "white"
-        # html_report.write("<tr style='background-color:" + str(color) +"'>\n<td>" + str(node) + "</td>\n<td>" + str(date_from) + "</td>\n<td>" + str(date_to) + "</td>\n<td>" + str(duration) + "</td>\n<td>" + "" + "</td>\n<td>" + "" + "</td>\n<td>" + name + "</td>\n<td>" + "" + "</td>\n<td>")
 
     print(tabulate(sentence, headers=['node', 'start', 'end', 'duration', 'user', 'email', 'first name', 'last name'], tablefmt='psql')) if MyPrintCondition.fprint else 0
-    logger.info ("\n" + tabulate(sentence, headers=['node', 'start', 'end', 'duration', 'user', 'email', 'first name', 'last name'], tablefmt='psql'))
+    # logger.info ("\n" + tabulate(sentence, headers=['node', 'start', 'end', 'duration', 'user', 'email', 'first name', 'last name'], tablefmt='psql'))
     print (f"in total: {accumulation}")
 
 
-    # visuals:
-    labels = []
-    val = []
-    for item in sentence:
-        if item[4] in labels:
-            index = labels.index(item[4])
-            val[index] += item[3] / accumulation * 100
-        else:
-            labels.append (item[4]) # usernames
-            val.append (item[3] / accumulation * 100)
-    
-    # Create subplots: use 'domain' type for Pie subplot
-    fig = make_subplots(rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'domain'}]])
-    fig.add_trace(go.Pie(labels=labels, values=val, name=hostname), 1, 1)
-    
-    # Use `hole` to create a donut-like pie chart
-    fig.update_traces(hole=.4, hoverinfo="label+percent+name")
-
-    fig.update_layout(
-        title_text="Usage Report for " + hostname,
-        # Add annotations in the center of the donut pies.
-        annotations=[dict(text=hostname, x=0.18, y=0.5, font_size=20, showarrow=False)])
-    
+    # visuals: 
     directory = str(Path.home()) + "/visualisation_scheduler/vscheduler/modules/reports"
     os.makedirs(directory) if not os.path.exists(directory) else 0
+    if username and hostname:
+        print ("-u -n")
+            # df = px.data.tips()
+            # df = pd.DataFrame(actual_usage_report_results2)
+            # fig = px.histogram(df, x="duration")
+            # fig.show()
+        # actual_usage_report_results2["duration"] = actual_usage_report_results2['duration'].dt.total_seconds()/3600
+        # df_heatmaps = pd.DataFrame(actual_usage_report_results2)
+        # df_heatmaps.set_index('start', inplace=True)
+        # import matplotlib.pyplot as plt
+        # from mpl_toolkits.axes_grid1 import make_axes_locatable
+        # yyyy = 2023
+        # fig = plt.figure(figsize=(20,4))
+        # ax = fig.add_subplot(111)
+        # cax = calmap.yearplot(df_heatmaps['duration'], year=yyyy)                                                                                                                                                                                           
+        # plt.xlabel("Trades grouped by day", fontsize=12)
+        # plt.ylabel(yyyy, fontsize=58, color='#f5f5f5', weight='bold')
+        # fig.suptitle('Number of trades per day heatmap', fontsize=16)
+        # divider = make_axes_locatable(cax)
+        # lcax = divider.append_axes("right", size="2%", pad=0.5)
+        # fig.colorbar(cax.get_children()[1], cax=lcax)
+        
+        # # all_days = pd.date_range('1/15/2022', periods=700, freq='D')
+        # # events = pd.Series(df_heatmaps["duration"])
+        # # fig_heatmaps = calmap.yearplot(events, year=2023)
+
+        # # fig_heatmaps = px.pie(df_pie, values='duration', names='user', title='Usage by Vis Users')
+        # fig.show()
+        # # print ("timedelta" , actual_usage_report_results2['duration'].dt.total_seconds()/3600)
+        # # actual_usage_report_results2["duration"] = actual_usage_report_results2['duration'].dt.total_seconds()/3600
+        # # actual_usage_report_results2 = actual_usage_report_results2.sort_values(by='node')
+        # # df = pd.DataFrame(actual_usage_report_results2)
+        # # fig = px.bar(df, x="node", y="duration", text_auto='.4s', color="node", title="Usage by Vis Nodes")
+        # # fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
+        # # fig.update_layout(xaxis_title='Vis Node', yaxis_title='Duration (hrs)', yaxis=dict(tickformat="duration",), bargap = 0.8,)
+
+    elif not username and not hostname:
+        df_pie = pd.DataFrame(actual_usage_report_results2)
+        fig_pie = px.pie(df_pie, values='duration', names='user', title='Usage by Vis Users')
+        fig_pie.show()
+        fig_pie.write_image(f"{directory}/fig1.png", scale=1)
+        print ("timedelta" , actual_usage_report_results2['duration'].dt.total_seconds()/3600)
+        actual_usage_report_results2["duration"] = actual_usage_report_results2['duration'].dt.total_seconds()/3600
+        actual_usage_report_results2 = actual_usage_report_results2.sort_values(by='node')
+        df = pd.DataFrame(actual_usage_report_results2)
+        fig_bar = px.bar(df, x="node", y="duration", text_auto='.4s', color="node", title="Usage by Vis Nodes")
+        fig_bar.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
+        fig_bar.update_layout(xaxis_title='Vis Node', yaxis_title='Duration (hrs)', yaxis=dict(tickformat="duration",), bargap = 0.8,)
+        fig_bar.show()
+        fig_bar.write_image(f"{directory}/fig2.png", scale=1)
+
+    else:
+        labels = []
+        val = []
+        for item in sentence:
+            if hostname and not username:
+                if item[4] in labels:
+                    index = labels.index(item[4])
+                    val[index] += item[3] / accumulation * 100
+                else:
+                    labels.append (item[4]) # usernames
+                    val.append (item[3] / accumulation * 100)
+            if username and not hostname:
+                if item[4] in labels:
+                    index = labels.index(item[0])
+                    val[index] += item[3] / accumulation * 100
+                else:
+                    labels.append (item[0]) # hostname
+                    val.append (item[3] / accumulation * 100)
+        
+        # Create subplots: use 'domain' type for Pie subplot
+        fig = make_subplots(rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'domain'}]])
+        if hostname and not username:
+            fig.add_trace(go.Pie(labels=labels, values=val, name=hostname), 1, 1)
+        if username and not hostname:
+            fig.add_trace(go.Pie(labels=labels, values=val, name=username), 1, 1)
+
+        # Use `hole` to create a donut-like pie chart
+        fig.update_traces(hole=.4, hoverinfo="label+percent+name")
+
+        if hostname and not username:
+            fig.update_layout(
+                title_text="Usage Report for " + hostname,
+                # Add annotations in the center of the donut pies.
+                annotations=[dict(text=hostname, x=0.18, y=0.5, font_size=20, showarrow=False)])
+        if username and not hostname:
+            fig.update_layout(
+                title_text="Usage Report for " + username,
+                # Add annotations in the center of the donut pies.
+                annotations=[dict(text=username, x=0.18, y=0.5, font_size=20, showarrow=False)])
+        fig.show()
+        fig.write_image(f"{directory}/fig2.png", scale=1)
+    
     
     # fig.write_image(f"{directory}/fig1.png", scale=6)
-    fig.write_image(f"{directory}/fig1.png")
-    fig.show()
+    # fig.write_image(f"{directory}/fig1.png", scale=2)
+    # fig_pie.write_image(f"{directory}/fig_pie.png", scale=2)
+    # fig.show()
 
 
 
@@ -140,74 +221,91 @@ def pool_report_generator(hostname, username, start, end):
     <table style="border-collapse:collapse;border-spacing:0;">
         <thead>
             <tr>
-                <td colspan='1' style='background-color: #4caf4f66; text-align: center; font-weight: bold;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;'>Node</td>
-                <td colspan='3' style='background-color: #af4c7166; text-align: center; font-weight: bold;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;'>General Partition</td>
-                <td colspan='4' style='background-color: #4c8faf87; text-align: center; font-weight: bold;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;'>Identification</td>
+                <td colspan='1' style='background-color:#4caf4f66; text-align:center; font-weight:bold; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;'>Node</td>
+                <td colspan='3' style='background-color:#af4c7166; text-align:center; font-weight:bold; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;'>General Partition</td>
+                <td colspan='5' style='background-color:#4c8faf87; text-align:center; font-weight:bold; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;'>Identification</td>
             </tr>
         </thead>
         <thead style='background-color: #80808073'>
             <tr style='text-align: left;'>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">Hostname</td>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">Start</td>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">End</td>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">Duration</td>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">Username</td>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">Email</td>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">FirstN</td>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">LastN</td>              
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">Hostname</td>
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">Start</td>
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">End</td>
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">Duration</td>
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">User</td>
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">Email</td>
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">FirstN</td>
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">LastN</td>              
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">Institute</td>              
             </tr>
         </thead>
         {% for title in titles %}
-            <tr>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">{{title[0]}}</td>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">{{title[1]}}</td>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">{{title[2]}}</td>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">{{title[3]}}</td>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">{{title[4]}}</td>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">{{title[5]}}</td>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">{{title[6]}}</td>
-                <td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;">{{title[7]}}</td>
+            {% if title[0] % 2 == 0 %}
+                <tr style="background-color: #ecf5fb">
+            {% else %}
+                <tr>
+            {% endif %}
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">{{title[1]}}</td>
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">{{title[2]}}</td>
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">{{title[3]}}</td>
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">{{title[4]}}</td>
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">{{title[6]}}</td>
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">{{title[7]}}</td>
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">{{title[8]}}</td>
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">{{title[9]}}</td>
+                <td style="font-family:Arial, sans-serif; font-size:14px; padding:10px 5px; border-style:solid; border-width:1px; overflow:hidden; word-break:normal; border-color:black;">{{title[10]}}</td>
             </tr>
         {% endfor %}
     </table>
-    <img src="cid:{image_cid}"></body>
+    {% if file2==True %}
+    <img src="cid:2">
+    {% endif %}
+    {% if file1==True %}
+    <img src="cid:1">
+    {% endif %}
+    </body>
     </html>"""
     
     my_templ = Template(html)
-    mailFunction (f"Report for {hostname} {username} {str(start)} {str(end)}", my_templ.render(titles=sentence), directory, ['fig1.png'])
-    email_with_embeded_image(my_templ.render(titles=sentence))
-    # mailFunction ('subject', my_templ.render (titles=tabulate(sentence, tablefmt="html")), '', '')
-    # return  actual_usage_report_results, accumulation
+    # # mailFunction (f"Report for {hostname} {username} {str(start)} {str(end)}", my_templ.render(titles=sentence), directory, ['fig1.png'])
 
-    # import smtplib
+    email_with_embeded_image(my_templ.render(titles=actual_usage_report_results3_list, file1=os.path.exists(f'{directory}/fig1.png'), file2=os.path.exists(f'{directory}/fig2.png')))
+    # email_with_embeded_image(actual_usage_report_results_html)
+    
 
-    # from email.mime.multipart import MIMEMultipart
-    # from email.mime.text import MIMEText
-    # from email.mime.image import MIMEImage
-    # from_addr= 'noreply@pawsey.org.au'
-    # to_addr= 'ali.zamani@pawsey.org.au'
-    # msg = MIMEMultipart('alternative')
-    # msg['Subject'] = "subject"
-    # msg['From'] = from_addr
-    # msg['To'] = to_addr
+    # email_with_embeded_image(build_table(actual_usage_report_results, 'blue_light'))
+    # # mailFunction ('subject', my_templ.render (titles=tabulate(sentence, tablefmt="html")), '', '')
+    # # return  actual_usage_report_results, accumulation
 
-    # text = MIMEText('<h3>hi</h3><img src="cid:image1">', 'html')
-    # msg.attach(text)
+    # # import smtplib
 
-    # image = MIMEImage(open(f'{directory}/fig1.png', 'rb').read())
+    # # from email.mime.multipart import MIMEMultipart
+    # # from email.mime.text import MIMEText
+    # # from email.mime.image import MIMEImage
+    # # from_addr= 'noreply@pawsey.org.au'
+    # # to_addr= 'ali.zamani@pawsey.org.au'
+    # # msg = MIMEMultipart('alternative')
+    # # msg['Subject'] = "subject"
+    # # msg['From'] = from_addr
+    # # msg['To'] = to_addr
 
-    # # Define the image's ID as referenced in the HTML body above
-    # image.add_header('Content-ID', '<image1>')
-    # msg.attach(image)
+    # # text = MIMEText('<h3>hi</h3><img src="cid:image1">', 'html')
+    # # msg.attach(text)
 
-    # s = smtplib.SMTP('mail-server.pawsey.org.au')
-    # s.sendmail(from_addr, to_addr, msg.as_string())
-    # s.quit()
+    # # image = MIMEImage(open(f'{directory}/fig1.png', 'rb').read())
+
+    # # # Define the image's ID as referenced in the HTML body above
+    # # image.add_header('Content-ID', '<image1>')
+    # # msg.attach(image)
+
+    # # s = smtplib.SMTP('mail-server.pawsey.org.au')
+    # # s.sendmail(from_addr, to_addr, msg.as_string())
+    # # s.quit()
 
 
   
 
 
-    # except:
-    #     print (f"error: records for < {hostname} >, < {username} >, < {start} >, < {end} > was not found in report database") if MyPrintCondition.fprint else 0
-    #     logger.error(f"records for < {hostname} >, < {username} >, < {start} >, < {end} > was not found in report database")
+    # # except:
+    # #     print (f"error: records for < {hostname} >, < {username} >, < {start} >, < {end} > was not found in report database") if MyPrintCondition.fprint else 0
+    # #     logger.error(f"records for < {hostname} >, < {username} >, < {start} >, < {end} > was not found in report database")
