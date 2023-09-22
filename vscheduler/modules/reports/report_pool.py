@@ -2,6 +2,7 @@ import os, warnings
 warnings.filterwarnings('ignore')
 import pandas as pd
 import calmap, matplotlib
+# from plotly_calplot import calplot
 from pathlib import Path
 from tabulate import tabulate
 # from pretty_html_table import build_table
@@ -71,7 +72,7 @@ def pool_report_generator(hostname, username, start, end):
     actual_usage_report_results3_list = actual_usage_report_results3.values.tolist()
 
     actual_usage_report_results = actual_usage_report_results.drop(columns=["id"])
-    columns_title = ["node", "start", "end", "duration", "pool", "user", "email", "first name", "last name"]
+    columns_title = ["node", "start", "end", "duration", "pool", "user", "email", "first name", "last name", "institute"]
     actual_usage_report_results = actual_usage_report_results.reindex(columns=columns_title)
     print (actual_usage_report_results.values.tolist())
     actual_usage_report_results["duration"] = actual_usage_report_results["end"] - actual_usage_report_results["start"]
@@ -100,10 +101,10 @@ def pool_report_generator(hostname, username, start, end):
                 accumulation = duration
             else:
                 accumulation += duration
-            sentence.insert(len(sentence), [node, date_from, date_to, duration, user, '', '', ''])
+            sentence.insert(len(sentence), [node, date_from, date_to, duration, user, '', '', '', ''])
         
 
-    print(tabulate(sentence, headers=['node', 'start', 'end', 'duration', 'user', 'email', 'first name', 'last name'], tablefmt='psql')) if MyPrintCondition.fprint else 0
+    print(tabulate(sentence, headers=['node', 'start', 'end', 'duration', 'user', 'email', 'first name', 'last name', 'institute'], tablefmt='psql')) if MyPrintCondition.fprint else 0
     # logger.info ("\n" + tabulate(sentence, headers=['node', 'start', 'end', 'duration', 'user', 'email', 'first name', 'last name'], tablefmt='psql'))
     print (f"in total: {accumulation}")
 
@@ -113,6 +114,42 @@ def pool_report_generator(hostname, username, start, end):
     os.makedirs(directory) if not os.path.exists(directory) else 0
     if username and hostname:
         print ("-u -n")
+        actual_usage_report_results2["duration"] = actual_usage_report_results2['duration'].dt.total_seconds()/3600
+        dummy_df = pd.DataFrame(actual_usage_report_results2)
+        # dummy_df.set_index("start").reset_index()
+        # print ("dummy_df:\n", dummy_df["start"].values, dummy_df["duration"].values)
+        # fig = calplot(
+        #         dummy_df,
+        #         x="start",
+        #         y="duration"
+        # )
+        # fig.show()
+        # fig.write_image(f"{directory}/fig1.png", scale=1)
+        import calplot
+        import matplotlib.pyplot as plt
+        d= actual_usage_report_results2["duration"]
+        print ("d",d, type(d))
+        s= dummy_df["start"]
+        print ("s", s, type(s))
+        
+        f= pd.concat([d, s], axis=1)
+        print ("f", f, type(f))
+        g=f["duration"].squeeze()
+        print ("g", g, type(g))
+        values = pd.Series(dummy_df.duration.values, index = dummy_df.start)
+        # values = dummy_df["duration"].squeeze()
+        print ("values:\n", values)
+
+        # series_name_age = df[['Name', 'Age']].apply(lambda x: ', '.join(x.astype(str)), axis=1)
+        # values2 = dummy_df[["start", "duration"]].apply(lambda x: ', '.join(x.astype(str)), axis=1)
+        # print ("values2:\n", values2)
+        # values3 = pd.Series(values2[1], index=values2[0])
+        # print ("values3", values3)
+        calplot.calplot(values, how="sum",
+                        suptitle = '',
+                        suptitle_kws = {'x': 0.5, 'y': 1.0})
+        plt.show()
+        plt.savefig(f"{directory}/fig1.png")
             # df = px.data.tips()
             # df = pd.DataFrame(actual_usage_report_results2)
             # fig = px.histogram(df, x="duration")
@@ -161,6 +198,9 @@ def pool_report_generator(hostname, username, start, end):
         fig_bar.update_layout(xaxis_title='Vis Node', yaxis_title='Duration (hrs)', yaxis=dict(tickformat="duration",), bargap = 0.8,)
         fig_bar.show()
         fig_bar.write_image(f"{directory}/fig2.png", scale=1)
+        # fig_histogram = px.histogram(df, x="node")
+        # fig_histogram.update_layout(bargap=0)
+        # fig_histogram.show()
 
     else:
         labels = []
