@@ -36,7 +36,7 @@ class Process(multiprocessing.Process):
         logger.info ("==>Process id: {}".format(self.id)) if self.id else 0
         instances = reservation_instances(MyBrackets.start_bracket, MyBrackets.end_bracket)     # retreives booking records within time brackets
         resource_id = host_by_name(self.hostname)                                               # retreives node resource id
-        series_ids = resource_reservations(resource_id) if resource_id else exit                # retreives node series ids
+        series_ids = resource_reservations(resource_id[0][0]) if resource_id else exit                # retreives node series ids
 
         if resource_id:
             if series_ids:
