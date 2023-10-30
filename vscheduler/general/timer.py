@@ -19,16 +19,16 @@ class Brackets:
         
         local_timezone = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
         print (
-                f"now in system local timezome,", local_timezone, ":", local_time, 
-                "\nnow in UTC: ", now, 
-                "\nstart Bracket in UTC: ", start_bracket, 
-                "\nend Bracket in UTC: ", end_bracket, 
-                "\nDifference: ", end_bracket-start_bracket, "\n"
+                f"""\nnow in system local timezome: {local_timezone} - {local_time}
+                now in UTC: {now}, 
+                start Bracket in UTC: {start_bracket}
+                end Bracket in UTC: {end_bracket} 
+                Difference: {end_bracket-start_bracket}\n"""
             ) if MyPrintCondition.fprint else 0
         logger.info (
-                f"\nnow in system local timezome,", local_timezone, ":", local_time, 
-                "\nnow in UTC: ", now, 
-                "\nstart Bracket in UTC: ", start_bracket, 
-                "\nend Bracket in UTC: ", end_bracket, 
-                "\nDifference: ", end_bracket-start_bracket, "\n"
+                f"""\nnow in system local timezome: {local_timezone} - {local_time}
+                now in UTC: {now}, 
+                start Bracket in UTC: {start_bracket}
+                end Bracket in UTC: {end_bracket} 
+                Difference: {end_bracket-start_bracket}"""
             )
