@@ -73,5 +73,5 @@ def email_with_embeded_image(body):
     sender = smtplib.SMTP('mail-server.pawsey.org.au')
     sender.send_message(msg)            # python 3
     sender.quit()
-    time.sleep(3)
+    time.sleep(10)
     [os.remove(directory + "/" + file) for file in os.listdir(directory) if file.endswith('.png')]
