@@ -19,8 +19,8 @@ def user_reservations_by_user_id(id):
             reservation_instance_id = row_reservation_users[0]
             user_id = row_reservation_users[1]
             sentence.insert(len(sentence), [reservation_instance_id , user_id])
-        print ("\n", tabulate(sentence, headers=['reservation_instance_id', 'user_id'])) if MyPrintCondition.fprint else 0
-        logger.info ("\n", tabulate(sentence, headers=['reservation_instance_id', 'user_id']))
+        print (f"\n {tabulate(sentence, headers=['reservation_instance_id', 'user_id'])}") if MyPrintCondition.fprint else 0
+        logger.info (f"\n {tabulate(sentence, headers=['reservation_instance_id', 'user_id'])}")
         return reservation_users_results
     except:
         print (f"error in retreiving reservation for user with user id < {id} >") if MyPrintCondition.fprint else 0

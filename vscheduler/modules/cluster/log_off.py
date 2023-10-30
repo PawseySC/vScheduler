@@ -11,8 +11,8 @@ logger = booking_records.log_agent()
 def std_print(stdin, stdout, stderr):
     stdout_copy = []
     if stderr:
-        print ("Errors:", stderr.read()) if MyPrintCondition.fprint else 0
-        logger.error ("Errors:" + stderr.read())
+        print (f"Errors: {stderr.read()}") if MyPrintCondition.fprint else 0
+        logger.error (f"Errors: {stderr.read()}")
     for line in stdout:
         print (line.strip('\n')) if MyPrintCondition.fprint else 0
         logger.info ("\n" + line.strip('\n'))
@@ -22,15 +22,18 @@ def std_print(stdin, stdout, stderr):
 def logoff(user, node):
     connection = MyNode.connect_node(node)
     node_os = find_os(node)
+    print (f"node os: {node_os}")
     try:
         if node_os == 'Windows':
             stdin_query , stdout_query, stderr_query = connection.exec_command("query session")        
             stdout_query_copy = std_print(stdin_query, stdout_query, stderr_query)
-            
             # if any(user in x for x in stdout_query_copy):
             for line in stdout_query_copy:
-                if line.split()[0] == user and user not in MyCredentials.exception:
-                    stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command("logoff %s" % (line.split()[1]))
+                if (line.split()[0] == user or line.split()[1] == user) and user not in MyCredentials.exception:
+                    if line.split()[0] == user:
+                        stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command("logoff %s" % (line.split()[1]))
+                    elif line.split()[1] == user:
+                        stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command("logoff %s" % (line.split()[2]))
                     std_print(stdin_logoff, stdout_logoff, stderr_logoff)
                     print (f"session for {user} was killed on {node}") if MyPrintCondition.fprint else 0
                     logger.info (f"session for {user} was killed on {node}")

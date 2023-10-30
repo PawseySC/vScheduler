@@ -25,8 +25,8 @@ def who(node: str) -> str:
             exit
 
         if stderr:
-            print ("Errors:", stderr.read()) if MyPrintCondition.fprint else 0
-            logger.error ("Errors:" + stderr.read())
+            print (f"Errors: {stderr.read()}") if MyPrintCondition.fprint else 0
+            logger.error (f"Errors: {stderr.read()}")
         for line in stdout:
             print (line.strip('\n')) if MyPrintCondition.fprint else 0
             logger.info (line.strip('\n'))

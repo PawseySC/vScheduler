@@ -22,8 +22,8 @@ def session(node: str, user) -> str:
             exit
 
         if stderr:
-            print ("Errors:",stderr.read()) if MyPrintCondition.fprint else 0
-            logger.error ("Errors:",stderr.read())
+            print (f"Errors: {stderr.read()}") if MyPrintCondition.fprint else 0
+            logger.error (f"Errors: {stderr.read()}")
         for line in stdout:
             second = line.strip('\n')
             print (f"second: {second}") if MyPrintCondition.fprint else 0

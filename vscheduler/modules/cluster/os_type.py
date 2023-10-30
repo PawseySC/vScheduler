@@ -14,8 +14,8 @@ def find_os(node):
         
         stdin , stdout, stderr = my_connection.exec_command("ver")
         if stderr:
-            print ("Errors (Windows):",stderr.read()) if MyPrintCondition.fprint else 0
-            logger.error ("Errors (Windows):",stderr.read())
+            print (f"Errors (Windows): {stderr.read()}") if MyPrintCondition.fprint else 0
+            logger.error (f"Errors (Windows): {stderr.read()}")
         for line in stdout:
             print (line.strip('\n')) if MyPrintCondition.fprint else 0
             logger.info (line.strip('\n'))
@@ -26,8 +26,8 @@ def find_os(node):
         
         stdin , stdout, stderr = my_connection.exec_command("uname")
         if stderr:
-            print ("Errors (Linux):",stderr.read()) if MyPrintCondition.fprint else 0
-            logger.error ("Errors (Linux):",stderr.read())
+            print (f"Errors (Linux): {stderr.read()}") if MyPrintCondition.fprint else 0
+            logger.error (f"Errors (Linux): {stderr.read()}")
         for line in stdout:
             print (line.strip('\n')) if MyPrintCondition.fprint else 0
             logger.info (line.strip('\n'))

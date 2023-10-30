@@ -10,8 +10,8 @@ logger = pool_records.log_agent()
 def std_print(stdin, stdout, stderr, remove):
     stdout_copy = []
     if stderr:
-        print ("Errors:", stderr.read()) if MyPrintCondition.fprint else 0
-        logger.error ("Errors:", stderr.read())
+        print (f"Errors: {stderr.read()}") if MyPrintCondition.fprint else 0
+        logger.error (f"Errors: {stderr.read()}")
     for line in stdout:
         print (line.strip('\n')) if MyPrintCondition.fprint else 0
         logger.info (line.strip('\n'))
