@@ -32,41 +32,55 @@ def handle_client(conn, addr):
         user = msg.split(",")[1]
 
         # triggers vmanage at windows login to assign a node to user logging into windows general pool
-        if MyCredentials.windows_node_name in node and node.replace(MyCredentials.windows_node_name, "") in MyCredentials.windows_booking_range:
-            subprocess.run(['vmanage', '-n', node, '-u', user, '-v'])
+        if MyCredentials.windows_node_name in node: 
+            if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_booking_range[1]+1):
+                if "logout" in msg.split(","):
+                    record_logout(user, node, MyCredentials.report_windows_table, "general")
+                else:
+                    # subprocess.run(['vmanage', '-n', node, '-u', user, '-v'])
+                    record_login(user, node, MyCredentials.report_windows_table, "general")
             
-        # move user back to pool by logging out of node
-        if "logout" in msg.split(","):
-            logger.info (f"LOGOUT attempt for {user}")
-            revert(msg.split(",")[1])
-            record_logout(user, node, MyCredentials.report_linux_table, "general")
-        # executes at login attempts
-        else:
-            # if len(checkpool(node, MyCredentials.pool)):        # if user goes to static url of specific node
-            # removes connected node from general pool in guaca
-            logger.info (f"Empty pool by removing {node}")
-            empty(msg.split(",")[0], msg.split(",")[1])
+            elif int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
+                if "logout" in msg.split(","):
+                    record_logout(user, node, MyCredentials.report_windows_table, "booking")
+                else:
+                    record_login(user, node, MyCredentials.report_windows_table, "booking")
+                    subprocess.run(['vmanage', '-n', node, '-u', user, '-v'])
+                    
 
-            # put user member of connected node in guaca by triggering valloc 
-            logger.info (f"Assigning {user} to {node} through valloc")
-            subprocess.run(['valloc', '-n', node, '-u', user, '-v'])
-
-            # record login time
-            record_login(user, node, MyCredentials.report_linux_table, "general")
-            
-            # calls mgmt_client to collect usage data in vis nodes as feed for loadbalance
-            if MyCredentials.load_balance:
-                logger.warning ("load_balance = TRUE")
-                usage_data = data_agent()
-                logger.info (f"Usage data obtained from accessible nodes: {usage_data}")
-                logger.info ("Load balancing...")
-                loadbalance(usage_data)
+        if MyCredentials.linux_node_name in node and int(node.replace(MyCredentials.linux_node_name, "")) in MyCredentials.linux_general_range: 
+            # move user back to pool by logging out of node
+            if "logout" in msg.split(","):
+                logger.info (f"LOGOUT attempt for {user}")
+                revert(msg.split(",")[1])
+                record_logout(user, node, MyCredentials.report_linux_table, "general")
+            # executes at login attempts
             else:
-                logger.warning ("load_balance = FALSE")
-                fill_up(node)
-            # else:
-            #     print("logging off")
-                # logoff(user, node)
+                # if len(checkpool(node, MyCredentials.pool)):        # if user goes to static url of specific node
+                # removes connected node from general pool in guaca
+                logger.info (f"Empty pool by removing {node}")
+                empty(msg.split(",")[0], msg.split(",")[1])
+
+                # put user member of connected node in guaca by triggering valloc 
+                logger.info (f"Assigning {user} to {node} through valloc")
+                subprocess.run(['valloc', '-n', node, '-u', user, '-v'])
+
+                # record login time
+                record_login(user, node, MyCredentials.report_linux_table, "general")
+                
+                # calls mgmt_client to collect usage data in vis nodes as feed for loadbalance
+                if MyCredentials.load_balance:
+                    logger.warning ("load_balance = TRUE")
+                    usage_data = data_agent()
+                    logger.info (f"Usage data obtained from accessible nodes: {usage_data}")
+                    logger.info ("Load balancing...")
+                    loadbalance(usage_data)
+                else:
+                    logger.warning ("load_balance = FALSE")
+                    fill_up(node)
+                # else:
+                #     print("logging off")
+                    # logoff(user, node)
 
         conn.send(msg.encode(FORMAT))
         connected = False
