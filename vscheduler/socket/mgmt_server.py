@@ -48,7 +48,7 @@ def handle_client(conn, addr):
                     subprocess.run(['vmanage', '-n', node, '-u', user, '-v'])
                     
 
-        if MyCredentials.linux_node_name in node and int(node.replace(MyCredentials.linux_node_name, "")) in MyCredentials.linux_general_range: 
+        if MyCredentials.linux_node_name in node and int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1): 
             # move user back to pool by logging out of node
             if "logout" in msg.split(","):
                 logger.info (f"LOGOUT attempt for {user}")
