@@ -28,14 +28,15 @@ class Database:
         databse_records = Capture_log("database", __file__)
         logger_booked = databse_records.log_agent()
         try:
-            db_con = pymysql.connect(
-                            host=MyCredentials.booked_host,
-                            user=MyCredentials.booked_user, 
-                            passwd=MyCredentials.booked_passwd,
-                            db=MyCredentials.booked_db, 
-                            port=MyCredentials.booked_port,
-                            charset="utf8")
-            return db_con
+            if MyCredentials.windows_booking or MyCredentials.linux_booking:    # connect to booked db if necessary
+                db_con = pymysql.connect(
+                                host=MyCredentials.booked_host,
+                                user=MyCredentials.booked_user, 
+                                passwd=MyCredentials.booked_passwd,
+                                db=MyCredentials.booked_db, 
+                                port=MyCredentials.booked_port,
+                                charset="utf8")
+                return db_con
         except pymysql.Error as e:
             print (f"error connecting booked db\n{e}") if MyPrintCondition.fprint else 0
             mailFunction("db error", f"error connecting booked database\n{e}", "", "")
@@ -46,7 +47,7 @@ class Database:
         databse_records = Capture_log("database", __file__)
         logger_guaca = databse_records.log_agent()
         try:
-            db_con = pymysql.connect(
+            db_con = pymysql.connect(                                           # connect to guaca db
                             host=MyCredentials.guaca_host,
                             user=MyCredentials.guaca_user, 
                             passwd=MyCredentials.guaca_passwd,
@@ -64,7 +65,7 @@ class Database:
         databse_records = Capture_log("database", __file__)
         logger_guaca = databse_records.log_agent()
         try:
-            db_con = pymysql.connect(
+            db_con = pymysql.connect(                                           # connect to report db
                             host=MyCredentials.report_host,
                             user=MyCredentials.report_user, 
                             passwd=MyCredentials.report_passwd,
