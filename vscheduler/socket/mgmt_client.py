@@ -1,9 +1,20 @@
 import socket, time
 from vscheduler.log.log import Capture_log
+from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.alert import mailFunction
 
-def client_program():
-    hosts = ["192.168.2.66", "192.168.2.144"]
+def client_program(domains):
+    # hosts = ["192.168.2.66", "192.168.2.144"]
+    print ("host", domains)
+    hosts =[]
+
+    for domain in domains:
+        # addr = socket.getaddrinfo (domain, 0,0,0,0)
+        # for result in addr:
+        #     hosts.append(result[-1][0])
+        #     hosts = list(set(hosts))
+        hosts = list({addr[-1][0] for addr in socket.getaddrinfo (domain, 0, 0, 0, 0)})
+
     port = 65002
     all_data = {}
 
