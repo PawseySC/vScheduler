@@ -11,6 +11,7 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.general.alert import mailFunction
@@ -309,8 +310,9 @@ def pool_report_generator(hostname, username, start, end):
     my_templ = Template(html)
     # # mailFunction (f"Report for {hostname} {username} {str(start)} {str(end)}", my_templ.render(titles=sentence), directory, ['fig1.png'])
 
-    email_with_embeded_image(my_templ.render(titles=actual_usage_report_results3_list, file1=os.path.exists(f'{directory}/fig1.png'), file2=os.path.exists(f'{directory}/fig2.png')))
-    # email_with_embeded_image(actual_usage_report_results_html)
+    if initiate.email:
+        email_with_embeded_image(my_templ.render(titles=actual_usage_report_results3_list, file1=os.path.exists(f'{directory}/fig1.png'), file2=os.path.exists(f'{directory}/fig2.png')))
+        # email_with_embeded_image(actual_usage_report_results_html)
     
 
     # email_with_embeded_image(build_table(actual_usage_report_results, 'blue_light'))
