@@ -145,6 +145,15 @@ CREATE TABLE exception (
     end DATETIME,
     PRIMARY KEY (id)
     );
+CREATE TABLE maintenance (
+    id MEDIUMINT NOT NULL AUTO_INCREMENT,
+    node VARCHAR(255),
+    maintenance VARCHAR(255),
+    pool VARCHAR(255),
+    start DATETIME,
+    end DATETIME,
+    PRIMARY KEY (id)
+    );
 use mysql;
 create user 'reporter'@'%' IDENTIFIED WITH mysql_native_password BY 'PASSWORD';
 grant all privileges on report.* to 'reporter'@'%';
