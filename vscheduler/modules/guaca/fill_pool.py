@@ -10,19 +10,30 @@ logger = pool_records.log_agent()
 
 def fillup(node):
     logger.info (f"Current node in the pool is {node}")
-    current_number = int(node.replace(MyCredentials.linux_node_name, ""))
-    logger.info (f"current_number+1: {current_number+1}")
-    if current_number+1 in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
-        current_number +=1
-        logger.info (f"current_number: {current_number}")
-    else:
-        current_number = MyCredentials.linux_general_range[0]
+    if MyCredentials.windows_node_name in node:
+        current_number = int(node.replace(MyCredentials.windows_node_name, ""))
+        logger.info (f"current_number+1: {current_number+1}")
+        if current_number+1 in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
+            current_number +=1
+            logger.info (f"current_number: {current_number}")
+        else:
+            current_number = MyCredentials.windows_general_range[0]
+        new_node = MyCredentials.windows_node_name + "0" + str(current_number) if current_number <= 9 else MyCredentials.windows_node_name + str(current_number)
+        pool_entity = entity(MyCredentials.windows_pool)
 
-    new_node = MyCredentials.linux_node_name + "0" + str(current_number) if current_number <= 9 else MyCredentials.linux_node_name + str(current_number)
+    if MyCredentials.linux_node_name in node:
+        current_number = int(node.replace(MyCredentials.linux_node_name, ""))
+        logger.info (f"current_number+1: {current_number+1}")
+        if current_number+1 in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
+            current_number +=1
+            logger.info (f"current_number: {current_number}")
+        else:
+            current_number = MyCredentials.linux_general_range[0]
+        new_node = MyCredentials.linux_node_name + "0" + str(current_number) if current_number <= 9 else MyCredentials.linux_node_name + str(current_number)
+        pool_entity = entity(MyCredentials.linux_pool)
+
     logger.info (f"New node in the pool is {new_node}")
-
     new_node_entity = entity(new_node)
-    pool_entity = entity(MyCredentials.pool)
     logger.info (f"new_node_entity: {new_node_entity}")
     logger.info (f"pool_entity: {pool_entity}")
 
