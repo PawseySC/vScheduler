@@ -1,3 +1,5 @@
+> Note: Following procedure tested on Ubuntu and working with MySQL
+
 **Visualisation Scheduler - Pawsey Supercomputing Centre**
 -----------------------------------------------------------
 
