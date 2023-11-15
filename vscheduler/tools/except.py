@@ -83,9 +83,12 @@ def main():
     #         p = Process("", "status", initiate.node)
     #     p.start()       # Create a new process and invoke the Process.run() method
     #     p.join()        # Process.join() to wait for task completion
-    p = Process("", initiate.status, initiate.node)
-    p.start()       # Create a new process and invoke the Process.run() method
-    p.join()        # Process.join() to wait for task completion
+    if initiate.node:
+        p = Process("", initiate.status, initiate.node)
+        p.start()       # Create a new process and invoke the Process.run() method
+        p.join()        # Process.join() to wait for task completion
+    else:
+        print ("Exception mode will be applied for specific node; To exclude all nodes from service, use vmaintenance")
     
 if __name__ == '__main__':
     main()
