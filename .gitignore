@@ -1,3 +1,8 @@
 __pycache__/
 vscheduler.egg-info/
 vs/
+<<<<<<< HEAD
+=======
+*.log
+*.png
+>>>>>>> SQL
