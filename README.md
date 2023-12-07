@@ -1,3 +1,9 @@
+**Management instance** - This is where the vscheduler is installed
+
+**Clients** - Remote visualisation nodes
+
+**Server** - vscheduler
+
 > Note: Following procedure tested on Ubuntu and working with MySQL
 
 **Visualisation Scheduler - Pawsey Supercomputing Centre**
