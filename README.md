@@ -1,4 +1,4 @@
-# Visualisation Scheduler - Pawsey Supercomputing Centre
+# Visualisation Scheduler - Pawsey Supercomputing Research Centre
 
 > [!NOTE] 
 > Following procedure tested on Ubuntu 22.04 with MySQL
@@ -19,6 +19,12 @@
 
 
 
+Install Ubuntu 22.04 (on a node or as a VM) and install pip
+
+```bash
+sudo apt-get update
+sudo apt-get install 
+```
 
 
 Apply below *Pre-setup* instruction for client-server communication and *Setup* section for vscheduler in `SQL` branch (`API` version to be developed).
