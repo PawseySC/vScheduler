@@ -1,5 +1,7 @@
 # Visualisation Scheduler - Pawsey Supercomputing Centre
------------------------------------------------------------
+
+> [!NOTE] 
+> Following procedure tested on Ubuntu 22.04 with MySQL
 
 ## Terminologies
 
@@ -15,7 +17,7 @@
 
 * **Usage Client** - This is the socket communication client on the management instance
 
-> Note: Following procedure tested on Ubuntu 22.04 with MySQL
+
 
 
 
