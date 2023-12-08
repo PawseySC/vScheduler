@@ -1,13 +1,23 @@
-**Management instance** - This is where the vscheduler is installed
-
-**Clients** - Remote visualisation nodes
-
-**Server** - vscheduler
-
-> Note: Following procedure tested on Ubuntu and working with MySQL
-
-**Visualisation Scheduler - Pawsey Supercomputing Centre**
+# Visualisation Scheduler - Pawsey Supercomputing Centre
 -----------------------------------------------------------
+
+## Terminologies
+
+* **Management Instance** - This is where the vscheduler and socket server is installed
+
+* **Clients** - Remote visualisation nodes and sock
+
+* **Management Server** - Socket server running on Management Instance
+
+* **Managements Clients** - Socket clients running on visualisation nodes
+
+* **Usage Servers** - These are the socket servers running on each of the visualisation nodes
+
+* **Usage Client** - This is the socket communication client on the management instance
+
+> Note: Following procedure tested on Ubuntu 22.04 with MySQL
+
+
 
 Apply below *Pre-setup* instruction for client-server communication and *Setup* section for vscheduler in `SQL` branch (`API` version to be developed).
 
