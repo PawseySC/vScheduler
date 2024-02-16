@@ -6,13 +6,13 @@ from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.general.timer import Brackets as MyBrackets
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
-from vscheduler.modules.guaca.empty_pool import empty
-from vscheduler.modules.guaca.revert_user import revert
 from vscheduler.modules.cluster.load_balance import loadbalance
 from vscheduler.modules.guaca.fill_pool import fillup as fill_up
 from vscheduler.modules.reports.record_log_io import record_login
 from vscheduler.modules.reports.record_log_io import record_logout
-from vscheduler.socket.mgmt_client import client_program as data_agent
+from vscheduler.modules.guaca.revert_user import revert_back_to_pool
+from vscheduler.modules.guaca.empty_pool import empty_pool_connection
+from vscheduler.socket.mgmt_client import client_statistics as data_agent
 
 my_connection = MyDatabase.connect_report_db()
 
@@ -73,7 +73,7 @@ def generate_general_partition_hosts(os, node):
 def manage_pool(msg, node, user, os):
     # 1. empty pool by removing connected node from general pool in guaca
     logger.info (f"Empty pool by removing {node}")
-    empty(msg.split(",")[0], msg.split(",")[1])
+    empty_pool_connection(msg.split(",")[0], msg.split(",")[1], MyCredentials.linux_pool) if os == "linux" else empty_pool_connection(msg.split(",")[0], msg.split(",")[1], MyCredentials.windows_pool)
 
     # 2. trigger valloc to make user member of connected node in guaca by assigning static url
     logger.info (f"Assigning {user} to {node} through valloc")
@@ -89,8 +89,8 @@ def manage_pool(msg, node, user, os):
         hosts = generate_general_partition_hosts(os, node)
         usage_data = data_agent(hosts)
         logger.info (f"Usage data obtained from accessible nodes: {usage_data}")
-        logger.info (f"{os} load balancing...")
-        loadbalance(usage_data)
+        logger.info (f"{os} nodes load balancing in < {MyCredentials.linux_pool} >") if os == "linux" else (f"{os} nodes load balancing in < {MyCredentials.windows_pool} >")
+        loadbalance(usage_data, MyCredentials.linux_pool) if os == "linux" else loadbalance(usage_data, MyCredentials.windows_pool)
     # 4.b. load balance OFF -> fill up pool with next node in order
     else:
         logger.warning ("load_balance = FALSE")
@@ -113,7 +113,7 @@ def handle_client(conn, addr):
             if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
                 if "logout" in msg.split(","):
                     logger.info (f"LOGOUT attempt for {user}")
-                    revert(msg.split(",")[1])
+                    revert_back_to_pool(msg.split(",")[1], MyCredentials.windows_pool)
                     record_logout(user, node, MyCredentials.report_windows_table, "general")
                 else:
                     manage_pool(msg, node, user, "windows")
@@ -135,7 +135,7 @@ def handle_client(conn, addr):
                 if "logout" in msg.split(","):
                     logger.info (f"LOGOUT attempt for {user}")
                     # move user back to pool by logging out of node
-                    revert(msg.split(",")[1])
+                    revert_back_to_pool(msg.split(",")[1])
                     record_logout(user, node, MyCredentials.report_linux_table, "general")
                 else:
                     # if len(checkpool(node, MyCredentials.pool)):        # if user goes to static url of specific node

@@ -1,3 +1,4 @@
+# socket client sitting in management instance in charge of gathering nodes usage statisctics for load balance
 import socket, time
 from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
@@ -9,7 +10,7 @@ socket_records = Capture_log("socket", __file__)
 logger = socket_records.log_agent()
 
 
-def client_program(domains):
+def client_statistics(domains):
     print (f"domains: {domains}") if MyPrintCondition.fprint else 0
     logger.info (f"domains: {domains}")
     hosts =[]
