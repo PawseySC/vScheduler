@@ -1,20 +1,22 @@
-# retreives host and user identy number in guacamole
+# retreives host and user identy number in guacamole db
 from tabulate import tabulate
 from vscheduler.log.log import Capture_log
-from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
+from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+
 my_connection = MyDatabase.connect_guaca_db()
 my_cursor = my_connection.cursor()
 
 pool_records = Capture_log("booking/pool", __file__)
 logger = pool_records.log_agent()
 
+
 def entity(feed):
     try:
         sentence = []
         print (f"entity feed: {feed}") if MyPrintCondition.fprint else 0
         logger.info (f"entity feed: {feed}")
-        entity_ids = "SELECT entity_id, name FROM guacamole_entity WHERE name = '%s'" %(feed)
+        entity_ids = f"SELECT entity_id, name FROM guacamole_entity WHERE name = {feed}"
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as cursor:
             cursor.execute(entity_ids)
@@ -31,5 +33,5 @@ def entity(feed):
         my_connection.close()
         return  entity_id_results
     except:
-        print (f"error: user group record for {feed} was not found in guacamole database") if MyPrintCondition.fprint else 0
-        logger.error(f"user group record for {feed} was not found in guacamole database")
+        print (f"error: user group record for < {feed} > was not found in guacamole database") if MyPrintCondition.fprint else 0
+        logger.error(f"user group record for < {feed} > was not found in guacamole database")
