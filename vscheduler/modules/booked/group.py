@@ -12,7 +12,7 @@ logger = booking_records.log_agent()
 def group_id(user_id):
     try:
         sentence = []
-        group = "SELECT user_id, group_id FROM user_groups WHERE user_id = '%s'" %(user_id)
+        group = f"SELECT user_id, group_id FROM user_groups WHERE user_id = {user_id}"
         my_cursor.execute(group)
         group_results = my_cursor.fetchall()
         for row_group in group_results:
@@ -30,7 +30,7 @@ def group_id(user_id):
 def group_name(group_id):
     try:
         sentence = []
-        group = "SELECT group_id, name FROM `groups` WHERE group_id = '%s'" %(group_id)
+        group = f"SELECT group_id, name FROM `groups` WHERE group_id = {group_id}"
         my_cursor.execute(group)
         group_results = my_cursor.fetchall()
         for row_group in group_results:
@@ -49,7 +49,7 @@ def group_members(group_id):
     try:
         sentence = []
         id = []
-        members = "SELECT user_id, group_id FROM user_groups WHERE group_id = '%s'" %(group_id)
+        members = f"SELECT user_id, group_id FROM user_groups WHERE group_id = {group_id}"
         my_cursor.execute(members)
         members_results = my_cursor.fetchall()
         for row_members in members_results:

@@ -12,7 +12,7 @@ logger = booking_records.log_agent()
 def user_reservations_by_user_id(id):
     try:
         sentence = []
-        reservation_users = "SELECT reservation_instance_id, user_id FROM reservation_users WHERE user_id = '%s'" %(id)                        
+        reservation_users = f"SELECT reservation_instance_id, user_id FROM reservation_users WHERE user_id = {id}"
         my_cursor.execute(reservation_users)
         reservation_users_results = my_cursor.fetchall()
         for row_reservation_users in reservation_users_results:
@@ -30,7 +30,7 @@ def user_reservations_by_user_id(id):
 def user_reservations_by_instance_id(id):
     try:
         sentence = []
-        reservation_users = "SELECT reservation_instance_id, user_id FROM reservation_users WHERE reservation_instance_id = '%s'" %(id)                        
+        reservation_users = f"SELECT reservation_instance_id, user_id FROM reservation_users WHERE reservation_instance_id = {id}"
         my_cursor.execute(reservation_users)
         reservation_users_results = my_cursor.fetchall()
         for row_reservation_users in reservation_users_results:

@@ -12,7 +12,7 @@ logger = booking_records.log_agent()
 def reservation_instances(start_bracket, end_bracket):
     try:
         sentence = []
-        reservation_instances = "SELECT reservation_instance_id, start_date, end_date, series_id FROM reservation_instances WHERE end_date <= '%s' AND start_date >= '%s'" %(end_bracket, start_bracket)
+        reservation_instances = f"SELECT reservation_instance_id, start_date, end_date, series_id FROM reservation_instances WHERE end_date <= {end_bracket} AND start_date >= {start_bracket}"
         my_cursor.execute(reservation_instances)
         reservation_instances_results = my_cursor.fetchall()
         for row_reservation_instances in reservation_instances_results:

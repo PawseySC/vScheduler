@@ -1,4 +1,4 @@
-# quota script
+# sesssion killing script
 import multiprocessing, click, time
 from vscheduler.log.log import Capture_log
 from tabulate import tabulate

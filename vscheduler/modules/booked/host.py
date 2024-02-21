@@ -12,7 +12,7 @@ logger = booking_records.log_agent()
 def host_by_name(hostname):
     try:
         sentence = []
-        resources = "SELECT resource_id, name FROM resources WHERE name = '%s'" %(hostname)
+        resources = f"SELECT resource_id, name FROM resources WHERE name = {hostname}"
         my_cursor.execute(resources)
         resources_results = my_cursor.fetchall()
         for row_resources in resources_results:
@@ -30,7 +30,7 @@ def host_by_name(hostname):
 def host_by_id(id):
     try:
         sentence = []
-        resources = "SELECT resource_id, name FROM resources WHERE resource_id = '%s'" %(id)
+        resources = f"SELECT resource_id, name FROM resources WHERE resource_id = {id}"
         my_cursor.execute(resources)
         resources_results = my_cursor.fetchall()
         for row_resources in resources_results:
