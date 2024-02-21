@@ -12,7 +12,7 @@ logger = booking_records.log_agent()
 def resource_reservations(resource_id):
     try:
         sentence = []
-        reservation_resources = "SELECT series_id, resource_id FROM reservation_resources WHERE resource_id = '%s'" %(resource_id)
+        reservation_resources = f"SELECT series_id, resource_id FROM reservation_resources WHERE resource_id = {resource_id}"
         my_cursor.execute(reservation_resources)
         reservation_resources_results = my_cursor.fetchall()
         for row_reservation_resources in reservation_resources_results:

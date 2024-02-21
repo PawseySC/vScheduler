@@ -13,11 +13,11 @@ def quotas(resources_id, groups_id):
     try:
         sentence = []
         if groups_id and resources_id:
-            quota = "SELECT quota_id, quota_limit, unit, duration, resource_id, group_id, schedule_id, enforced_days, enforced_time_start, enforced_time_end FROM quotas WHERE resource_id = '%s' AND group_id = '%s'" %(resources_id, groups_id) 
+            quota = f"SELECT quota_id, quota_limit, unit, duration, resource_id, group_id, schedule_id, enforced_days, enforced_time_start, enforced_time_end FROM quotas WHERE resource_id = {resources_id} AND group_id = {groups_id}"
         elif not groups_id:
-            quota = "SELECT quota_id, quota_limit, unit, duration, resource_id, group_id, schedule_id, enforced_days, enforced_time_start, enforced_time_end FROM quotas WHERE resource_id = '%s'" %(resources_id)
+            quota = f"SELECT quota_id, quota_limit, unit, duration, resource_id, group_id, schedule_id, enforced_days, enforced_time_start, enforced_time_end FROM quotas WHERE resource_id = {resources_id}"
         elif not resources_id:
-            quota = "SELECT quota_id, quota_limit, unit, duration, resource_id, group_id, schedule_id, enforced_days, enforced_time_start, enforced_time_end FROM quotas WHERE group_id = '%s'" %(groups_id)
+            quota = f"SELECT quota_id, quota_limit, unit, duration, resource_id, group_id, schedule_id, enforced_days, enforced_time_start, enforced_time_end FROM quotas WHERE group_id = {groups_id}"
             
         my_cursor.execute(quota)
         quota_results = my_cursor.fetchall()

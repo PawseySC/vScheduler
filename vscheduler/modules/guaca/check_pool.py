@@ -16,7 +16,7 @@ def checkpool(node, pool):
     connection_id = guacamole_connection(node)
     try:
         sentence = []
-        query = "SELECT connection_id, entity_id FROM guacamole_connection_permission WHERE connection_id = '%s' and entity_id = '%s'" %(connection_id[0][0], pool_entity[0][0])
+        query = f"SELECT connection_id, entity_id FROM guacamole_connection_permission WHERE connection_id = {connection_id[0][0]} and entity_id = {pool_entity[0][0]}"
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as cursor:
             cursor.execute(query)

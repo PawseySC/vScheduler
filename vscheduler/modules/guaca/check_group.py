@@ -12,7 +12,7 @@ logger = pool_records.log_agent()
 def check_group(user_group):
     try:
         sentence = []
-        check_group = "SELECT user_group_id, member_entity_id FROM guacamole_user_group_member WHERE user_group_id = '%s'" %(user_group)
+        check_group = f"SELECT user_group_id, member_entity_id FROM guacamole_user_group_member WHERE user_group_id = {user_group}"
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as cursor:
             cursor.execute(check_group)

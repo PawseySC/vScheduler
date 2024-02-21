@@ -26,7 +26,7 @@ def user_details_print(users_results):
 
 def user_details_by_user_id(logged_in_user):
     try:
-        users = "SELECT user_id, fname, lname, username, email FROM users WHERE user_id = '%s'" %(logged_in_user)   
+        users = f"SELECT user_id, fname, lname, username, email FROM users WHERE user_id = {logged_in_user}"
         my_cursor.execute(users)
         users_results = my_cursor.fetchall()
         users_results_copy = user_details_print(users_results)
@@ -38,7 +38,7 @@ def user_details_by_user_id(logged_in_user):
 
 def user_details_by_username(logged_in_user):
     try:
-        users = "SELECT user_id, fname, lname, username, email FROM users WHERE username = '%s'" %(logged_in_user)   
+        users = f"SELECT user_id, fname, lname, username, email FROM users WHERE username = {logged_in_user}"
         my_cursor.execute(users)
         users_results = my_cursor.fetchall()
         users_results_copy = user_details_print(users_results)

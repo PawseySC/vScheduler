@@ -11,9 +11,9 @@ logger = pool_records.log_agent()
 def modify(x,y):
     try:
         if x:
-            reset = "DELETE FROM guacamole_user_group_member WHERE member_entity_id = '%s' AND user_group_id = '%s'" %(x, y)
+            reset = f"DELETE FROM guacamole_user_group_member WHERE member_entity_id = {x} AND user_group_id = {y}"
         else:
-            reset = "DELETE FROM guacamole_user_group_member WHERE user_group_id = '%s'" %(y)
+            reset = f"DELETE FROM guacamole_user_group_member WHERE user_group_id = {y}"
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as cursor:
             cursor.execute(reset)

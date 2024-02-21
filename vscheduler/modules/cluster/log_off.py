@@ -31,9 +31,9 @@ def logoff(user, node):
             for line in stdout_query_copy:
                 if (line.split()[0] == user or line.split()[1] == user) and user not in MyCredentials.exception:
                     if line.split()[0] == user:
-                        stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command("logoff %s" % (line.split()[1]))
+                        stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command(f"logoff {line.split()[1]}")
                     elif line.split()[1] == user:
-                        stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command("logoff %s" % (line.split()[2]))
+                        stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command(f"logoff {line.split()[2]}")
                     std_print(stdin_logoff, stdout_logoff, stderr_logoff)
                     print (f"session for {user} was killed on {node}") if MyPrintCondition.fprint else 0
                     logger.info (f"session for {user} was killed on {node}")

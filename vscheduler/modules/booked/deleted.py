@@ -9,10 +9,11 @@ my_cursor = my_connection.cursor()
 booking_records = Capture_log("booking", __file__)
 logger = booking_records.log_agent()
 
+
 def deleted(reserved_series):
     try:
         sentence = []
-        reservation_series = "SELECT series_id, status_id FROM reservation_series WHERE series_id = '%s'" %(reserved_series)        
+        reservation_series = f"SELECT series_id, status_id FROM reservation_series WHERE series_id = {reserved_series}"  
         my_cursor.execute(reservation_series)
         reservation_series_results = my_cursor.fetchall()
         for row_reservation_series in reservation_series_results:
