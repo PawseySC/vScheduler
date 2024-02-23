@@ -7,7 +7,8 @@ my_connection = MyDatabase.connect_booked_db()
 my_cursor = my_connection.cursor()
 
 booking_records = Capture_log("booking", __file__)
-logger = booking_records.log_agent()
+logger_win = booking_records.log_agent("windows")    # **** logger_unix needs to be added; win flag should be sent when calling the function ****
+
 
 def user_reservations_by_user_id(id):
     try:
@@ -20,11 +21,11 @@ def user_reservations_by_user_id(id):
             user_id = row_reservation_users[1]
             sentence.insert(len(sentence), [reservation_instance_id , user_id])
         print (f"\n {tabulate(sentence, headers=['reservation_instance_id', 'user_id'])}") if MyPrintCondition.fprint else 0
-        logger.info (f"\n {tabulate(sentence, headers=['reservation_instance_id', 'user_id'])}")
+        logger_win.info (f"\n {tabulate(sentence, headers=['reservation_instance_id', 'user_id'])}")
         return reservation_users_results
     except:
         print (f"error in retreiving reservation for user with user id < {id} >") if MyPrintCondition.fprint else 0
-        logger.error (f"error in retreiving reservation for user with user id < {id} >")
+        logger_win.error (f"error in retreiving reservation for user with user id < {id} >")
 
 
 def user_reservations_by_instance_id(id):
@@ -38,11 +39,11 @@ def user_reservations_by_instance_id(id):
             user_id = row_reservation_users[1]
             sentence.insert(len(sentence), [reservation_instance_id , user_id])
         print ("\n", tabulate(sentence, headers=['reservation_instance_id', 'user_id'])) if MyPrintCondition.fprint else 0
-        logger.info ("\n" + tabulate(sentence, headers=['reservation_instance_id', 'user_id']))
+        logger_win.info ("\n" + tabulate(sentence, headers=['reservation_instance_id', 'user_id']))
         return reservation_users_results
     except:
         print (f"error in retreiving reservation for user with reservation instance id < {id} >") if MyPrintCondition.fprint else 0
-        logger.error (f"error in retreiving reservation for user with reservation instance id < {id} >")
+        logger_win.error (f"error in retreiving reservation for user with reservation instance id < {id} >")
 
 
 def user_reservations():
@@ -56,8 +57,8 @@ def user_reservations():
             user_id = row_reservation_users[1]
             sentence.insert(len(sentence), [reservation_instance_id , user_id])
         print ("\n", tabulate(sentence, headers=['reservation_instance_id', 'user_id'])) if MyPrintCondition.fprint else 0
-        logger.info ("\n" + tabulate(sentence, headers=['reservation_instance_id', 'user_id']))
+        logger_win.info ("\n" + tabulate(sentence, headers=['reservation_instance_id', 'user_id']))
         return reservation_users_results
     except:
         print ("error in retreiving reservations") if MyPrintCondition.fprint else 0
-        logger.error ("error in retreiving reservations")
+        logger_win.error ("error in retreiving reservations")

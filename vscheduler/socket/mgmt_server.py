@@ -23,14 +23,15 @@ SIZE = 1024
 FORMAT = "utf-8"
 
 socket_records = Capture_log("socket", __file__)
-logger = socket_records.log_agent()
+logger_win = socket_records.log_agent("windows")
+logger_unix = socket_records.log_agent("linux")
 
 
 # return list of production nodes which are functional
 def generate_general_partition_hosts(os, node):
     sentence = []
     exception_query = f"SELECT * FROM {MyCredentials.report_exception_table} WHERE node = {node} AND start = end AND {MyBrackets.local_time} >= start"
-    logger.info (f"status exception_query: {exception_query}")
+    logger_win.info (f"status exception_query: {exception_query}") if os == "windows" else logger_unix.info (f"status exception_query: {exception_query}") 
     my_connection.ping()  # reconnecting mysql in case of connection timed out
     with my_connection.cursor() as my_cursor:
         my_cursor.execute(exception_query)
@@ -42,10 +43,10 @@ def generate_general_partition_hosts(os, node):
         exception_end = row_exception[4]
         sentence.insert(len(sentence), [exception_node , exception_status, exception_start, exception_end])
         print ("\n", tabulate(sentence, headers=['exception_node', 'exception_status', 'exception_start', 'exception_end'])) if MyPrintCondition.fprint else 0
-        logger.info ("\n" + tabulate(sentence, headers=['exception_node', 'exception_status', 'exception_start', 'exception_end']))
+        logger_win.info ("\n" + tabulate(sentence, headers=['exception_node', 'exception_status', 'exception_start', 'exception_end'])) if os == "windows" else logger_unix.info ("\n" + tabulate(sentence, headers=['exception_node', 'exception_status', 'exception_start', 'exception_end']))
     
     print (f"exception nodes: {exception_results}") if MyPrintCondition.fprint else 0
-    logger.info (f"exception nodes: {exception_results}")
+    logger_win.info (f"exception nodes: {exception_results}") if os == "windows" else logger_unix.info (f"exception nodes: {exception_results}")
     
     hosts = []
     if os == "linux":
@@ -66,17 +67,17 @@ def generate_general_partition_hosts(os, node):
         #         hosts.append(host)
         hosts = [MyCredentials.windows_node_name + "0" + i if i < 10 else MyCredentials.windows_node_name + i for i in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1)]
         hosts = [x for x in hosts if x not in exception_results]
-    logger.info (f"hosts: {hosts}")
+    logger_win.info (f"hosts: {hosts}") if os == "windows" else logger_unix.info (f"hosts: {hosts}")
     return hosts
 
 
 def manage_pool(msg, node, user, os):
     # 1. empty pool by removing connected node from general pool in guaca
-    logger.info (f"Empty pool by removing {node}")
+    logger_win.info (f"Empty pool by removing {node}") if os == "windows" else logger_unix.info (f"Empty pool by removing {node}")
     empty_pool_connection(msg.split(",")[0], msg.split(",")[1], MyCredentials.linux_pool) if os == "linux" else empty_pool_connection(msg.split(",")[0], msg.split(",")[1], MyCredentials.windows_pool)
 
     # 2. trigger valloc to make user member of connected node in guaca by assigning static url
-    logger.info (f"Assigning {user} to {node} through valloc")
+    logger_win.info (f"Assigning {user} to {node} through valloc") if os == "windows" else logger_unix.info (f"Assigning {user} to {node} through valloc")
     subprocess.run(['valloc', '-n', node, '-u', user, '-v'])
 
     # 3. record login time
@@ -85,25 +86,26 @@ def manage_pool(msg, node, user, os):
     # 4. fill up pool by new member
     # 4.a. load balance ON -> call mgmt_client to collect usage data from vis nodes to rank those for loadbalance
     if MyCredentials.load_balance:
-        logger.warning ("load_balance = TRUE")
+        logger_win.warning ("load_balance = TRUE") if os == "windows" else logger_unix.warning ("load_balance = TRUE")
         hosts = generate_general_partition_hosts(os, node)
-        usage_data = data_agent(hosts)
-        logger.info (f"Usage data obtained from accessible nodes: {usage_data}")
-        logger.info (f"{os} nodes load balancing in < {MyCredentials.linux_pool} >") if os == "linux" else (f"{os} nodes load balancing in < {MyCredentials.windows_pool} >")
+        usage_data = data_agent(hosts, os)
+        logger_win.info (f"Usage data obtained from accessible nodes: {usage_data}") if os == "windows" else logger_unix.info (f"Usage data obtained from accessible nodes: {usage_data}")
+        logger_win.info (f"{os} nodes load balancing in < {MyCredentials.windows_pool} >") if os == "windows" else logger_unix.info (f"{os} nodes load balancing in < {MyCredentials.linux_pool} >")
         loadbalance(usage_data, MyCredentials.linux_pool) if os == "linux" else loadbalance(usage_data, MyCredentials.windows_pool)
     # 4.b. load balance OFF -> fill up pool with next node in order
     else:
-        logger.warning ("load_balance = FALSE")
+        logger_win.warning ("load_balance = FALSE") if os == "windows" else logger_unix.warning ("load_balance = FALSE")
         fill_up(node)
 
 
 def handle_client(conn, addr):
-    logger.info (f"[NEW VIS NODE CONNECTION TO MGMT] {addr}")
+    logger_win.info (f"[NEW VIS NODE CONNECTION TO MGMT] {addr}")
+    logger_unix.info (f"[NEW VIS NODE CONNECTION TO MGMT] {addr}")
 
     connected = True
     while connected:
         msg = conn.recv(SIZE).decode(FORMAT)
-        logger.info (f"MSG FROM VIS NODE: {msg.split(',')}")
+        logger_win.info (f"MSG FROM VIS NODE: {msg.split(',')}") if MyCredentials.windows_node_name in msg else logger_unix.info (f"MSG FROM VIS NODE: {msg.split(',')}")
         node = msg.split(",")[0]
         user = msg.split(",")[1]
 
@@ -112,7 +114,7 @@ def handle_client(conn, addr):
             # if windows general partition -> empty windows general pool, then, valloc and finally update windows general pool with new node
             if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
                 if "logout" in msg.split(","):
-                    logger.info (f"LOGOUT attempt for {user}")
+                    logger_win.info (f"LOGOUT attempt for {user}")
                     revert_back_to_pool(msg.split(",")[1], MyCredentials.windows_pool)
                     record_logout(user, node, MyCredentials.report_windows_table, "general")
                 else:
@@ -121,7 +123,7 @@ def handle_client(conn, addr):
             # if windows booking partition -> trigger vmanage at windows login to check booking validity
             elif int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
                 if "logout" in msg.split(","):
-                    logger.info (f"LOGOUT attempt for {user}")
+                    logger_win.info (f"LOGOUT attempt for {user}")
                     record_logout(user, node, MyCredentials.report_windows_table, "booking")
                 else:
                     record_login(user, node, MyCredentials.report_windows_table, "booking")
@@ -133,7 +135,7 @@ def handle_client(conn, addr):
             # if linux general partition -> empty linux general pool, then, valloc and finally update linux general pool with new node
             if int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1): 
                 if "logout" in msg.split(","):
-                    logger.info (f"LOGOUT attempt for {user}")
+                    logger_unix.info (f"LOGOUT attempt for {user}")
                     # move user back to pool by logging out of node
                     revert_back_to_pool(msg.split(",")[1])
                     record_logout(user, node, MyCredentials.report_linux_table, "general")
@@ -144,7 +146,7 @@ def handle_client(conn, addr):
             # if linux booking partition -> trigger vmanage at linux login to check booking validity
             elif int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
                 if "logout" in msg.split(","):
-                    logger.info (f"LOGOUT attempt for {user}")
+                    logger_unix.info (f"LOGOUT attempt for {user}")
                     record_logout(user, node, MyCredentials.report_linux_table, "booking")
                 else:
                     record_login(user, node, MyCredentials.report_linux_table, "booking")
@@ -158,17 +160,20 @@ def handle_client(conn, addr):
 
 
 def main():
-    logger.info ("[STARTING] MGMT SERVER STARTING...")
+    logger_win.info ("[STARTING] MGMT SERVER STARTING...")
+    logger_unix.info ("[STARTING] MGMT SERVER STARTING...")
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind(ADDR)
     server.listen()
-    logger.info (f"[LISTENING] MGMT SERVER LISTENING ON {IP}:{PORT}")
+    logger_win.info (f"[LISTENING] MGMT SERVER LISTENING ON {IP}:{PORT}")
+    logger_unix.info (f"[LISTENING] MGMT SERVER LISTENING ON {IP}:{PORT}")
 
     while True:
         conn, addr = server.accept()
         thread = threading.Thread(target=handle_client, args=(conn, addr))
         thread.start()
-        logger.info (f"[ACTIVE CONNECTIONS TO MGMT] {threading.active_count() - 1}")
+        logger_win.info (f"[ACTIVE CONNECTIONS TO MGMT] {threading.active_count() - 1}")
+        logger_unix.info (f"[ACTIVE CONNECTIONS TO MGMT] {threading.active_count() - 1}")
 
 if __name__ == "__main__":
     main()

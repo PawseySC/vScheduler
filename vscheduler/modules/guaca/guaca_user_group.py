@@ -7,7 +7,7 @@ my_connection = MyDatabase.connect_guaca_db()
 my_cursor = my_connection.cursor()
 
 pool_records = Capture_log("pool", __file__)
-logger = pool_records.log_agent()
+logger_unix = pool_records.log_agent("linux")   # windows logger is needed by passing the node
 
 def guacamole_user_group(group_entity):
     try:
@@ -22,10 +22,10 @@ def guacamole_user_group(group_entity):
             entity_id = row_user_group[1]
             sentence.insert(len(sentence), [user_group_id , entity_id])
         print("\n", tabulate(sentence, headers=['user_group_id', 'entity_id'])) if MyPrintCondition.fprint else 0
-        logger.info ("\n" + tabulate(sentence, headers=['user_group_id', 'entity_id']))
+        logger_unix.info ("\n" + tabulate(sentence, headers=['user_group_id', 'entity_id']))
         
         my_connection.close()
         return user_group_results
     except:
         print (f"error retreiving user group data for group_entity < {group_entity} >") if MyPrintCondition.fprint else 0
-        logger.error (f"error retreiving user group data for group_entity < {group_entity} >")
+        logger_unix.error (f"error retreiving user group data for group_entity < {group_entity} >")

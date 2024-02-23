@@ -10,7 +10,7 @@ from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.guaca.conn_permission import connection_permission
 
 pool_records = Capture_log("pool", __file__)
-logger = pool_records.log_agent()
+logger_unix = pool_records.log_agent("linux")   # **** logger_win needs to be added; win flag should be sent when calling the function ****
 
 
 def loadbalance(usage_data, pool):
@@ -34,8 +34,8 @@ def loadbalance(usage_data, pool):
     # y = dict(sorted(x.items(), key=lambda item: item[1]))
     # print ("sorted as:\n", y) if MyPrintCondition.fprint else 0
     sorted_usage_data = dict(sorted(usage_data.items(), key=lambda item: item[1], reverse=True))
-    logger.info (f"sorted usage_data: {sorted_usage_data}")
-    logger.info (f"least busy node: {list(sorted_usage_data.values())[0][0]}")
+    logger_unix.info (f"sorted usage_data: {sorted_usage_data}")
+    logger_unix.info (f"least busy node: {list(sorted_usage_data.values())[0][0]}")
     # print ("list(y.keys()[0])=>", list(y.keys())[0])
     # print("list(y.values())[0][1]=>", list(y.values())[0][1])
 
@@ -46,6 +46,6 @@ def loadbalance(usage_data, pool):
     pool_entity = entity(pool)
     # pool_group = guacamole_user_group(pool_entity[0][0])
 
-    logger.info (f"least busy node_entity: {node_entity}")
-    logger.info (f"pool_entity: {pool_entity}")
+    logger_unix.info (f"least busy node_entity: {node_entity}")
+    logger_unix.info (f"pool_entity: {pool_entity}")
     connection_permission(node_entity[0][1], pool_entity[0][0])

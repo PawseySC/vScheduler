@@ -7,7 +7,7 @@ my_connection = MyDatabase.connect_booked_db()
 my_cursor = my_connection.cursor()
 
 booking_records = Capture_log("booking", __file__)
-logger = booking_records.log_agent()
+logger_win = booking_records.log_agent("windows")    # **** logger_unix needs to be added; win flag should be sent when calling the function ****
 
 def group_id(user_id):
     try:
@@ -20,11 +20,11 @@ def group_id(user_id):
             groups_id = row_group[1]
             sentence.insert(len(sentence), [users_id , groups_id])
         print ("\n", tabulate(sentence, headers=['users_id', 'groups_id'])) if MyPrintCondition.fprint else 0
-        logger.info ("\n" + tabulate(sentence, headers=['users_id', 'groups_id']))
+        logger_win.info ("\n" + tabulate(sentence, headers=['users_id', 'groups_id']))
         return group_results
     except:
         print (f"group error; user id < {user_id} > is not available in booked\n") if MyPrintCondition.fprint else 0
-        logger.error (f"group error; user id < {user_id} > is not available in booked")
+        logger_win.error (f"group error; user id < {user_id} > is not available in booked")
 
 
 def group_name(group_id):
@@ -38,11 +38,11 @@ def group_name(group_id):
             name = row_group[1]
             sentence.insert(len(sentence), [group_id , name])
         print ("\n", tabulate(sentence, headers=['group_id', 'name'])) if MyPrintCondition.fprint else 0
-        logger.info ("\n" + tabulate(sentence, headers=['group_id', 'name']))
+        logger_win.info ("\n" + tabulate(sentence, headers=['group_id', 'name']))
         return group_results
     except:
         print (f"group error; group id < {group_id} > is not available in booked to extract its name\n") if MyPrintCondition.fprint else 0
-        logger.error (f"group error; group id < {group_id} > is not available in booked to extract its name")
+        logger_win.error (f"group error; group id < {group_id} > is not available in booked to extract its name")
 
 
 def group_members(group_id):
@@ -58,8 +58,8 @@ def group_members(group_id):
             sentence.insert(len(sentence), [users_id , groups_id])
             id.append(users_id)
         print ("\n", tabulate(sentence, headers=['users_id', 'groups_id'])) if MyPrintCondition.fprint else 0
-        logger.info ("\n" + tabulate(sentence, headers=['users_id', 'groups_id']))
+        logger_win.info ("\n" + tabulate(sentence, headers=['users_id', 'groups_id']))
         return id
     except:
         print (f"member error; group id < {group_id} > is not available in booked to extract its members\n") if MyPrintCondition.fprint else 0
-        logger.error (f"member error; group id < {group_id} > is not available in booked to extract its members")
+        logger_win.error (f"member error; group id < {group_id} > is not available in booked to extract its members")

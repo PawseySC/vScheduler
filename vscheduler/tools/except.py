@@ -10,7 +10,8 @@ from vscheduler.modules.reports.exception import exception_remove as remove_exce
 from vscheduler.modules.reports.exception import exception_status as status_exception
 
 records = Capture_log("exception", __file__)
-logger = records.log_agent()
+logger_win = records.log_agent("windows")
+logger_unix = records.log_agent("linux")
 
 # Process class
 class Process(multiprocessing.Process):
@@ -23,14 +24,17 @@ class Process(multiprocessing.Process):
     def run(self):
         if self.status == "add":
             add_exception (self.hostname)
+            logger_win.info (f"< {self.hostname} > requested to be added to exception") if MyCredentials.windows_node_name in self.hostname else logger_unix.info (f"< {self.hostname} > requested to be added to exception")
         elif self.status == "remove":    
             remove_exception (self.hostname)
+            logger_win.info (f"< {self.hostname} > requested to be remved from exception") if MyCredentials.windows_node_name in self.hostname else logger_unix.info (f"< {self.hostname} > requested to be removed from exception")
         elif self.status == "status":
             start = '2000-01-01' if not initiate.start else initiate.start
             end = MyBrackets.local_time if not initiate.end else initiate.end
             print (f"start: {start}")
             print (f"end: {end}")
             status_exception(self.hostname, start, end)
+            logger_win.info (f"< {self.hostname} > queried for exception status") if MyCredentials.windows_node_name in self.hostname else logger_unix.info (f"< {self.hostname} > queried for exception status")
 
 def main():
     # if not initiate.node:

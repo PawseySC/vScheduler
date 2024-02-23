@@ -6,7 +6,7 @@ my_connection = MyDatabase.connect_guaca_db()
 my_cursor = my_connection.cursor()
 
 pool_records = Capture_log("booking/pool", __file__)
-logger = pool_records.log_agent()
+logger_unix = pool_records.log_agent("linux")   # windows logger is needed by passing the node
 
 def insert(x,y):
     try:
@@ -16,10 +16,10 @@ def insert(x,y):
             cursor.execute(allocation)
             my_connection.commit()
         print (f"{cursor.rowcount} record(s) inserted") if MyPrintCondition.fprint else 0  
-        logger.info (f"{cursor.rowcount} record(s) inserted")  
+        logger_unix.info (f"{cursor.rowcount} record(s) inserted")  
 
         my_connection.close()
         
     except:
         print (f"error inserting record for user member entity id < {x} > in group id < {y} >") if MyPrintCondition.fprint else 0
-        logger.error (f"error inserting record for user member entity id < {x} > in group id < {y} >")
+        logger_unix.error (f"error inserting record for user member entity id < {x} > in group id < {y} >")
