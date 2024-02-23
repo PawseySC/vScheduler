@@ -13,7 +13,8 @@ from vscheduler.modules.guaca.check_group import check_group
 from vscheduler.modules.guaca.update import update
 
 records = Capture_log("booking/pool", __file__)
-logger = records.log_agent()
+logger_win = records.log_agent("windows")
+logger_unix = records.log_agent("linux")
 
 # Process class
 class Process(multiprocessing.Process):
@@ -26,11 +27,14 @@ class Process(multiprocessing.Process):
     def run(self):
         # time.sleep(1)
         print ("\n==>Process id: {}".format(self.id)) if MyPrintCondition.fprint and self.id else 0
-        logger.info ("==>Process id: {}".format(self.id)) if self.id else 0
+        if MyCredentials.windows_node_name in self.hostname:
+            logger_win.info ("==>Process id: {}".format(self.id)) if self.id else 0
+        elif MyCredentials.linux_node_name in self.hostname:
+            logger_unix.info ("==>Process id: {}".format(self.id)) if self.id else 0
 
         users = who(self.hostname) if not self.username else [self.username]                        # retreives users logged in to the node
         print ("users=>", users)
-        logger.info (f"users=> {users}")
+        logger_win.info (f"users=> {users}") if MyCredentials.windows_node_name in self.hostname else logger_unix.info (f"users=> {users}")
 
         node_entity = entity(self.hostname)        
         node_group = guacamole_user_group(node_entity[0][0])
@@ -52,7 +56,7 @@ class Process(multiprocessing.Process):
         #     update(group_check[0][1], pool_group[0][0])
         else:
             print (f"skipping < {self.hostname} > as no ones logged in (or due to broken ssh) and has no member in guacamole connection group") if MyPrintCondition.fprint else 0
-            logger.info (f"skipping < {self.hostname} > as no ones logged in (or due to broken ssh) and has no member in guacamole connection group")
+            logger_win.info (f"skipping < {self.hostname} > as no ones logged in (or due to broken ssh) and has no member in guacamole connection group") if MyCredentials.windows_node_name in self.hostname else logger_unix.info (f"skipping < {self.hostname} > as no ones logged in (or due to broken ssh) and has no member in guacamole connection group")
             # think about this: user might have some light stuff open and e.g. waiting for mc to copy from object storage
             # or if they disconnected th session waiting for repeatative work to be done
             # above "else" will take this into consideration or remove the node link for that user? 
@@ -75,8 +79,9 @@ def main():
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
         else:
-            print ("There is no general Windows or Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
-            logger.info ("There is no general Windows or Linux partition; To enable it edit vscheduler confilg")
+            print ("There is no general Windows and Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
+            logger_win.info ("There is no general Windows and Linux partition; To enable it edit vscheduler confilg")
+            logger_unix.info ("There is no general Windows and Linux partition; To enable it edit vscheduler confilg")
     else:
         if ((MyCredentials.windows_node_name in initiate.node and 
                 int(initiate.node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1)) or 
@@ -87,7 +92,7 @@ def main():
             p.join()        # Process.join() to wait for task completion
         else:
             print (f"< {initiate.node} > is not in general range") if MyPrintCondition.fprint else 0
-            logger.info (f"< {initiate.node} > is not in general range")
+            logger_win.info (f"< {initiate.node} > is not in general range") if MyCredentials.windows_node_name in initiate.node else logger_unix.info (f"< {initiate.node} > is not in general range")
 
     #     for i in range (MyCredentials.range[0], MyCredentials.range[1]):
     #         node = MyCredentials.node_name + '0' + str(i) if i <= 9 else MyCredentials.node_name + str(i)

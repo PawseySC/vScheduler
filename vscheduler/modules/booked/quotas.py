@@ -7,7 +7,8 @@ my_connection = MyDatabase.connect_booked_db()
 my_cursor = my_connection.cursor()
 
 booking_records = Capture_log("booking", __file__)
-logger = booking_records.log_agent()
+logger_win = booking_records.log_agent("windows")    # **** logger_unix needs to be added; win flag should be sent when calling the function ****
+
 
 def quotas(resources_id, groups_id):
     try:
@@ -34,10 +35,10 @@ def quotas(resources_id, groups_id):
             enforced_time_end = row_quota[9]
             sentence.insert(len(sentence), [quota_id , quota_limit, unit, duration, resource_id, group_id, schedule_id, enforced_days, enforced_time_start, enforced_time_end])
         print ("EMPTY quota_results") if MyPrintCondition.fprint and not quota_results else 0
-        logger.info ("EMPTY quota_results")
+        logger_win.info ("EMPTY quota_results")
         print ("\n", tabulate(sentence, headers=['quota_id', 'quota_limit', 'unit', 'duration', 'resource_id', 'group_id', 'schedule_id', 'enforced_days', 'enforced_time_start', 'enforced_time_end'])) if MyPrintCondition.fprint and quota_results else 0
-        logger.info ("\n" + tabulate(sentence, headers=['quota_id', 'quota_limit', 'unit', 'duration', 'resource_id', 'group_id', 'schedule_id', 'enforced_days', 'enforced_time_start', 'enforced_time_end']))
+        logger_win.info ("\n" + tabulate(sentence, headers=['quota_id', 'quota_limit', 'unit', 'duration', 'resource_id', 'group_id', 'schedule_id', 'enforced_days', 'enforced_time_start', 'enforced_time_end']))
         return quota_results if quota_results else ""
     except:
         print (f"quota error; resource id < {resources_id} > or group id < {groups_id} > was not found in booked\n") if MyPrintCondition.fprint else 0
-        logger.error (f"quota error; resource id < {resources_id} > or group id < {groups_id} > was not found in booked")
+        logger_win.error (f"quota error; resource id < {resources_id} > or group id < {groups_id} > was not found in booked")

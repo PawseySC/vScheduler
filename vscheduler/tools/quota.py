@@ -16,7 +16,8 @@ from rich.console import Console
 from rich.table import Table
 
 booking_records = Capture_log("booking", __file__)
-logger = booking_records.log_agent()
+logger_win = booking_records.log_agent("windows")
+logger_unix = booking_records.log_agent("linux")
 
 # Process class
 class Process(multiprocessing.Process):
@@ -32,13 +33,16 @@ class Process(multiprocessing.Process):
         resource_id = groups_id = ""
         # time.sleep(1)
         print("\n==>Process id: {}\n".format(self.id)) if MyPrintCondition.fprint and self.id else 0
-        logger.info ("==>Process id: {}".format(self.id)) if self.id else 0
+        if MyCredentials.windows_node_name in self.hostname:
+            logger_win.info ("==>Process id: {}".format(self.id)) if self.id else 0
+        elif MyCredentials.linux_node_name in self.hostname:
+            logger_unix.info ("==>Process id: {}".format(self.id)) if self.id else 0
         user_id = user_details_by_username(self.username)[0][0] if self.username else ""
         groups_ids = group_id(user_id) if user_id else ""
         resource_id = host_by_name(self.hostname)[0][0] if self.hostname and host_by_name(self.hostname) else ""
         if not resource_id:
             print (f"no resource record for < {self.hostname} > in booked - skipping") if MyPrintCondition.fprint else 0
-            logger.info (f"no resource record for < {self.hostname} > in booked - skipping")
+            logger_win.info (f"no resource record for < {self.hostname} > in booked - skipping") if MyCredentials.windows_node_name in self.hostname else logger_unix.info (f"no resource record for < {self.hostname} > in booked - skipping")
             quit()
         if groups_ids:
             for groups_id in groups_ids: 
@@ -89,29 +93,44 @@ class Process(multiprocessing.Process):
                         if self.hostname:
                             if MyPrintCondition.fprint:
                                 print (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} \n") if enforced_days and enforced_time_start else print (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on <  {self.hostname} > inequally shared between {member_username} \n")
-                            logger.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} \n") if enforced_days and enforced_time_start else print (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on <  {self.hostname} > inequally shared between {member_username} \n")
+                            if MyCredentials.windows_node_name in self.hostname:
+                                logger_win.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} \n") if enforced_days and enforced_time_start else logger_win.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on <  {self.hostname} > inequally shared between {member_username} \n")
+                            elif MyCredentials.linux_node_name in self.hostname:
+                                logger_unix.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} \n") if enforced_days and enforced_time_start else logger_unix.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on <  {self.hostname} > inequally shared between {member_username} \n")
                         else:
                             if MyPrintCondition.fprint:
                                 print (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {host_by_id(resource_id)} > inequally shared between {member_username} \n") if enforced_days and enforced_time_start else print (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {host_by_id(resource_id)} > inequally shared between {member_username} \n")
-                            logger.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {host_by_id(resource_id)} > inequally shared between {member_username} \n") if enforced_days and enforced_time_start else print (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {host_by_id(resource_id)} > inequally shared between {member_username} \n")
+                            if MyCredentials.windows_node_name in self.hostname:
+                                logger_win.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {host_by_id(resource_id)} > inequally shared between {member_username} \n") if enforced_days and enforced_time_start else logger_win.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {host_by_id(resource_id)} > inequally shared between {member_username} \n")
+                            elif MyCredentials.linux_node_name in self.hostname:
+                                logger_unix.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {host_by_id(resource_id)} > inequally shared between {member_username} \n") if enforced_days and enforced_time_start else logger_unix.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {host_by_id(resource_id)} > inequally shared between {member_username} \n")
                     else:
                         table.add_row(self.username, group_name(group__id)[0][1] ,str(quota_limit) + " " + str(unit), duration, self.hostname, str(member_username)) if self.hostname else table.add_row(self.username, group_name(group__id)[0][1] ,str(quota_limit) + " " + str(unit), duration, host_by_id(resource_id), str(member_username))
                         
                         if self.hostname:
                             if MyPrintCondition.fprint:
                                 print (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} >\n") if enforced_days and enforced_time_start else print (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {self.hostname} > inequally shared between {member_username} >\n")
-                            logger.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} >\n") if enforced_days and enforced_time_start else print (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {self.hostname} > inequally shared between {member_username} >\n")
+                            if MyCredentials.windows_node_name in self.hostname:
+                                logger_win.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} >\n") if enforced_days and enforced_time_start else logger_win.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {self.hostname} > inequally shared between {member_username} >\n")
+                            elif MyCredentials.linux_node_name in self.hostname:
+                                logger_win.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} >\n") if enforced_days and enforced_time_start else logger_unix.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {self.hostname} > inequally shared between {member_username} >\n")
                         else:
                             if MyPrintCondition.fprint:
                                 print (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {host_by_id(resource_id)} > inequally shared between {member_username} >\n") if enforced_days and enforced_time_start else print (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {host_by_id(resource_id)} > inequally shared between {member_username} >\n")
-                            logger.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {host_by_id(resource_id)} > inequally shared between {member_username} >\n") if enforced_days and enforced_time_start else print (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {host_by_id(resource_id)} > inequally shared between {member_username} >\n")
+                            if MyCredentials.windows_node_name in self.hostname:
+                                logger_win.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {host_by_id(resource_id)} > inequally shared between {member_username} >\n") if enforced_days and enforced_time_start else logger_win.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {host_by_id(resource_id)} > inequally shared between {member_username} >\n")
+                            elif MyCredentials.linux_node_name in self.hostname:
+                                logger_win.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {host_by_id(resource_id)} > inequally shared between {member_username} >\n") if enforced_days and enforced_time_start else logger_unix.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {host_by_id(resource_id)} > inequally shared between {member_username} >\n")
             console.print(table)
-            logger.info (console.print(table))
+            logger_win.info (console.print(table)) if MyCredentials.windows_node_name in self.hostname else logger_unix.info (console.print(table))
         else:
             print (f"no quota found for < {self.username} > on < {self.hostname} >") if {self.username} else print (f"no quota found on < {self.hostname} >") if MyPrintCondition.fprint else 0
-            logger.info (f"no quota found for < {self.username} > on < {self.hostname} >") if {self.username} else print (f"no quota found on < {self.hostname} >")
-
-
+            if MyCredentials.windows_node_name in self.hostname:
+                logger_win.info (f"no quota found for < {self.username} > on < {self.hostname} >") if {self.username} else logger_win.info (f"no quota found on < {self.hostname} >")
+            elif MyCredentials.linux_node_name in self.hostname:
+                logger_unix.info (f"no quota found for < {self.username} > on < {self.hostname} >") if {self.username} else logger_unix.info (f"no quota found on < {self.hostname} >")
+                
+                
 def main():
     if not initiate.node and not initiate.user:
         if MyCredentials.windows_booking or MyCredentials.linux_booking:
@@ -128,8 +147,9 @@ def main():
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
         else:
-            print ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
-            logger.info ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg")
+            print ("There is no bookable Windows and Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
+            logger_win.info ("There is no bookable Windows and Linux partition; To enable it edit vscheduler confilg")
+            logger_unix.info ("There is no bookable Windows and Linux partition; To enable it edit vscheduler confilg")
     else:
         if (MyCredentials.windows_node_name in initiate.node and 
                 int(initiate.node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]) or 
@@ -140,7 +160,7 @@ def main():
             p.join()        # Process.join() to wait for task completion
         else:
             print (f"< {initiate.node} > is not in bookable range") if MyPrintCondition.fprint else 0
-            logger.info (f"< {initiate.node} > is not in bookable range")
+            logger_win.info (f"< {initiate.node} > is not in bookable range") if MyCredentials.windows_node_name in initiate.node else logger_unix.info (f"< {initiate.node} > is not in bookable range")
             
 
 if __name__ == '__main__':

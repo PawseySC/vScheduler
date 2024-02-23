@@ -9,7 +9,7 @@ my_connection = MyDatabase.connect_guaca_db()
 my_cursor = my_connection.cursor()
 
 pool_records = Capture_log("pool", __file__)
-logger = pool_records.log_agent()
+logger = pool_records.log_agent("linux")    # **** logger_win needs to be added; win flag should be sent when calling the function ****
 
 def checkpool(node, pool):
     pool_entity = entity(pool)

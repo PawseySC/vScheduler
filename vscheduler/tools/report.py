@@ -25,7 +25,8 @@ from tabulate import tabulate
 # my_cursor = my_connection.cursor()
 
 records = Capture_log("booking/pool", __file__)
-logger = records.log_agent()
+logger_win = records.log_agent("windows")
+logger_unix = records.log_agent("linux")
 
 # sendMail = True
 # counter = 0
@@ -67,7 +68,10 @@ class Process(multiprocessing.Process):
     def run(self):
         # time.sleep(1)
         print ("\n==>> Process id: {}".format(self.id)) if MyPrintCondition.fprint and self.id else 0
-        logger.info ("==>Process id: {}".format(self.id)) if self.id else 0
+        if MyCredentials.windows_node_name in self.hostname:
+            logger_win.info ("==>Process id: {}".format(self.id)) if self.id else 0
+        elif MyCredentials.linux_node_name in self.hostname:
+            logger_unix.info ("==>Process id: {}".format(self.id)) if self.id else 0
 
         start = '2000-01-01' if not initiate.start else initiate.start
         end = MyBrackets.local_time if not initiate.end else initiate.end

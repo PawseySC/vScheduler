@@ -7,7 +7,8 @@ my_connection = MyDatabase.connect_booked_db()
 my_cursor = my_connection.cursor()
 
 booking_records = Capture_log("booking", __file__)
-logger = booking_records.log_agent()
+logger_win = booking_records.log_agent("windows")    # **** logger_unix needs to be added; win flag should be sent when calling the function ****
+
 
 def resource_reservations(resource_id):
     try:
@@ -20,8 +21,8 @@ def resource_reservations(resource_id):
             resources_id = row_reservation_resources[1]
             sentence.insert(len(sentence), [resources_id, series_id])
         print ("\n", tabulate(sentence, headers=['resources_id', 'series_id'])) if MyPrintCondition.fprint else 0
-        logger.info ("\n" + tabulate(sentence, headers=['resources_id', 'series_id']))
+        logger_win.info ("\n" + tabulate(sentence, headers=['resources_id', 'series_id']))
         return reservation_resources_results
     except:
         print (f"error: resource with id < {resource_id} > not found") if MyPrintCondition.fprint else 0
-        logger.error (f"error: resource with id < {resource_id} > not found")
+        logger_win.error (f"error: resource with id < {resource_id} > not found")

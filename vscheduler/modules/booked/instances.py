@@ -7,7 +7,8 @@ my_connection = MyDatabase.connect_booked_db()
 my_cursor = my_connection.cursor()
 
 booking_records = Capture_log("booking", __file__)
-logger = booking_records.log_agent()
+logger_win = booking_records.log_agent("windows")    # **** logger_unix needs to be added; win flag should be sent when calling the function ****
+
 
 def reservation_instances(start_bracket, end_bracket):
     try:
@@ -22,8 +23,8 @@ def reservation_instances(start_bracket, end_bracket):
             series_id = row_reservation_instances[3]
             sentence.insert(len(sentence), [reservation_instance_id , start_date, end_date, series_id])
         print ("\n", tabulate(sentence, headers=['reservation_instance_id', 'start_date', 'end_date', 'series_id'])) if MyPrintCondition.fprint else 0
-        logger.info ("\n" + tabulate(sentence, headers=['reservation_instance_id', 'start_date', 'end_date', 'series_id']))
+        logger_win.info ("\n" + tabulate(sentence, headers=['reservation_instance_id', 'start_date', 'end_date', 'series_id']))
         return reservation_instances_results
     except:
         print ("error retreiving reservation instances") if MyPrintCondition.fprint else 0
-        logger.error ("error retreiving reservation instances")
+        logger_win.error ("error retreiving reservation instances")
