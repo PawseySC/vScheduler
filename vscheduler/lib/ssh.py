@@ -5,7 +5,7 @@ from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.config import Credentials as MyCredentials
 
 module_records = Capture_log("ssh", __file__)
-logger_module = module_records.log_agent()
+logger_module = module_records.log_agent(f"{MyCredentials.report_windows_table}")
 try:
     import paramiko
     from paramiko import SSHClient, AutoAddPolicy
