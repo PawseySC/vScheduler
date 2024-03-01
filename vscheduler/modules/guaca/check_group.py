@@ -4,7 +4,6 @@ from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
 my_connection = MyDatabase.connect_guaca_db()
-my_cursor = my_connection.cursor()
 
 pool_records = Capture_log("pool", __file__)
 logger_unix = pool_records.log_agent("linux")   # **** logger_win needs to be added; win flag should be sent when calling the function ****
@@ -29,7 +28,6 @@ def check_group(user_group):
         print ("\n", tabulate(sentence, headers=['user_group_id', 'member_entity_id'])) if MyPrintCondition.fprint else 0
         logger_unix.info ("\n" + tabulate(sentence, headers=['user_group_id', 'member_entity_id']))
 
-        my_connection.close()
         return check_group_results
     except:
         print ("error in checking guacamole user group member") if MyPrintCondition.fprint else 0

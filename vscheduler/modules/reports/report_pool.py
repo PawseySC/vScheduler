@@ -19,7 +19,6 @@ from vscheduler.general.alert2 import email_with_embeded_image
 from jinja2 import Template
 import datetime
 
-
 my_connection = MyDatabase.connect_report_db()
 
 records = Capture_log("pool", __file__)

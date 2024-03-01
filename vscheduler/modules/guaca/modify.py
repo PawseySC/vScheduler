@@ -3,7 +3,6 @@ from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
 my_connection = MyDatabase.connect_guaca_db()
-my_cursor = my_connection.cursor()
 
 pool_records = Capture_log("booking/pool", __file__)
 logger_unix = pool_records.log_agent("linux")   # windows logger is needed by passing the node
@@ -25,8 +24,6 @@ def modify(x,y):
             print(f"session link was removed for user group id < {y} >") if MyPrintCondition.fprint and not x else 0
             logger_unix.info (f"session link was removed for member entiry id < {x} > in user group id < {y} >") if x else 0
             logger_unix.info (f"session link was removed for user group id < {y} >") if not x else 0
-
-        my_connection.close()
         
     except:
         print (f"error deleting recorde for member_entity_id < {x} > and user_group_id < {y} >") if MyPrintCondition.fprint else 0
