@@ -10,9 +10,9 @@ logger_unix = pool_records.log_agent("linux")   # windows logger is needed by pa
 def modify(x,y):
     try:
         if x:
-            reset = f"DELETE FROM guacamole_user_group_member WHERE member_entity_id = {x} AND user_group_id = {y}"
+            reset = f"DELETE FROM guacamole_user_group_member WHERE member_entity_id = '{x}' AND user_group_id = '{y}'"
         else:
-            reset = f"DELETE FROM guacamole_user_group_member WHERE user_group_id = {y}"
+            reset = f"DELETE FROM guacamole_user_group_member WHERE user_group_id = '{y}'"
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as cursor:
             cursor.execute(reset)

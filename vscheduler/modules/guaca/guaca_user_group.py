@@ -11,7 +11,7 @@ logger_unix = pool_records.log_agent("linux")   # windows logger is needed by pa
 def guacamole_user_group(group_entity):
     try:
         sentence = []
-        user_group = f"SELECT user_group_id, entity_id FROM guacamole_user_group WHERE entity_id = {group_entity}"
+        user_group = f"SELECT user_group_id, entity_id FROM guacamole_user_group WHERE entity_id = '{group_entity}'"
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as cursor:
             cursor.execute(user_group)

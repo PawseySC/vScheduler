@@ -17,7 +17,7 @@ def entity(feed):   # os should be sent over for logging into 1 file only
         print (f"entity feed: {feed}") if MyPrintCondition.fprint else 0
         logger_win.info (f"entity feed: {feed}")
         logger_unix.info (f"entity feed: {feed}")
-        entity_ids = f"SELECT entity_id, name FROM guacamole_entity WHERE name = {feed}"
+        entity_ids = f"SELECT entity_id, name FROM guacamole_entity WHERE name = '{feed}'"
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as cursor:
             cursor.execute(entity_ids)

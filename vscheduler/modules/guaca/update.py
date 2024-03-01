@@ -12,7 +12,7 @@ def update (x,y):
         print (f"x(member_entity_id): {x}, y(user_group_id): {y}") if MyPrintCondition.fprint else 0
         logger_unix.info (f"x(member_entity_id): {x}, y(user_group_id): {y}")
         # allocation = "UPDATE guacamole_user_group_member SET member_entity_id = '%s' WHERE user_group_id = '%s'" %(x, y)  # when simeltanous multiple booking not allowed
-        allocation = f"UPDATE guacamole_user_group_member SET user_group_id = {y} WHERE member_entity_id = {x}"             # when simeltanous multiple booking allowed
+        allocation = f"UPDATE guacamole_user_group_member SET user_group_id = '{y}' WHERE member_entity_id = '{x}'"             # when simeltanous multiple booking allowed
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as cursor:
             cursor.execute(allocation)
