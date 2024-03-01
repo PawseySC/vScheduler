@@ -14,7 +14,13 @@ logger_unix = records.log_agent("linux")
 
 
 def exception_add(node):
-    exception_query = f"INSERT INTO {MyCredentials.report_exception_table} (node, status, start, end) VALUES {node}, 'DOWN', {MyBrackets.local_time}, {MyBrackets.local_time}"
+    pool = ""
+    if MyCredentials.windows_node_name in node:
+        pool = "GENERAL" if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1) else "BOOKING"
+    elif MyCredentials.linux_node_name in node:
+        pool = "GENERAL" if int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1) else "BOOKING"
+
+    exception_query = f"INSERT INTO {MyCredentials.report_exception_table} (node, status, pool, start, end) VALUES '{node}', 'DOWN', '{pool}', {MyBrackets.local_time}, {MyBrackets.local_time}"
     logger_win.info (f"exception_query: {exception_query}") if MyCredentials.windows_node_name in node else logger_unix.info (f"exception_query: {exception_query}")
     my_connection.ping()  # reconnecting mysql in case of connection timed out
     with my_connection.cursor() as my_cursor:
@@ -24,7 +30,7 @@ def exception_add(node):
     logger_win.info (f"{my_cursor.rowcount} record(s) inserted") if MyCredentials.windows_node_name in node else logger_unix.info (f"{my_cursor.rowcount} record(s) inserted")
 
 def exception_remove(node):
-    exception_query = f"UPDATE {MyCredentials.report_exception_table} SET status = 'UP', end = {MyBrackets.local_time} WHERE node = {node} AND status = 'DOWN', start = end AND start < {MyBrackets.local_time}"
+    exception_query = f"UPDATE {MyCredentials.report_exception_table} SET status = 'UP', end = {MyBrackets.local_time} WHERE node = '{node}' AND status = 'DOWN', start = end AND start < {MyBrackets.local_time}"
     logger_win.info (f"exception_query: {exception_query}") if MyCredentials.windows_node_name in node else logger_unix.info (f"exception_query: {exception_query}")
     my_connection.ping()  # reconnecting mysql in case of connection timed out
     with my_connection.cursor() as my_cursor:

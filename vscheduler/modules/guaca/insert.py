@@ -9,7 +9,7 @@ logger_unix = pool_records.log_agent("linux")   # windows logger is needed by pa
 
 def insert(x,y):
     try:
-        allocation = f"INSERT INTO guacamole_user_group_member (member_entity_id, user_group_id) VALUES ({x},{y})"  # WHERE member_entity_id
+        allocation = f"INSERT INTO guacamole_user_group_member (member_entity_id, user_group_id) VALUES ('{x}','{y}')"  # WHERE member_entity_id
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as cursor:
             cursor.execute(allocation)

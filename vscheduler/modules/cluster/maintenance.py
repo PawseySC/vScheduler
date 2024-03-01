@@ -14,7 +14,7 @@ logger_unix = records.log_agent("linux")
 
 
 def activation(node):
-    exception_query = f"INSERT INTO {MyCredentials.report_maintenance_table} (node, status, start, end) VALUES {node}, 'Y', {MyBrackets.local_time}, {MyBrackets.local_time}"
+    exception_query = f"INSERT INTO {MyCredentials.report_maintenance_table} (node, status, start, end) VALUES '{node}', 'Y', {MyBrackets.local_time}, {MyBrackets.local_time}"
     logger_win.info (f"exception_query: {exception_query}") if MyCredentials.windows_node_name in node else logger_unix.info (f"exception_query: {exception_query}")
     my_connection.ping()  # reconnecting mysql in case of connection timed out
     with my_connection.cursor() as my_cursor:
@@ -25,7 +25,7 @@ def activation(node):
     # NOTIFY USERS ??? <<<<<<<<
     
 def deactivation(node):
-    exception_query = f"UPDATE {MyCredentials.report_maintenance_table} SET status = 'N', end = {MyBrackets.local_time} WHERE node = {node} AND status = 'DOWN', start = end AND start < {MyBrackets.local_time}"
+    exception_query = f"UPDATE {MyCredentials.report_maintenance_table} SET status = 'N', end = {MyBrackets.local_time} WHERE node = '{node}' AND status = 'DOWN', start = end AND start < {MyBrackets.local_time}"
     logger_win.info (f"exception_query: {exception_query}") if MyCredentials.windows_node_name in node else logger_unix.info (f"exception_query: {exception_query}")
     my_connection.ping()  # reconnecting mysql in case of connection timed out
     with my_connection.cursor() as my_cursor:

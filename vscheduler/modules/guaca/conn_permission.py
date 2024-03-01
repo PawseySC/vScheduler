@@ -6,7 +6,6 @@ from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 
 my_connection = MyDatabase.connect_guaca_db()
-my_cursor = my_connection.cursor()
 
 pool_records = Capture_log("pool", __file__)
 logger_win = pool_records.log_agent("windows")
@@ -16,7 +15,7 @@ logger_unix = pool_records.log_agent("linux")
 def guacamole_connection(node):
     try:
         sentence = []
-        connection = f"SELECT connection_id, connection_name FROM guacamole_connection WHERE connection_name = {node}"
+        connection = f"SELECT connection_id, connection_name FROM guacamole_connection WHERE connection_name = '{node}'"
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as cursor:
             cursor.execute(connection)
@@ -40,21 +39,21 @@ def guacamole_connection(node):
 def connection_permission(conn, pool):
     try:
         conn_name = guacamole_connection(conn)
-        check = f"SELECT connection_id, entity_id FROM guacamole_connection_permission WHERE entity_id = {pool}"                      # check if pool has any connection
+        check = f"SELECT connection_id, entity_id FROM guacamole_connection_permission WHERE entity_id = '{pool}'"                      # check if pool has any connection
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as cursor:
             cursor.execute(check)
             check_results = cursor.fetchall()
         # print ("len(check_results)", len(check_results))
         if len(check_results) == 0:
-            assign = f"INSERT INTO guacamole_connection_permission (connection_id, entity_id) VALUES ({conn_name[0][0]},{pool})"      # when no coonection assigned to pool yet
+            assign = f"INSERT INTO guacamole_connection_permission (connection_id, entity_id) VALUES ('{conn_name[0][0]}','{pool}')"      # when no coonection assigned to pool yet
             with my_connection.cursor() as cursor:
                 cursor.execute(assign)
                 my_connection.commit()
             print (f"{cursor.rowcount} record(s) inserted into guacamole_connection_permission") if MyPrintCondition.fprint else 0 
             logger_win.info (f"{cursor.rowcount} record(s) inserted into guacamole_connection_permission") if MyCredentials.windows_node_name in conn else logger_unix.info (f"{cursor.rowcount} record(s) inserted into guacamole_connection_permission")
         else:
-            allocation = f"UPDATE guacamole_connection_permission SET connection_id = {conn_name[0][0]} WHERE entity_id = {pool}"     # when simeltanous multiple booking allowed
+            allocation = f"UPDATE guacamole_connection_permission SET connection_id = '{conn_name[0][0]}' WHERE entity_id = '{pool}'"     # when simeltanous multiple booking allowed
             with my_connection.cursor() as cursor:
                 cursor.execute(allocation)
                 my_connection.commit()
@@ -68,7 +67,7 @@ def connection_permission(conn, pool):
 def del_connection(conn, pool):
     try:
         conn_name = guacamole_connection(conn)
-        check = f"SELECT connection_id, entity_id FROM guacamole_connection_permission WHERE entity_id = {pool}"                           # check if pool has any connection
+        check = f"SELECT connection_id, entity_id FROM guacamole_connection_permission WHERE entity_id = '{pool}'"                           # check if pool has any connection
         logger_win.info (f"conn_name[0][0]: {conn_name[0][0]}") if MyCredentials.windows_node_name in conn else logger_unix.info (f"conn_name[0][0]: {conn_name[0][0]}")
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as cursor:
@@ -76,7 +75,7 @@ def del_connection(conn, pool):
             check_results = cursor.fetchall()
         # print ("len(check_results)", len(check_results))
         if len(check_results) > 0:      # if pool has a connection
-            empty = f"DELETE FROM guacamole_connection_permission WHERE connection_id = {conn_name[0][0]} AND entity_id = {pool}"
+            empty = f"DELETE FROM guacamole_connection_permission WHERE connection_id = {conn_name[0][0]} AND entity_id = '{pool}'"
             with my_connection.cursor() as cursor:
                 cursor.execute(empty)
                 my_connection.commit()

@@ -30,7 +30,7 @@ logger_unix = socket_records.log_agent("linux")
 # return list of production nodes which are functional
 def generate_general_partition_hosts(os, node):
     sentence = []
-    exception_query = f"SELECT * FROM {MyCredentials.report_exception_table} WHERE node = {node} AND start = end AND {MyBrackets.local_time} >= start"
+    exception_query = f"SELECT * FROM {MyCredentials.report_exception_table} WHERE node = '{node}' AND start = end AND {MyBrackets.local_time} >= start"
     logger_win.info (f"status exception_query: {exception_query}") if os == "windows" else logger_unix.info (f"status exception_query: {exception_query}") 
     my_connection.ping()  # reconnecting mysql in case of connection timed out
     with my_connection.cursor() as my_cursor:
