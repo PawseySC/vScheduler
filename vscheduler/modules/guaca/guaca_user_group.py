@@ -4,7 +4,6 @@ from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
 my_connection = MyDatabase.connect_guaca_db()
-my_cursor = my_connection.cursor()
 
 pool_records = Capture_log("pool", __file__)
 logger_unix = pool_records.log_agent("linux")   # windows logger is needed by passing the node
@@ -23,8 +22,7 @@ def guacamole_user_group(group_entity):
             sentence.insert(len(sentence), [user_group_id , entity_id])
         print("\n", tabulate(sentence, headers=['user_group_id', 'entity_id'])) if MyPrintCondition.fprint else 0
         logger_unix.info ("\n" + tabulate(sentence, headers=['user_group_id', 'entity_id']))
-        
-        my_connection.close()
+
         return user_group_results
     except:
         print (f"error retreiving user group data for group_entity < {group_entity} >") if MyPrintCondition.fprint else 0

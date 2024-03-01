@@ -16,8 +16,8 @@ def revert_back_to_pool(user, pool):
     if pool_entity is not None:
         pool_group = guacamole_user_group(pool_entity[0][0])
     else:
-        mailFunction("NoneType error",f"NoneType object is not subscriptable\nvscheduler > modules > guaca > revertuser > revert (line 17)\npool_group = guacamole_user_group({pool_entity}) = {pool_group}", "", "")
-        logger_unix.critical (f"NoneType object is not subscriptable\nvscheduler > modules > guaca > revertuser > revert (line 17)\npool_group = guacamole_user_group({pool_entity}) = {pool_group}")
+        mailFunction("NoneType error",f"NoneType object is not subscriptable\nvscheduler > modules > guaca > revertuser > revert (line 17)\npool_group = guacamole_user_group({pool_entity}) = {guacamole_user_group(pool_entity[0][0])}", "", "")
+        logger_unix.critical (f"NoneType object is not subscriptable\nvscheduler > modules > guaca > revertuser > revert (line 17)\npool_group = guacamole_user_group({pool_entity}) = {guacamole_user_group(pool_entity[0][0])}")
         pass
 
     user_entity = entity(user)

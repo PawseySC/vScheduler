@@ -15,9 +15,11 @@ def empty_pool_connection(node, user, pool):
     # node_group = guacamole_user_group(node_entity[0][0])
     pool_entity = entity(pool)
     # pool_group = guacamole_user_group(pool_entity[0][0])
-
+    user_entity = entity(user)
+    
     logger_win.info (f"node_entity of < { node } >: < {node_entity} >") if MyCredentials.windows_node_name in node else logger_unix.info (f"node_entity of < { node } >: < {node_entity} >")
     logger_win.info (f"pool_entity of < { pool } >: < {pool_entity} >") if MyCredentials.windows_node_name in node else logger_unix.info (f"pool_entity of < { pool } >: < {pool_entity} >")
+    logger_win.info (f"user_entity of < { user } >: < {user_entity} >") if MyCredentials.windows_node_name in node else logger_unix.info (f"user_entity of < { user } >: < {user_entity} >")
     
     if node_entity is not None and pool_entity is not None:
         del_connection(node_entity[0][1], pool_entity[0][0])
