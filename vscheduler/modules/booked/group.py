@@ -3,18 +3,21 @@ from tabulate import tabulate
 from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
+
 my_connection = MyDatabase.connect_booked_db()
-my_cursor = my_connection.cursor()
 
 booking_records = Capture_log("booking", __file__)
 logger_win = booking_records.log_agent("windows")    # **** logger_unix needs to be added; win flag should be sent when calling the function ****
 
+
 def group_id(user_id):
     try:
         sentence = []
-        group = f"SELECT user_id, group_id FROM user_groups WHERE user_id = {user_id}"
-        my_cursor.execute(group)
-        group_results = my_cursor.fetchall()
+        group = f"SELECT user_id, group_id FROM user_groups WHERE user_id = '{user_id}'"
+        my_connection.ping()  # reconnecting mysql in case of connection timed out
+        with my_connection.cursor() as cursor: 
+            cursor.execute(group)
+            group_results = cursor.fetchall()
         for row_group in group_results:
             users_id = row_group[0]
             groups_id = row_group[1]
@@ -30,9 +33,11 @@ def group_id(user_id):
 def group_name(group_id):
     try:
         sentence = []
-        group = f"SELECT group_id, name FROM `groups` WHERE group_id = {group_id}"
-        my_cursor.execute(group)
-        group_results = my_cursor.fetchall()
+        group = f"SELECT group_id, name FROM `groups` WHERE group_id = '{group_id}'"
+        my_connection.ping()  # reconnecting mysql in case of connection timed out
+        with my_connection.cursor() as cursor: 
+            cursor.execute(group)
+            group_results = cursor.fetchall()
         for row_group in group_results:
             group_id = row_group[0]
             name = row_group[1]
@@ -49,9 +54,11 @@ def group_members(group_id):
     try:
         sentence = []
         id = []
-        members = f"SELECT user_id, group_id FROM user_groups WHERE group_id = {group_id}"
-        my_cursor.execute(members)
-        members_results = my_cursor.fetchall()
+        members = f"SELECT user_id, group_id FROM user_groups WHERE group_id = '{group_id}'"
+        my_connection.ping()  # reconnecting mysql in case of connection timed out
+        with my_connection.cursor() as cursor: 
+            cursor.execute(members)
+            members_results = cursor.fetchall()
         for row_members in members_results:
             users_id = row_members[0]
             groups_id = row_members[1]

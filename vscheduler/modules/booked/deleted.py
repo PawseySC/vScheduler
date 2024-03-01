@@ -3,8 +3,8 @@ from tabulate import tabulate
 from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
+
 my_connection = MyDatabase.connect_booked_db()
-my_cursor = my_connection.cursor()
 
 booking_records = Capture_log("booking", __file__)
 logger_win = booking_records.log_agent("windows")    # **** logger_unix needs to be added; win flag should be sent when calling the function ****
@@ -13,9 +13,11 @@ logger_win = booking_records.log_agent("windows")    # **** logger_unix needs to
 def deleted(reserved_series):
     try:
         sentence = []
-        reservation_series = f"SELECT series_id, status_id FROM reservation_series WHERE series_id = {reserved_series}"  
-        my_cursor.execute(reservation_series)
-        reservation_series_results = my_cursor.fetchall()
+        reservation_series = f"SELECT series_id, status_id FROM reservation_series WHERE series_id = '{reserved_series}'"  
+        my_connection.ping()  # reconnecting mysql in case of connection timed out
+        with my_connection.cursor() as cursor:
+            cursor.execute(reservation_series)
+            reservation_series_results = cursor.fetchall()
         for row_reservation_series in reservation_series_results:
             reservation_series_id = row_reservation_series[0]
             reservation_series_status_id = row_reservation_series[1]
@@ -31,9 +33,11 @@ def deleted(reserved_series):
 def deleted_records():
     try:
         sentence = []
-        reservation_series = "SELECT series_id, status_id FROM reservation_series"      
-        my_cursor.execute(reservation_series)
-        reservation_series_results = my_cursor.fetchall()
+        reservation_series = "SELECT series_id, status_id FROM reservation_series"    
+        my_connection.ping()  # reconnecting mysql in case of connection timed out
+        with my_connection.cursor() as cursor:  
+            cursor.execute(reservation_series)
+            reservation_series_results = cursor.fetchall()
         for row_reservation_series in reservation_series_results:
             reservation_series_id = row_reservation_series[0]
             reservation_series_status_id = row_reservation_series[1]
