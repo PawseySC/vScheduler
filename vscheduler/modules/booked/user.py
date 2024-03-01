@@ -3,8 +3,8 @@ from tabulate import tabulate
 from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
+
 my_connection = MyDatabase.connect_booked_db()
-my_cursor = my_connection.cursor()
 
 booking_records = Capture_log("booking", __file__)
 logger_win = booking_records.log_agent("windows")    # **** logger_unix needs to be added; win flag should be sent when calling the function ****
@@ -27,9 +27,11 @@ def user_details_print(users_results):
 
 def user_details_by_user_id(logged_in_user):
     try:
-        users = f"SELECT user_id, fname, lname, username, email FROM users WHERE user_id = {logged_in_user}"
-        my_cursor.execute(users)
-        users_results = my_cursor.fetchall()
+        users = f"SELECT user_id, fname, lname, username, email FROM users WHERE user_id = '{logged_in_user}'"
+        my_connection.ping()  # reconnecting mysql in case of connection timed out
+        with my_connection.cursor() as cursor: 
+            cursor.execute(users)
+            users_results = cursor.fetchall()
         users_results_copy = user_details_print(users_results)
         return users_results_copy
     except:
@@ -39,9 +41,11 @@ def user_details_by_user_id(logged_in_user):
 
 def user_details_by_username(logged_in_user):
     try:
-        users = f"SELECT user_id, fname, lname, username, email FROM users WHERE username = {logged_in_user}"
-        my_cursor.execute(users)
-        users_results = my_cursor.fetchall()
+        users = f"SELECT user_id, fname, lname, username, email FROM users WHERE username = '{logged_in_user}'"
+        my_connection.ping()  # reconnecting mysql in case of connection timed out
+        with my_connection.cursor() as cursor: 
+            cursor.execute(users)
+            users_results = cursor.fetchall()
         users_results_copy = user_details_print(users_results)
         return users_results_copy
     except:
@@ -51,8 +55,10 @@ def user_details_by_username(logged_in_user):
 def user_details():
     try:
         users = "SELECT user_id, fname, lname, username, email FROM users"
-        my_cursor.execute(users)
-        users_results = my_cursor.fetchall()
+        my_connection.ping()  # reconnecting mysql in case of connection timed out
+        with my_connection.cursor() as cursor: 
+            cursor.execute(users)
+            users_results = cursor.fetchall()
         users_results_copy = user_details_print(users_results)
         return users_results_copy
     except:
