@@ -137,7 +137,7 @@ def handle_client(conn, addr):
                 if "logout" in msg.split(","):
                     logger_unix.info (f"LOGOUT attempt for {user}")
                     # move user back to pool by logging out of node
-                    revert_back_to_pool(msg.split(",")[1])
+                    revert_back_to_pool(msg.split(",")[1], MyCredentials.linux_pool)
                     record_logout(user, node, MyCredentials.report_linux_table, "general")
                 else:
                     # if len(checkpool(node, MyCredentials.pool)):        # if user goes to static url of specific node
