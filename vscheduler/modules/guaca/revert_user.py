@@ -23,7 +23,7 @@ def revert_back_to_pool(user, pool):
     user_entity = entity(user)
     logger_unix.info (f"pool_group of < {pool} >: < {pool_group} >")
     logger_unix.info (f"user_entity of < {user} >: < {user_entity} >")
-    update(user_entity[0][0], pool_group[0][0])
+    update(user_entity[0][0], pool_group[0][0], pool_group[0][0], "revert")
 
 # def insert_new_to_pool(user, pool):
 #     pool_entity = entity(pool)
