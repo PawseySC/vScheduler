@@ -73,18 +73,20 @@ def generate_general_partition_hosts(os, node):
 
 def manage_pool(msg, node, user, os):
     # 1. empty pool by removing connected node from general pool in guaca
-    logger_win.info (f"Empty pool by removing {node}") if os == "windows" else logger_unix.info (f"Empty pool by removing {node}")
+    logger_win.info (f"step 1/4: Empty pool by replacing < {node} > with next available node") if os == "windows" else logger_unix.info (f"step 1/4: Empty pool by replacing < {node} > with next available node")
     empty_pool_connection(msg.split(",")[0], msg.split(",")[1], MyCredentials.linux_pool) if os == "linux" else empty_pool_connection(msg.split(",")[0], msg.split(",")[1], MyCredentials.windows_pool)
 
     # 2. trigger valloc to make user member of connected node in guaca by assigning static url
-    logger_win.info (f"Assigning {user} to {node} through valloc") if os == "windows" else logger_unix.info (f"Assigning {user} to {node} through valloc")
+    logger_win.info (f"step 2/4: Assigning < {user} > to < {node} > through valloc") if os == "windows" else logger_unix.info (f"step 2/4: Assigning < {user} > to < {node} > through valloc")
     subprocess.run(['valloc', '-n', node, '-u', user, '-v'])
 
     # 3. record login time
+    logger_win.info (f"step 3/4: Recording < {user} > login time to < {node} >") if os == "windows" else logger_unix.info (f"step 3/4: Recording < {user} > login time to < {node} >")
     record_login(user, node, MyCredentials.report_linux_table, "general") if os == "linux" else record_login(user, node, MyCredentials.report_windows_table, "general")
     
     # 4. fill up pool by new member
     # 4.a. load balance ON -> call mgmt_client to collect usage data from vis nodes to rank those for loadbalance
+    logger_win.info ("step 4/4: load balance/pool fill up") if os == "windows" else logger_unix.info ("step 4/4: load balance/pool fill up")
     if MyCredentials.load_balance:
         logger_win.warning ("load_balance = TRUE") if os == "windows" else logger_unix.warning ("load_balance = TRUE")
         hosts = generate_general_partition_hosts(os, node)

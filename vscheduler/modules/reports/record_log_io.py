@@ -48,5 +48,5 @@ def record_logout(user, node, table, pool):
         logger_win.info (f"{my_cursor_out.rowcount} record(s) updated in < {table} > for < {pool} > partition") if MyCredentials.windows_node_name in node else logger_unix.info (f"{my_cursor_out.rowcount} record(s) updated in < {table} > for < {pool} > partition")
         
     except my_connection.Error as e:
-        print (f"error updaing records for {user}, {node} into report database\{e}") if MyPrintCondition.fprint else 0
+        print (f"error updaing records for {user}, {node} into report database\n{e}") if MyPrintCondition.fprint else 0
         logger_win.error(f"error updating records for {user}, {node} into report database\n{e}") if MyCredentials.windows_node_name in node else logger_unix.error(f"error updating records for {user}, {node} into report database\n{e}")
