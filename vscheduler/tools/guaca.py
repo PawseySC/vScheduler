@@ -21,6 +21,7 @@ from vscheduler.modules.guaca.modify import modify
 booking_records = Capture_log("booking", __file__)
 logger_win = booking_records.log_agent("windows")
 
+
 # Process class
 class Process(multiprocessing.Process):
     def __init__(self, id, username, node):
@@ -70,7 +71,9 @@ class Process(multiprocessing.Process):
                                     elif group_check and any(user_entity[0][0] in x for x in group_check):
                                         for row_group_check in group_check:
                                             if row_group_check[1] == user_entity[0][0]:
-                                                update(user_entity[0][0], user_group[0][0])
+                                                # pool_entity = entity(MyCredentials.windows_node_name) if MyCredentials.windows_node_name in self.hostname else entity(MyCredentials.linux_node_name)
+                                                # pool_user_group = guacamole_user_group(pool_entity[0][0])
+                                                update(user_entity[0][0], user_group[0][0], "sync") #, pool_user_group[0][0])
                                                 break
                             else:
                                 print ("booking not for the current time") if MyPrintCondition.fprint else 0
