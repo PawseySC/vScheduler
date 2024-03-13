@@ -16,7 +16,7 @@ setup(
             'vmanage = vscheduler.tools.booked:main',
             'valloc = vscheduler.tools.allocate:main',
             'vreport = vscheduler.tools.report:main',
-            'vexcept = vscheduler.tools.except:main',
+            'vset = vscheduler.tools.stat:main',
             'vmaintenance = vscheduler.tools.maintain:main',
             # 'vcontrol = vscheduler.tools.control:cli',
             # 'vinfo = vscheduler.tools.info:cli',
