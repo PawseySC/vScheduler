@@ -29,24 +29,28 @@ logger_unix = socket_records.log_agent("linux")
 
 # return list of production nodes which are functional
 def generate_general_partition_hosts(os, node):
-    sentence = []
-    exception_query = f"SELECT * FROM {MyCredentials.report_exception_table} WHERE node = '{node}' AND start = end AND {MyBrackets.local_time} >= start"
-    logger_win.info (f"status exception_query: {exception_query}") if os == "windows" else logger_unix.info (f"status exception_query: {exception_query}") 
-    my_connection.ping()  # reconnecting mysql in case of connection timed out
-    with my_connection.cursor() as my_cursor:
-        my_cursor.execute(exception_query)
-        exception_results = my_cursor.fetchall()
-    for row_exception in exception_results:
-        exception_node = row_exception[1]
-        exception_status = row_exception[2]
-        exception_start = row_exception[3]
-        exception_end = row_exception[4]
-        sentence.insert(len(sentence), [exception_node , exception_status, exception_start, exception_end])
-        print ("\n", tabulate(sentence, headers=['exception_node', 'exception_status', 'exception_start', 'exception_end'])) if MyPrintCondition.fprint else 0
-        logger_win.info ("\n" + tabulate(sentence, headers=['exception_node', 'exception_status', 'exception_start', 'exception_end'])) if os == "windows" else logger_unix.info ("\n" + tabulate(sentence, headers=['exception_node', 'exception_status', 'exception_start', 'exception_end']))
-    
-    print (f"exception nodes: {exception_results}") if MyPrintCondition.fprint else 0
-    logger_win.info (f"exception nodes: {exception_results}") if os == "windows" else logger_unix.info (f"exception nodes: {exception_results}")
+    try:
+        sentence = []
+        status_query = f"SELECT * FROM {MyCredentials.report_status_table} WHERE node = '{node}' AND start = end AND {MyBrackets.local_time} >= start"
+        logger_win.info (f"status_query: {status_query}") if os == "windows" else logger_unix.info (f"status_query: {status_query}") 
+        my_connection.ping()  # reconnecting mysql in case of connection timed out
+        with my_connection.cursor() as my_cursor:
+            my_cursor.execute(status_query)
+            status_results = my_cursor.fetchall()
+        for row_status in status_results:
+            node_name = row_status[1]
+            node_status = row_status[2]
+            status_start = row_status[3]
+            status_end = row_status[4]
+            sentence.insert(len(sentence), [node_name , node_status, status_start, status_end])
+            print ("\n", tabulate(sentence, headers=['node', 'status', 'start', 'end'])) if MyPrintCondition.fprint else 0
+            logger_win.info ("\n" + tabulate(sentence, headers=['node', 'status', 'start', 'end'])) if os == "windows" else logger_unix.info ("\n" + tabulate(sentence, headers=['node', 'status', 'start', 'end']))
+        
+        print (f"status nodes: {status_results}") if MyPrintCondition.fprint else 0
+        logger_win.info (f"status nodes: {status_results}") if os == "windows" else logger_unix.info (f"status nodes: {status_results}")
+    except my_connection.Error as e:
+        print (f"error retreiving node status for < {node} > from < {MyCredentials.report_status_table} > table\n{e}") if MyPrintCondition.fprint else 0
+        logger_win.error (f"error retreiving node status for < {node} > from < {MyCredentials.report_status_table} > table\n{e}") if os == "windows" else logger_unix.error (f"error retreiving node status for < {node} > from < {MyCredentials.report_status_table} > table\n{e}")
     
     hosts = []
     if os == "linux":
@@ -57,7 +61,7 @@ def generate_general_partition_hosts(os, node):
         #         logger.info (f"linux node < {host} > not in exception list")
         #         hosts.append(host)
         hosts = [MyCredentials.linux_node_name + "0" + i if i < 10 else MyCredentials.linux_node_name + i for i in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1)]
-        hosts = [x for x in hosts if x not in exception_results]
+        hosts = [x for x in hosts if x not in status_results]
     elif os == "windows":
         # for i in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
         #     host = MyCredentials.windows_node_name + "0" + i if i < 10 else MyCredentials.windows_node_name + i
@@ -66,7 +70,7 @@ def generate_general_partition_hosts(os, node):
         #         logger.info (f"windows node < {host} > not in exception list")
         #         hosts.append(host)
         hosts = [MyCredentials.windows_node_name + "0" + i if i < 10 else MyCredentials.windows_node_name + i for i in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1)]
-        hosts = [x for x in hosts if x not in exception_results]
+        hosts = [x for x in hosts if x not in status_results]
     logger_win.info (f"hosts: {hosts}") if os == "windows" else logger_unix.info (f"hosts: {hosts}")
     return hosts
 
