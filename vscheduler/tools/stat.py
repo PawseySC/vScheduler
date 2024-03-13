@@ -5,13 +5,15 @@ from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.timer import Brackets as MyBrackets
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
-from vscheduler.modules.reports.exception import exception_add as add_exception
-from vscheduler.modules.reports.exception import exception_remove as remove_exception
-from vscheduler.modules.reports.exception import exception_status as status_exception
+from vscheduler.modules.reports.status import status_update as update_status
+# from vscheduler.modules.reports.status import exception_add as add_exception
+# from vscheduler.modules.reports.status import exception_remove as remove_exception
+# from vscheduler.modules.reports.status import exception_status as status_exception
 
 records = Capture_log("exception", __file__)
 logger_win = records.log_agent("windows")
 logger_unix = records.log_agent("linux")
+
 
 # Process class
 class Process(multiprocessing.Process):
@@ -22,19 +24,20 @@ class Process(multiprocessing.Process):
         self.status = status
     
     def run(self):
-        if self.status == "add":
-            add_exception (self.hostname)
-            logger_win.info (f"< {self.hostname} > requested to be added to exception") if MyCredentials.windows_node_name in self.hostname else logger_unix.info (f"< {self.hostname} > requested to be added to exception")
-        elif self.status == "remove":    
-            remove_exception (self.hostname)
-            logger_win.info (f"< {self.hostname} > requested to be remved from exception") if MyCredentials.windows_node_name in self.hostname else logger_unix.info (f"< {self.hostname} > requested to be removed from exception")
-        elif self.status == "status":
-            start = '2000-01-01' if not initiate.start else initiate.start
-            end = MyBrackets.local_time if not initiate.end else initiate.end
-            print (f"start: {start}")
-            print (f"end: {end}")
-            status_exception(self.hostname, start, end)
-            logger_win.info (f"< {self.hostname} > queried for exception status") if MyCredentials.windows_node_name in self.hostname else logger_unix.info (f"< {self.hostname} > queried for exception status")
+        update_status (self.hostname, self.status)
+        # if self.status == "down":
+        #     add_exception (self.hostname)
+        #     logger_win.info (f"< {self.hostname} > requested to be added to exception") if MyCredentials.windows_node_name in self.hostname else logger_unix.info (f"< {self.hostname} > requested to be added to exception")
+        # elif self.status == "remove":    
+        #     remove_exception (self.hostname)
+        #     logger_win.info (f"< {self.hostname} > requested to be remved from exception") if MyCredentials.windows_node_name in self.hostname else logger_unix.info (f"< {self.hostname} > requested to be removed from exception")
+        # elif self.status == "status":
+        #     start = '2000-01-01' if not initiate.start else initiate.start
+        #     end = MyBrackets.local_time if not initiate.end else initiate.end
+        #     print (f"start: {start}")
+        #     print (f"end: {end}")
+        #     status_exception(self.hostname, start, end)
+        #     logger_win.info (f"< {self.hostname} > queried for exception status") if MyCredentials.windows_node_name in self.hostname else logger_unix.info (f"< {self.hostname} > queried for exception status")
 
 def main():
     # if not initiate.node:
@@ -92,7 +95,7 @@ def main():
         p.start()       # Create a new process and invoke the Process.run() method
         p.join()        # Process.join() to wait for task completion
     else:
-        print ("Exception mode will be applied for specific node; To exclude all nodes from service, use vmaintenance")
+        print ("Missed node in status command. For more than one node use range i.e. [n1,n2]")
     
 if __name__ == '__main__':
     main()
