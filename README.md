@@ -1,4 +1,5 @@
-# **Visualisation Scheduler - Pawsey Supercomputing Centre**
+# **Visualisation Scheduler**
+# **Pawsey Supercomputing Centre**
 
 > [!NOTE] 
 > Following procedure tested on Ubuntu 22.04 with MySQL 8.0.36 and Python 3.10.6
