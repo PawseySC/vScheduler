@@ -162,7 +162,7 @@
     and, popoulate public key of Management Instance over into `~/.ssh/authorized_keys` of admin profile on each Client for passwordless communication.
 
 4. Create new service in `/etc/systemd/system/vis_socket.service` on Clients as below to run `vscheduler/socket/vis_server.py` as a service: (_IMPORTANT:_ leave ip as blank and pick different port than socket server(s) on Management Instance)
-> This socket server is explicitely used to pass usage data to Management Instance load balancer.
+    > This socket server is explicitely used to pass usage data to Management Instance load balancer.
 
     ```
     [Unit]
