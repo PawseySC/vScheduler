@@ -1,5 +1,5 @@
 # **Visualisation Scheduler**
-# **Pawsey Supercomputing Centre**
+## **Pawsey Supercomputing Centre**
 
 > [!NOTE] 
 > Following procedure tested on Ubuntu 22.04 with MySQL 8.0.36 and Python 3.10.6
@@ -153,7 +153,7 @@
     /usr/bin/python3 /etc/profile.d/vis_client_logout.py
     ```
 
-    > **NOTE**: above works only for ssh; adjust releavant files for other protocols i.e. RDP, VNC depending on the installed desktop manager on Clients.
+    > **NOTE**: above works only for ssh; adjust releavant files for other protocols i.e. RDP, VNC, depending on the installed desktop manager on Clients.
 
 3. Arrange admin access for Management Instance on each destination Client node:
     ```
@@ -190,3 +190,4 @@
 ## C. RUN
 
 Enjoy the code! By having virtual environment always activated (add `source vscheduler/.env/bin/activate` to _~/.bashrc_), run `vmanage`, `vsync`, `vquota`, `valloc`, `vinfo`, `vset`, `vreport`, `vcontrol`, `vkill` commands. For more info, run any of these commands with `-h`.
+> **NOTE**: Separate log file will be cfreated in `vscheduler/log` with the same name set in `vscheduler/lib/config/py` for `windows_node_name` and `linux_node_name`.
