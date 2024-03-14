@@ -2,7 +2,7 @@
 ## **Pawsey Supercomputing Centre**
 
 > [!NOTE] 
-> Following procedure tested on Ubuntu 22.04 with MySQL 8.0.36 and Python 3.10.6
+> Following procedure tested on Ubuntu 22.04 with MySQL 8.0.36 and Python 3.10.6.
 > By having [Guacamole](https://guacamole.apache.org/) and [booked](https://www.bookedscheduler.com/) installed, Python3 and pip3 are the only requirements to run the script. All required packages will be automatically installed on Management Instance in step A.2 below.
 
 ## Terminologies
@@ -17,19 +17,19 @@
 
 1. Clone the vis scheduler repo
 
-2. Setup virtual environemt on management instance
+2. Setup virtual environemt on Management Instance
 
     To have the script running environment clean and isolated, install all packages in a virtual environment avoiding confliction or version incompatibility issues with other tools/packages.
 
     ```
     sudo apt install python3-pip            # install pip
-    sudo apt install python3-virtualenv     # install and setup virtualenv:
-    virtualenv .env
+    sudo apt install python3-virtualenv     # install virtual environment
+    virtualenv .env                         # setup virtual environment
     source .env/bin/activate                # activate virtual environment
     (.env) $ pip install -e .               # run in setup.py directory to install all required packages inside virtual environment
     deactivate                              # to exit from virtual environment
     ```
-    Above will install follwing major packages along with their dependencies in python virtual environment:
+    Above will install follwing packages along with their dependencies in python virtual environment:
     ```
     - Click 8.1.3
     - paramiko 3.0.0
@@ -44,7 +44,7 @@
     - calplot==0.1.7.5
     ```
     _Optional:_ It's a good practice to source virtual environment in `.bashrc`
-    > **Tip**: To activate virtual environment automatically activated when navigating to the local repo directory, add following to `.bashrc`:
+    > **Tip**: To activate virtual environment automatically when navigating to the local repo directory, add following to `.bashrc`:
     ```
     function cd() {
     builtin cd "$@"
@@ -153,7 +153,7 @@
     /usr/bin/python3 /etc/profile.d/vis_client_logout.py
     ```
 
-    > **NOTE**: above works only for ssh; adjust releavant files for other protocols i.e. RDP, VNC, depending on the installed desktop manager on Clients.
+    > **NOTE**: above works only for ssh; adjust releavant files for other protocols (RDP, VNC) depending on the installed desktop manager on Clients.
 
 3. Arrange admin access for Management Instance on each destination Client node:
     ```
@@ -189,5 +189,5 @@
 
 ## C. RUN
 
-Enjoy the code! By having virtual environment always activated (add `source vscheduler/.env/bin/activate` to _~/.bashrc_), run `vmanage`, `vsync`, `vquota`, `valloc`, `vinfo`, `vset`, `vreport`, `vcontrol`, `vkill` commands. For more info, run any of these commands with `-h`.
-> **NOTE**: Separate log file will be cfreated in `vscheduler/log` with the same name set in `vscheduler/lib/config/py` for `windows_node_name` and `linux_node_name`.
+Enjoy the code! By having virtual environment activated, you can run `vmanage`, `vsync`, `vquota`, `valloc`, `vinfo`, `vset`, `vreport`, `vcontrol`, `vkill` commands. For more info, run any of these commands with `-h`.
+> **NOTE**: Separate log files will be created in `vscheduler/log` with the same name set in `vscheduler/lib/config/py` for `windows_node_name` and `linux_node_name`.
