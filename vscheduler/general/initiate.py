@@ -28,12 +28,12 @@ class Initiation:
                 status = 'up'                       # up means fresh node in production with no one logged in = idle
             elif sys.argv[arg+1] == 'down':
                 status = 'down'
-            elif sys.argv[arg+1] == 'maintenance':
+            elif sys.argv[arg+1] == 'maint':
                 status = 'maint'
             elif sys.argv[arg+1] == 'allocated':    # any node with logged in user
                 status = 'allocated'
-            elif sys.argv[arg+1] == 'idle':         # nodes from bookable partition which are not booked and with no logged in user OR nodes not allocated to any user in general pool (meaning no user is logged in)
-                status = 'idle'
+            # elif sys.argv[arg+1] == 'idle':         # nodes from bookable partition which are not booked and with no logged in user OR nodes not allocated to any user in general pool (meaning no user is logged in)
+            #     status = 'idle'
             elif sys.argv[arg+1] == 'reserved':     # booked (only for bookable partition)
                 status = 'reserved'
         
