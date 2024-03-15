@@ -21,5 +21,5 @@ class Capture_log(object):
     
     def log_agent(self, partition):
         # agent_logger = self.extendable_logger(self.flag + " " + self.location, f'/home/ubuntu/visualisation_scheduler/vscheduler/log/{MyCredentials.report_windows_table}-log.log') if partition == "windows" else self.extendable_logger(self.flag + " " + self.location, f'/home/ubuntu/visualisation_scheduler/vscheduler/log/{MyCredentials.report_linux_table}-log.log')
-        agent_logger = self.extendable_logger(self.flag + " " + self.location, f'vscheduler/log/{partition}.log')
+        agent_logger = self.extendable_logger(self.flag + " " + self.location, f'/home/ubuntu/visualisation_scheduler/vscheduler/log/{partition}.log')
         return agent_logger
