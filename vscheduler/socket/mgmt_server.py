@@ -1,6 +1,7 @@
 # management socket server in charge of managing general/booking connections and members
 from tabulate import tabulate
 import socket, threading, subprocess
+import numpy as np
 from vscheduler.log.log import Capture_log
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.general.timer import Brackets as MyBrackets
@@ -27,31 +28,38 @@ logger_win = socket_records.log_agent("windows")
 logger_unix = socket_records.log_agent("linux")
 
 
-# return list of production nodes which are functional
-def generate_general_partition_hosts(os, node):
+def check_status(os):
     try:
         sentence = []
-        status_query = f"SELECT * FROM {MyCredentials.report_status_table} WHERE node = '{node}' AND start = end AND {MyBrackets.local_time} >= start"
+        status_query = f"SELECT node, status, start, end FROM {MyCredentials.report_status_table} WHERE start = end"
         logger_win.info (f"status_query: {status_query}") if os == "windows" else logger_unix.info (f"status_query: {status_query}") 
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as my_cursor:
             my_cursor.execute(status_query)
             status_results = my_cursor.fetchall()
-        for row_status in status_results:
-            node_name = row_status[1]
-            node_status = row_status[2]
-            status_start = row_status[3]
-            status_end = row_status[4]
-            sentence.insert(len(sentence), [node_name , node_status, status_start, status_end])
-            print ("\n", tabulate(sentence, headers=['node', 'status', 'start', 'end'])) if MyPrintCondition.fprint else 0
-            logger_win.info ("\n" + tabulate(sentence, headers=['node', 'status', 'start', 'end'])) if os == "windows" else logger_unix.info ("\n" + tabulate(sentence, headers=['node', 'status', 'start', 'end']))
-        
+        # for row_status in status_results:
+        #     node_name = row_status[0]
+        #     node_status = row_status[1]
+        #     status_start = row_status[2]
+        #     status_end = row_status[3]
+        #     sentence.insert(len(sentence), [node_name , node_status, status_start, status_end])
+        # print ("\n", tabulate(sentence, headers=['node', 'status', 'start', 'end'])) if MyPrintCondition.fprint else 0
+        # logger_win.info ("\n" + tabulate(sentence, headers=['node', 'status', 'start', 'end'])) if os == "windows" else logger_unix.info ("\n" + tabulate(sentence, headers=['node', 'status', 'start', 'end']))
+        print ("\n", tabulate(status_results, headers=['node', 'status', 'start', 'end'])) if MyPrintCondition.fprint else 0
+        logger_win.info ("\n", tabulate(status_results, headers=['node', 'status', 'start', 'end'])) if os == "windows" else logger_win.info ("\n", tabulate(status_results, headers=['node', 'status', 'start', 'end']))
         print (f"status nodes: {status_results}") if MyPrintCondition.fprint else 0
+        print (f"len(status_results): {len(status_results)}") if MyPrintCondition.fprint else 0
         logger_win.info (f"status nodes: {status_results}") if os == "windows" else logger_unix.info (f"status nodes: {status_results}")
+        logger_win.info (f"len(status_results): {len(status_results)}") if os == "windows" else logger_unix.info (f"len(status_results): {len(status_results)}")
+        
+        return status_results
     except my_connection.Error as e:
-        print (f"error retreiving node status for < {node} > from < {MyCredentials.report_status_table} > table\n{e}") if MyPrintCondition.fprint else 0
-        logger_win.error (f"error retreiving node status for < {node} > from < {MyCredentials.report_status_table} > table\n{e}") if os == "windows" else logger_unix.error (f"error retreiving node status for < {node} > from < {MyCredentials.report_status_table} > table\n{e}")
+        print (f"error retreiving nodes status from < {MyCredentials.report_status_table} > table\n{e}") if MyPrintCondition.fprint else 0
+        logger_win.error (f"error retreiving node status from < {MyCredentials.report_status_table} > table\n{e}") if os == "windows" else logger_unix.error (f"error retreiving node status from < {MyCredentials.report_status_table} > table\n{e}")
     
+    
+# return list of production nodes which are functional
+def generate_general_partition_hosts(os, node):
     hosts = []
     if os == "linux":
         # for i in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
@@ -60,8 +68,7 @@ def generate_general_partition_hosts(os, node):
         #         print (f"linux node < {host} > not in exception list") if MyPrintCondition.fprint else 0
         #         logger.info (f"linux node < {host} > not in exception list")
         #         hosts.append(host)
-        hosts = [MyCredentials.linux_node_name + "0" + i if i < 10 else MyCredentials.linux_node_name + i for i in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1)]
-        hosts = [x for x in hosts if x not in status_results]
+        hosts = [MyCredentials.linux_node_name + "0" + str(i) if i < 10 else MyCredentials.linux_node_name + str(i) for i in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1)]
     elif os == "windows":
         # for i in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
         #     host = MyCredentials.windows_node_name + "0" + i if i < 10 else MyCredentials.windows_node_name + i
@@ -70,7 +77,8 @@ def generate_general_partition_hosts(os, node):
         #         logger.info (f"windows node < {host} > not in exception list")
         #         hosts.append(host)
         hosts = [MyCredentials.windows_node_name + "0" + i if i < 10 else MyCredentials.windows_node_name + i for i in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1)]
-        hosts = [x for x in hosts if x not in status_results]
+    status_results = check_status(os)
+    hosts = [x for x in hosts if x not in np.array(status_results)[:,0]] if len(status_results) > 0 else hosts
     logger_win.info (f"hosts: {hosts}") if os == "windows" else logger_unix.info (f"hosts: {hosts}")
     return hosts
 
@@ -101,7 +109,8 @@ def manage_pool(msg, node, user, os):
     # 4.b. load balance OFF -> fill up pool with next node in order
     else:
         logger_win.warning ("load_balance = FALSE") if os == "windows" else logger_unix.warning ("load_balance = FALSE")
-        fill_up(node)
+        hosts = generate_general_partition_hosts(os, node)
+        fill_up(node, hosts)
 
 
 def handle_client(conn, addr):
