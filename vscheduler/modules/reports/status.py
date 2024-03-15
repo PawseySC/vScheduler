@@ -6,6 +6,7 @@ from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.general.timer import Brackets as MyBrackets
 from tabulate import tabulate
 import pandas as pd
+import numpy as np
 
 my_connection = MyDatabase.connect_report_db()
 
@@ -16,33 +17,44 @@ logger_unix = records.log_agent("linux")
 
 def status_update(node, mode):
     try:
-        pool = ""
+        pool = post_query = ""
         sentence = []
         if MyCredentials.windows_node_name in node:
             pool = "GENERAL" if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1) else "BOOKING"
         elif MyCredentials.linux_node_name in node:
             pool = "GENERAL" if int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1) else "BOOKING"
         
-        pre_query = f"SELECT * FROM status WHERE node = '{node}' AND start = end"
+        pre_query = f"SELECT node, status, pool, start, end FROM status WHERE node = '{node}' AND start = end"
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as my_cursor:
             my_cursor.execute(pre_query)
             pre_query_results = my_cursor.fetchall()
-        for row_pre_query in pre_query_results:
-            node_name = row_pre_query[0]
-            node_status = row_pre_query[1]
-            node_pool = row_pre_query[2]
-            node_start = row_pre_query[3]
-            node_end = row_pre_query[4]
-            sentence.insert(len(sentence), [node_name, node_status, node_pool, node_start, node_end])
-        print (f"no starus record for < {node} > at current time") if MyPrintCondition.fprint and not pre_query_results else 0
-        logger_win.info (f"no starus record for < {node} > at current time") if MyCredentials.windows_node_name in node else logger_unix.info (f"no starus record for < {node} > at current time")
-        print ("\n", tabulate(sentence, headers=['node', 'status', 'pool', 'start', 'end'])) if MyPrintCondition.fprint and pre_query_results else 0
-        logger_win.info ("\n" + tabulate(sentence, headers=['node', 'status', 'pool', 'start', 'end'])) if MyCredentials.windows_node_name in node else logger_unix.info ("\n" + tabulate(sentence, headers=['node', 'status', 'pool', 'start', 'end']))
+        # if len(pre_query_results) == 0:
+            # for row_pre_query in pre_query_results:
+            #     node_name = row_pre_query[1]
+            #     node_status = row_pre_query[2]
+            #     node_pool = row_pre_query[3]
+            #     node_start = row_pre_query[4]
+            #     node_end = row_pre_query[5]
+            #     sentence.insert(len(sentence), [node_name, node_status, node_pool, node_start, node_end])
+            # print (f"no starus record for < {node} > at current time") if MyPrintCondition.fprint and not pre_query_results else 0
+            # logger_win.info (f"no starus record for < {node} > at current time") if MyCredentials.windows_node_name in node else logger_unix.info (f"no starus record for < {node} > at current time")
+        if len(pre_query_results) > 0:
+            print ("\n", tabulate(pre_query_results, headers=['node', 'status', 'pool', 'start', 'end'])) if MyPrintCondition.fprint and pre_query_results else 0
+            logger_win.info ("\n" + tabulate(pre_query_results, headers=['node', 'status', 'pool', 'start', 'end'])) if MyCredentials.windows_node_name in node else logger_unix.info ("\n" + tabulate(pre_query_results, headers=['node', 'status', 'pool', 'start', 'end']))
+            if mode != "up":
+                post_query = [f"UPDATE {MyCredentials.report_status_table} SET end = '{MyBrackets.local_time}' WHERE node = '{node}' AND start = end",
+                    f"INSERT INTO {MyCredentials.report_status_table} (node, status, pool, start, end) VALUES ('{node}', '{mode}', '{pool}', '{MyBrackets.local_time}', '{MyBrackets.local_time}')"] if mode not in np.array(pre_query_results)[:,1] else 0
+            else:
+                post_query = [f"UPDATE {MyCredentials.report_status_table} SET end = '{MyBrackets.local_time}' WHERE node = '{node}' AND start = end"]
+        else:
+            print (f"No status record for < {node} > at current time meaning it's idle") if MyPrintCondition.fprint else 0
+            logger_win.info (f"No status record for < {node} > at current time meaning it's idle") if MyCredentials.windows_node_name in node else logger_unix.info (f"No status record for < {node} > at current time meaning it's idle")
+            post_query = [f"INSERT INTO {MyCredentials.report_status_table} (node, status, pool, start, end) VALUES ('{node}', '{mode}', '{pool}', '{MyBrackets.local_time}', '{MyBrackets.local_time}')"] if mode != "up" else 0 #f"UPDATE {MyCredentials.report_status_table} SET end = '{MyBrackets.local_time}' WHERE node = '{node}' AND start = end"
     except my_connection.Error as e:
         print (f"status record error for node < {node} > in pre_query = {pre_query}\n{e}") if MyPrintCondition.fprint else 0
         logger_win.error (f"status record error for node < {node} > in pre_query = {pre_query}\n{e}") if MyCredentials.windows_node_name in node else logger_unix.error (f"status record error for node < {node} > in pre_query = {pre_query}\n{e}")
-    
+    # print ("yes") if mode in np.array(pre_query_results)[:,1] else print ("no")
     # is this logic correct for setting/updating node status?
     # set down -> if no record for current time for current node, insert new record set the status down
     #                       if any current record for current node, update its end time and insert new record with status down
@@ -54,25 +66,33 @@ def status_update(node, mode):
     # set reserved ->  if no record for current time for current node, insert new record set the status reserved
     #                            if any current record for current node, if status != down and maint, then update its end time and insert new record for status down
 
-    post_query = ""
-    if pre_query_results[:][1] != "down" and pre_query_results[:][1] != "maintenance" and mode != "up":
-        if not pre_query_results:
-            post_query = f"INSERT INTO {MyCredentials.report_status_table} (node, status, pool, start, end) VALUES ('{node}', '{mode}', '{pool}', '{MyBrackets.local_time}', '{MyBrackets.local_time}')"
-        elif pre_query_results:
-            post_query = f'''
-                UPDATE {MyCredentials.report_status_table} SET end = {MyBrackets.local_time} WHERE node = '{node}' AND start = end;
-                INSERT INTO {MyCredentials.report_status_table} (node, status, pool, start, end) VALUES ('{node}', '{mode}', '{pool}', '{MyBrackets.local_time}', '{MyBrackets.local_time}')
-                '''
-    elif mode == "up":
-        post_query = f"UPDATE {MyCredentials.report_status_table} SET end = {MyBrackets.local_time} WHERE node = '{node}' AND start = end"
-            
+    
+    # if "down" not in pre_query_results and "maint" not in pre_query_results and mode != "up":
+    #     if not pre_query_results:
+    #         post_query = f"INSERT INTO {MyCredentials.report_status_table} (node, status, pool, start, end) VALUES ('{node}', '{mode}', '{pool}', '{MyBrackets.local_time}', '{MyBrackets.local_time}')"
+    #     elif pre_query_results:
+    #         post_query = f'''
+    #             UPDATE {MyCredentials.report_status_table} SET end = '{MyBrackets.local_time}' WHERE node = '{node}' AND start = end;
+    #             INSERT INTO {MyCredentials.report_status_table} (node, status, pool, start, end) VALUES ('{node}', '{mode}', '{pool}', '{MyBrackets.local_time}', '{MyBrackets.local_time}')
+    #             '''
+    # elif mode == "up":
+    #     post_query = f"UPDATE {MyCredentials.report_status_table} SET end = '{MyBrackets.local_time}' WHERE node = '{node}' AND start = end"
+    print (f"post_query: {post_query}")
+    logger_win.info (f"post_query: {post_query}") if MyCredentials.windows_node_name in node else logger_unix.info (f"post_query: {post_query}")
     try:
         my_connection.ping()  # reconnecting mysql in case of connection timed out
-        with my_connection.cursor() as my_cursor:
-            my_cursor.execute(post_query)
-            my_connection.commit()
-        print (f"{my_cursor.rowcount} record(s) inserted into < {MyCredentials.report_status_table} > table") if MyPrintCondition.fprint else 0  
-        logger_win.info (f"{my_cursor.rowcount} record(s) inserted into < {MyCredentials.report_status_table} > table") if MyCredentials.windows_node_name in node else logger_unix.info (f"{my_cursor.rowcount} record(s) inserted into < {MyCredentials.report_status_table} > table")
+        if post_query:
+            with my_connection.cursor() as my_cursor:
+                for query in post_query:
+                    my_cursor.execute(query)
+                    my_connection.commit()
+                # my_cursor.execute(post_query)
+                # my_connection.commit()
+                    print (f"{my_cursor.rowcount} record(s) inserted into < {MyCredentials.report_status_table} > table") if MyPrintCondition.fprint else 0  
+                    logger_win.info (f"{my_cursor.rowcount} record(s) inserted into < {MyCredentials.report_status_table} > table") if MyCredentials.windows_node_name in node else logger_unix.info (f"{my_cursor.rowcount} record(s) inserted into < {MyCredentials.report_status_table} > table")
+        else:
+            print (f"Not possible to apply same mode: < {mode} > to < {node} >") if MyPrintCondition.fprint else 0
+            logger_win.info (f"Not possible to apply same < {mode} > mode to < {node} >") if MyCredentials.windows_node_name in node else logger_unix.info (f"Not possible to apply same < {mode} > mode to < {node} >")
     except my_connection.Error as e:
         print (f"status record error for node < {node} > in post_query = {post_query}\n{e}") if MyPrintCondition.fprint else 0
         logger_win.error (f"status record error for node < {node} > in post_query = {post_query}\n{e}") if MyCredentials.windows_node_name in node else logger_unix.error (f"status record error for node < {node} > in post_query = {post_query}\n{e}")
