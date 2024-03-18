@@ -9,7 +9,7 @@ class PrintCondition():
 
 class Initiation:
     node = user = start = end = status = ''
-    email = False
+    email = session = False
     
     for arg in range (1, arg_num-1):
         if sys.argv[arg] == '-u':
@@ -36,6 +36,8 @@ class Initiation:
             #     status = 'idle'
             elif sys.argv[arg+1] == 'reserved':     # booked (only for bookable partition)
                 status = 'reserved'
+        elif sys.argv[arg] == '--session':
+            session = True
         
 
     if sys.argv[1:].count('-u') > 1 or sys.argv[1:].count('-n') > 1 or sys.argv[1:].count('-d') > 1 or sys.argv[1:].count('--add') > 1 or sys.argv[1:].count('--remove') > 1 or sys.argv[1:].count('--status') > 1:
