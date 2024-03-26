@@ -20,9 +20,9 @@ def status_update(node, mode):
         pool = post_query = ""
         sentence = []
         if MyCredentials.windows_node_name in node:
-            pool = "GENERAL" if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1) else "BOOKING"
+            pool = "general" if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1) else "booking"
         elif MyCredentials.linux_node_name in node:
-            pool = "GENERAL" if int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1) else "BOOKING"
+            pool = "general" if int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1) else "booking"
         
         pre_query = f"SELECT node, status, pool, start, end FROM status WHERE node = '{node}' AND start = end"
         my_connection.ping()  # reconnecting mysql in case of connection timed out
