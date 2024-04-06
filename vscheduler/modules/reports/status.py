@@ -4,6 +4,7 @@ from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.general.timer import Brackets as MyBrackets
+from vscheduler.modules.guaca.pool_refresh import refresh
 from tabulate import tabulate
 import pandas as pd
 import numpy as np
@@ -90,6 +91,7 @@ def status_update(node, mode):
                 # my_connection.commit()
                     print (f"{my_cursor.rowcount} record(s) inserted into < {MyCredentials.report_status_table} > table") if MyPrintCondition.fprint else 0  
                     logger_win.info (f"{my_cursor.rowcount} record(s) inserted into < {MyCredentials.report_status_table} > table") if MyCredentials.windows_node_name in node else logger_unix.info (f"{my_cursor.rowcount} record(s) inserted into < {MyCredentials.report_status_table} > table")
+                    refresh (node)
         else:
             print (f"Not possible to apply same mode: < {mode} > to < {node} >") if MyPrintCondition.fprint else 0
             logger_win.info (f"Not possible to apply same < {mode} > mode to < {node} >") if MyCredentials.windows_node_name in node else logger_unix.info (f"Not possible to apply same < {mode} > mode to < {node} >")
