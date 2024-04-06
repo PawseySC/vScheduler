@@ -65,7 +65,7 @@ all_nodes_merged = pd.concat(all_nodes, axis=0)
 
 
 def print_info():
-    print (f"all nodes merged:\n {all_nodes_merged}")
+    # print (f"all nodes merged:\n {all_nodes_merged}")
     try:
         query = f"SELECT node, status, pool from status WHERE start = end"
         with my_connection.cursor() as my_cursor:
@@ -77,7 +77,7 @@ def print_info():
 
     query_results_df = pd.DataFrame(list(np.array(query_results)))
     query_results_df.columns = ['NODE', 'STATUS', 'POOL']
-    print (query_results_df)
+    # print (query_results_df)
                     
     all_nodes_df = all_nodes_merged.merge(query_results_df, on='NODE', how='outer').fillna('idle')
     all_nodes_df = all_nodes_df.drop(['POOL'], axis=1)
@@ -88,11 +88,12 @@ def print_info():
     # insert column using insert(position, column_name, first_column) function 
     all_nodes_df.insert(4, 'STAT', first_column) 
     # all_nodes_df = all_nodes_df.insert(0, all_nodes_df.STAT, all_nodes_df.pop('STAT'))
-    print (f"all_nodes_df:\n {all_nodes_df.to_string(index=False)}")
+    # print (f"all_nodes_df:\n {all_nodes_df.to_string(index=False)}")
 
     all_nodes_df_categorised = all_nodes_df.groupby(["SYSTEM", "PARTITION", "AVAIL", "STAT"]).sum()
     all_nodes_df_categorised['NODELIST'] = all_nodes_df_categorised['NODELIST'].str.replace('\D+', ' ', regex=True)   # .str.extract('(\d+)', expand=False for extracting numbers only. '\D+' means non-numeric characters.
-    print (f"all_nodes_df_categorised:\n {all_nodes_df_categorised}")
+    # print (f"all_nodes_df_categorised:\n {all_nodes_df_categorised}")
+    print (all_nodes_df_categorised)
 
     
 # def print_info():

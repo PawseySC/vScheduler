@@ -95,7 +95,7 @@ def main():
         p.start()       # Create a new process and invoke the Process.run() method
         p.join()        # Process.join() to wait for task completion
     else:
-        print ("Missed node in status command. For more than one node use range i.e. [n1,n2]")
+        print ("Missed node in status command. For more than one node use range i.e. [n1,n2] <<-- this to be coded")
     
 if __name__ == '__main__':
     main()
