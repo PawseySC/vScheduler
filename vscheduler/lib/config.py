@@ -65,3 +65,9 @@ class Credentials:
     
     # load balance; if False, it allocates nodes in order to the pool, if True, allocation model applies. 
     load_balance = False
+        
+    # set to True to acyivate checking xrdp connection for finding zombie nodes 
+    async_mode = True
+    
+    # the port rdp connects
+    rdp_port = 3389
