@@ -5,11 +5,11 @@ from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.modules.guaca.pool_refresh import refresh
 from vscheduler.modules.guaca.entity import entity
+from vscheduler.general.alert import mailFunction
 
-my_connection = MyDatabase.connect_report_db()
-socket_records = Capture_log("socket", __file__)
-logger_win = socket_records.log_agent("windows")
-logger_unix = socket_records.log_agent("linux")
+my_connection = MyDatabase.connect_guaca_db()
+socket_records = Capture_log("zombie", __file__)
+logger_zombie = socket_records.log_agent("zombie")
 
 
 async def wait_host_port(host, port, duration=10, delay=2):
@@ -44,18 +44,52 @@ async def wait_host_port(host, port, duration=10, delay=2):
 
 
 def check_zombie():
-    pool_entity = entity(MyCredentials.windows_pool) if MyCredentials.windows_node_name in node else entity(MyCredentials.linux_pool)
-    node = pool_entity[0][1]
-        
-    # if MyCredentials.linux_node_name:
-    #     host = MyCredentials.linux_node_name + "0" + int(node.removeprefix(MyCredentials.linux_node_name)) if int(node.removeprefix(MyCredentials.linux_node_name)) < 10 else  MyCredentials.linux_node_name + int(node.removeprefix(MyCredentials.linux_node_name))
-    # else:
-    #     host = MyCredentials.windows_node_name + "0" + int(node.removeprefix(MyCredentials.windows_node_name)) if int(node.removeprefix(MyCredentials.windows_node_name)) < 10 else  MyCredentials.windows_node_name + int(node.removeprefix(MyCredentials.windows_node_name))
-    host = node + MyCredentials.domain
-    poke_result = wait_host_port(host, 3389)
-    logger_unix.info (f"async result: {poke_result}") if MyCredentials.linux_node_name in node else logger_win.info (f"async result: {poke_result}")
-    logger_unix.critical (f"< {node} > could not be reached on port < 3389 >") if MyCredentials.linux_node_name in node and not poke_result else logger_win.info (f"< {node} > could not be reached on port < 3389 >")
-    refresh(node) if not poke_result else 0  # refresh pool if connection to pool member fails
+    port = MyCredentials.rdp_port
+    linux_pool_entity = entity(MyCredentials.linux_pool)
+    windows_pool_entity = entity(MyCredentials.windows_pool)    
     
+    linux_pool_member = f"SELECT connection_id, entity_id FROM guacamole_connection_permission WHERE entity_id = '{linux_pool_entity[0][0]}'"               # check the linux pool member
+    windows_pool_member = f"SELECT connection_id, entity_id FROM guacamole_connection_permission WHERE entity_id = '{windows_pool_entity[0][0]}'"           # check the linux pool member
+    my_connection.ping()  # reconnecting mysql in case of connection timed out
+    with my_connection.cursor() as cursor:
+        cursor.execute(linux_pool_member)
+        linux_pool_member_results = cursor.fetchall()
+        cursor.execute(windows_pool_member)
+        windows_pool_member_results = cursor.fetchall()
+    
+    linux_connection = f"SELECT connection_id, connection_name FROM guacamole_connection WHERE connection_id = '{linux_pool_member_results[0][0]}'"
+    windows_connection = f"SELECT connection_id, connection_name FROM guacamole_connection WHERE connection_id = '{windows_pool_member_results[0][0]}'"
+    my_connection.ping()  # reconnecting mysql in case of connection timed out
+    with my_connection.cursor() as cursor:
+        cursor.execute(linux_connection)
+        linux_connection_results = cursor.fetchall()
+        cursor.execute(windows_connection)
+        windows_connection_results = cursor.fetchall()
+    
+    linux_node = linux_connection_results[0][1]
+    windows_node = windows_connection_results[0][1]
+    linux_host = linux_node + "." + MyCredentials.domain
+    windows_host = windows_node + "." + MyCredentials.domain
+    
+    linux_poke_result = asyncio.run(wait_host_port(linux_host, port))
+    windows_poke_result = asyncio.run(wait_host_port(windows_host, port))
+    
+    logger_zombie.info (f"\n< {linux_pool_entity[0][1]} > async result: {linux_poke_result}\n< {windows_pool_entity[0][1]} > async result: {windows_poke_result}")
+    if not linux_poke_result:
+        logger_zombie.critical (f"< {linux_node} > could not be reached on port < {port} >")  
+        refresh (linux_node)        # refresh pool if connection to pool member fails
+        mailFunction(f"{linux_node} <-> {port}", f"< {linux_node} > could not be reached on port < {port} >", "", "")
+    else:
+        logger_zombie.info (f"< {linux_node} > is reachable on port < {port} >")
+        
+    if not windows_poke_result:
+        logger_zombie.critical (f"< {windows_node} > could not be reached on port < {port} >")
+        refresh (windows_node)      # refresh pool if connection to pool member fails
+        mailFunction(f"{windows_node} <-> {port}", f"< {windows_node} > could not be reached on port < {port} >", "", "")  
+    else:
+        logger_zombie.info (f"< {windows_node} > is reachable on port < {port} >")
+    
+        
 if __name__ == '__main__':
-    check_zombie()
+    if MyCredentials.async_mode:
+        check_zombie()
