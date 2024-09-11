@@ -4,7 +4,7 @@ import socket, threading, subprocess
 import numpy as np
 from vscheduler.log.log import Capture_log
 from vscheduler.lib.database import Database as MyDatabase
-from vscheduler.general.timer import Brackets as MyBrackets
+# from vscheduler.general.timer import Brackets as MyBrackets
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.modules.cluster.load_balance import loadbalance
@@ -45,8 +45,8 @@ def check_status(os):
         #     sentence.insert(len(sentence), [node_name , node_status, status_start, status_end])
         # print ("\n", tabulate(sentence, headers=['node', 'status', 'start', 'end'])) if MyPrintCondition.fprint else 0
         # logger_win.info ("\n" + tabulate(sentence, headers=['node', 'status', 'start', 'end'])) if os == "windows" else logger_unix.info ("\n" + tabulate(sentence, headers=['node', 'status', 'start', 'end']))
-        print ("\n", tabulate(status_results, headers=['node', 'status', 'start', 'end'])) if MyPrintCondition.fprint else 0
-        logger_win.info ("\n", tabulate(status_results, headers=['node', 'status', 'start', 'end'])) if os == "windows" else logger_win.info ("\n", tabulate(status_results, headers=['node', 'status', 'start', 'end']))
+        print (f"\n{tabulate(status_results, headers=['node', 'status', 'start', 'end'])}") if MyPrintCondition.fprint else 0
+        logger_win.info (f"\n{tabulate(status_results, headers=['node', 'status', 'start', 'end'])}") if os == "windows" else logger_win.info (f"\n{tabulate(status_results, headers=['node', 'status', 'start', 'end'])}")
         print (f"status nodes: {status_results}") if MyPrintCondition.fprint else 0
         print (f"len(status_results): {len(status_results)}") if MyPrintCondition.fprint else 0
         logger_win.info (f"status nodes: {status_results}") if os == "windows" else logger_unix.info (f"status nodes: {status_results}")
@@ -130,7 +130,7 @@ def handle_client(conn, addr):
             if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
                 if "logout" in msg.split(","):
                     logger_win.info (f"LOGOUT attempt for {user}")
-                    revert_back_to_pool(msg.split(",")[1], MyCredentials.windows_pool)
+                    revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], MyCredentials.windows_pool)
                     record_logout(user, node, MyCredentials.report_windows_table, "general")
                 else:
                     manage_pool(msg, node, user, "windows")
@@ -152,7 +152,7 @@ def handle_client(conn, addr):
                 if "logout" in msg.split(","):
                     logger_unix.info (f"LOGOUT attempt for {user}")
                     # move user back to pool by logging out of node
-                    revert_back_to_pool(msg.split(",")[1], MyCredentials.linux_pool)
+                    revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], MyCredentials.linux_pool)
                     record_logout(user, node, MyCredentials.report_linux_table, "general")
                 else:
                     # if len(checkpool(node, MyCredentials.pool)):        # if user goes to static url of specific node

@@ -37,8 +37,8 @@ class Process(multiprocessing.Process):
         logger_win.info (f"users=> {users}") if MyCredentials.windows_node_name in self.hostname else logger_unix.info (f"users=> {users}")
 
         node_entity = entity(self.hostname)        
-        node_group = guacamole_user_group(node_entity[0][0])
-        group_check = check_group (node_group[0][0])
+        node_user_group = guacamole_user_group(node_entity[0][0])
+        group_check = check_group (node_user_group[0][0])
         # if group_check:
         #     pool_entity = entity(MyCredentials.pool)
         #     pool_group = guacamole_user_group(pool_entity[0][0])
@@ -47,10 +47,10 @@ class Process(multiprocessing.Process):
             for user in users:
                 #length = session(self.hostname, user)
                 user_entity = entity(user)  
-                # if not group_check or group_check[0][0] != node_group[0][0]:                        # if user's connected to a node -> remove it from general poll & asigne it to that node connection group
+                # if not group_check or group_check[0][0] != node_user_group[0][0]:                        # if user's connected to a node -> remove it from general poll & asigne it to that node connection group
                 pool_entity = entity(MyCredentials.windows_pool) if MyCredentials.windows_node_name in self.hostname else entity(MyCredentials.linux_pool)
                 pool_user_group = guacamole_user_group(pool_entity[0][0])
-                update(user_entity[0][0], node_group[0][0], pool_user_group[0][0], "alloc")                 
+                update(user_entity[0][0], node_user_group[0][0], pool_user_group[0][0], "alloc", MyCredentials.windows_pool if MyCredentials.windows_node_name in self.hostname else MyCredentials.linux_pool)                 
                 #elif group_check and int(length) > (MyCredentials.general_pool_wall_time)*3600:    # if session's left open or longer than allowed -> kill the session & revert the user back into general pool 
                     #update(group_check[0][1], pool_group[0][0])
                     #logoff(user, self.hostname)
