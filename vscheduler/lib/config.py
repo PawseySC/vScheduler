@@ -26,6 +26,7 @@ class Credentials:
     report_windows_table = 'windows'
     report_linux_table = 'linux'
     report_status_table = 'status'
+    report_admin_table = 'admin'
 
     # local pub key location for ssh into Nebula nodes
     home = str(Path.home()) 
