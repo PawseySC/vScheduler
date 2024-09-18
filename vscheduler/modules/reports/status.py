@@ -21,9 +21,9 @@ def status_update(node, mode):
         pool = post_query = ""
         sentence = []
         if MyCredentials.windows_node_name in node:
-            pool = "general" if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1) else "booking"
+            pool = "general" if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1) else "reservation"
         elif MyCredentials.linux_node_name in node:
-            pool = "general" if int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1) else "booking"
+            pool = "general" if int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1) else "reservation"
         
         pre_query = f"SELECT node, status, pool, start, end FROM status WHERE node = '{node}' AND start = end"
         my_connection.ping()  # reconnecting mysql in case of connection timed out
@@ -91,7 +91,8 @@ def status_update(node, mode):
                 # my_connection.commit()
                     print (f"{my_cursor.rowcount} record(s) inserted into < {MyCredentials.report_status_table} > table") if MyPrintCondition.fprint else 0  
                     logger_win.info (f"{my_cursor.rowcount} record(s) inserted into < {MyCredentials.report_status_table} > table") if MyCredentials.windows_node_name in node else logger_unix.info (f"{my_cursor.rowcount} record(s) inserted into < {MyCredentials.report_status_table} > table")
-                    refresh (node)
+            if mode != "up":
+                refresh (node)
         else:
             print (f"Not possible to apply same mode: < {mode} > to < {node} >") if MyPrintCondition.fprint else 0
             logger_win.info (f"Not possible to apply same < {mode} > mode to < {node} >") if MyCredentials.windows_node_name in node else logger_unix.info (f"Not possible to apply same < {mode} > mode to < {node} >")
