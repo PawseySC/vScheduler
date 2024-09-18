@@ -26,9 +26,8 @@ def main():
         client.send((msg[0] + "," + msg[1] + "," + msg[2]).encode(FORMAT))
         msg = client.recv(SIZE)
         print(f"[MGMT SERVER] sent: {msg}")
-        if msg[4] == "non-admin":
-            os.system('echo "/usr/bin/python3 /etc/profile.d/vis_client_logout.py" | at now +8 hour')
-            os.system('echo "pkill -9 -u $USER" | at now +481 minute')
+        os.system(f'echo "/usr/bin/python3 /etc/profile.d/vis_client_logout.py" | at now +{msg[1]} hour')
+        os.system(f'echo "pkill -9 -u $USER" | at now +{msg[1] + 1} minute')
         connected = False
         
 if __name__ == "__main__":

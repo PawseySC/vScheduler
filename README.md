@@ -99,11 +99,12 @@
             end DATETIME,
             PRIMARY KEY (id)
             );
-        CREATE TABLE admin (
+        CREATE TABLE exception (
             id MEDIUMINT NOT NULL AUTO_INCREMENT, 
             user VARCHAR(255),
             start DATETIME,
             end DATETIME,
+            wall_time int,
             PRIMARY KEY (id)
             );
         use mysql;
