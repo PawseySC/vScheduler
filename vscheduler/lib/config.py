@@ -26,7 +26,7 @@ class Credentials:
     report_windows_table = 'windows'
     report_linux_table = 'linux'
     report_status_table = 'status'
-    report_admin_table = 'admin'
+    report_exception_table = 'exception'
 
     # local pub key location for ssh into Nebula nodes
     home = str(Path.home()) 
@@ -70,5 +70,5 @@ class Credentials:
     # set to True to acyivate checking xrdp connection for finding zombie nodes 
     async_mode = True
     
-    # the port rdp connects
+    # the port rdp/vnc connects
     rdp_port = 3389
