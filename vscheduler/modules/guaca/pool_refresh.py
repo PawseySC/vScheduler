@@ -10,7 +10,7 @@ from vscheduler.modules.guaca.fill_pool import fillup as fill_up
 from vscheduler.socket.mgmt_client import client_statistics as data_agent
 from vscheduler.socket.mgmt_server import generate_general_partition_hosts
 
-my_connection = MyDatabase.connect_report_db()
+my_connection = MyDatabase.connect_guaca_db()
 socket_records = Capture_log("socket", __file__)
 logger_win = socket_records.log_agent("windows")
 logger_unix = socket_records.log_agent("linux")
@@ -23,7 +23,7 @@ def refresh (node):
     balance being ON or OFF in the config.
     '''
     os = "windows" if MyCredentials.windows_node_name in node else "linux"
-
+    print (f"osososos = {os}")
     # find the current pool member identity in guacamole db
     pool_entity = entity(MyCredentials.windows_pool) if MyCredentials.windows_node_name in node else entity(MyCredentials.linux_pool)
     
@@ -33,9 +33,8 @@ def refresh (node):
     with my_connection.cursor() as cursor:
         cursor.execute(connection)
         connection_results = cursor.fetchall()
-    
+    print (connection_results)
     # is it same as out of order node? if Yes -> change the pool member
-    pool_entity = entity(MyCredentials.windows_pool) if MyCredentials.windows_node_name in node else entity(MyCredentials.linux_pool)
     check = f"SELECT connection_id, entity_id FROM guacamole_connection_permission WHERE entity_id = '{pool_entity[0][0]}'"                      # check if pool has any connection
     my_connection.ping()  # reconnecting mysql in case of connection timed out
     with my_connection.cursor() as cursor:
