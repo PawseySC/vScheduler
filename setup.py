@@ -18,7 +18,7 @@ setup(
             'vreport = vscheduler.tools.report:main',
             'vset = vscheduler.tools.stat:main',
             'vinfo = vscheduler.tools.info:main',
-            # 'vmaintenance = vscheduler.tools.maintain:main',
+            'vadmin = vscheduler.tools.admin:main',
             # 'vcontrol = vscheduler.tools.control:cli',
         ],
     },
