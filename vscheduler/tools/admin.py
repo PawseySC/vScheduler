@@ -34,7 +34,7 @@ def main():
                 p = Process("", "list")
                 p.start()
                 p.join()
-        elif initiate.status:
+        elif initiate.stat:
             if not initiate.user:
                 print ("username is needed when querying admin status\nplease see help")
             else:

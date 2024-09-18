@@ -9,7 +9,7 @@ class PrintCondition():
 
 class Initiation:
     node = user = start = end = status = ''
-    email = session = list = activate = deactivate = False
+    email = session = list = activate = deactivate = stat = False
     
     for arg in range (1, arg_num-1):
         if sys.argv[arg] == '-u':
@@ -42,13 +42,13 @@ class Initiation:
         elif sys.argv[arg+1] == 'maint':
             status = 'maint'
         elif sys.argv[arg+1] == 'allocated':    # any node with logged in user
-                status = 'allocated'
+            status = 'allocated'
         # elif sys.argv[arg+1] == 'idle':         # nodes from bookable partition which are not booked and with no logged in user OR nodes not allocated to any user in general pool (meaning no user is logged in)
         #     status = 'idle'
         elif sys.argv[arg+1] == 'reserved':     # booked (only for bookable partition)
             status = 'reserved'
         elif sys.argv[arg] == 'status':
-            status = True
+            stat = True
         elif sys.argv[arg] == 'list':
             list = True
         elif sys.argv[arg] == 'activate':
