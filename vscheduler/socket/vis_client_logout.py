@@ -1,32 +1,33 @@
-import socket, os
+import socket, os, platform
+from vis_alert import mailFunction
 
 IP = "127.0.0.1"
-host = socket.gethostname()
+operating_system = platform.uname[0]
+host = socket.gethostname() # host = platform.uname[1]
 user = os.getlogin()
 PORT = 65001
 ADDR = (IP, PORT)
 SIZE = 1024
 FORMAT = "utf-8"
-exception = ["admin"]
 
 def main():
-    if user not in exception:
-        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            client.connect(ADDR)
-        except socket.error as e:
-            print (f"Caught exception socket.error: {e}")
-            os.system(f'pkill -KILL -u {user}')
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        client.connect(ADDR)
+    except socket.error as e:
+        print (f"Caught exception socket.error: {e}")
+        mailFunction(f"socket error - {host}", f"error connecting managment socket server ({IP, PORT}) from {host} at LOGOUT attempt for {user}\n{str(e)}")
+        os.system(f'pkill -KILL -u {user}')
 
-        print(f"[CONNECTED] VIS CLIENT TO MGMT SERVER AT {IP}:{PORT}")
+    print(f"[CONNECTED] VIS CLIENT TO MGMT SERVER AT {IP}:{PORT}")
 
-        connected = True
-        while connected:
-            msg = [host, user]
-            client.send((msg[0] + "," + msg[1] + ",logout").encode(FORMAT))
-            msg = client.recv(SIZE)
-            print(f"[MGMT SERVER] sent: {msg}")
-            connected = False
-        
+    connected = True
+    while connected:
+        msg = [host, user, operating_system]
+        client.send((msg[0] + "," + msg[1] + "," + msg[2] + ",logout").encode(FORMAT))
+        msg = client.recv(SIZE)
+        print(f"[MGMT SERVER] sent: {msg}")
+        connected = False
+
 if __name__ == "__main__":
     main()
