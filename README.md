@@ -99,6 +99,13 @@
             end DATETIME,
             PRIMARY KEY (id)
             );
+        CREATE TABLE admin (
+            id MEDIUMINT NOT NULL AUTO_INCREMENT, 
+            user VARCHAR(255),
+            start DATETIME,
+            end DATETIME,
+            PRIMARY KEY (id)
+            );
         use mysql;
         create user 'reporter'@'%' IDENTIFIED WITH mysql_native_password BY 'PASSWORD';
         grant all privileges on report.* to 'reporter'@'%';
