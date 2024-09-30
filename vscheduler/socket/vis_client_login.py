@@ -1,10 +1,10 @@
 import socket, os, platform
 from vis_alert import mailFunction
 
-IP1 = "127.0.0.1"
-IP2 = "127.0.0.2"
-operating_system = platform.uname[0]
-host = socket.gethostname() # host = platform.uname[1]
+IP1 = "127.0.0.1"   # prod server
+IP2 = "127.0.0.2"   # dev server
+operating_system = platform.uname()[0]
+host = socket.gethostname() # host = platform.uname()[1]
 user = os.getlogin()
 PORT = 65001
 ADDRS = [(IP1, PORT), (IP2, PORT)]
@@ -30,12 +30,10 @@ def main():
             client.send((msg[0] + "," + msg[1] + "," + msg[2]).encode(FORMAT))
             msg = client.recv(SIZE)
             print(f"[MGMT SERVER] sent: {msg}")
-            if msg[2] == "dev":
-                connected = False
-                break
             os.system(f'echo "/usr/bin/python3 /etc/profile.d/vis_client_logout.py" | at now +{msg[1]} hour')
             os.system(f'echo "pkill -9 -u $USER" | at now +{msg[1] + 1} minute')
             connected = False
+        if msg[2] != "dev":
             break
         
         
