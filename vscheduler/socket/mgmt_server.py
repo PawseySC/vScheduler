@@ -189,7 +189,7 @@ def handle_client(conn, addr):
                     record_login(user, node, MyCredentials.report_linux_table, "booking")
                     subprocess.run(['vmanage', '-n', node, '-u', user, '-v'])
 
-        conn.send([user, is_excepted(user, operating_system)].encode(FORMAT), check_status(operating_system)[0][1])
+        conn.send(([user, is_excepted(user, operating_system)], check_status(operating_system)[0][1]).encode(FORMAT))
         connected = False
     conn.close()
 
