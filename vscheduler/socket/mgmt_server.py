@@ -99,7 +99,7 @@ def generate_general_partition_hosts(os, node):
         #         hosts.append(host)
         hosts = [MyCredentials.windows_node_name + "0" + str(i) if i < 10 else MyCredentials.windows_node_name + str(i) for i in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1)]
     status_results = check_status(os)
-    hosts = [x for x in hosts if x not in np.array(status_results)[:,0]] if len(status_results) > 0 else hosts
+    hosts = [x for x in hosts if x not in np.array(status_results)[:,0]] if status_results != 0 else hosts
     logger_win.info (f"hosts: {hosts}") if os == "windows" else logger_unix.info (f"hosts: {hosts}")
     return hosts
 
@@ -147,7 +147,7 @@ def handle_client(conn, addr):
         operating_system = msg.split(",")[2]
 
         excepted_walltime = is_excepted(user, operating_system)
-        node_status = check_status(operating_system)[0][1] if len(check_status(operating_system)) > 0 else "0"
+        node_status = check_status(operating_system)[0][1] if check_status(operating_system) != 0 else "0"
         print (f"user, excepted_walltime, node_status ::: {user}, {excepted_walltime}, {node_status}")
         
         if node_status != "dev":
