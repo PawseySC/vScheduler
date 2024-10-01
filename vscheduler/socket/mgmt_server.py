@@ -30,16 +30,17 @@ logger_unix = socket_records.log_agent("linux")
 
 def is_excepted(user, os):
     try:
-        exception_query = f"SELECT user, start, end, wall_time FROM {MyCredentials.report_exception_table} WHERE user = {user} AND start = end"
+        exception_query = f"SELECT user, start, end, wall_time FROM {MyCredentials.report_exception_table} WHERE user = '{user}' AND start = end"
+        print (f"exception_query: {exception_query}")
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as my_cursor:
             my_cursor.execute(exception_query)
             exception_results = my_cursor.fetchall()
-            print (f"\n{tabulate(exception_results, headers=['user', 'privilige'])}") if MyPrintCondition.fprint else 0
-            logger_win.info (f"\n{tabulate(exception_results, headers=['user', 'privilige'])}") if os == "Windows" else logger_unix.info (f"\n{tabulate(exception_results, headers=['user', 'privilige'])}")
+            print (f"\n{tabulate(exception_results, headers=['user', 'start', 'end', 'wall_time'])}") if MyPrintCondition.fprint else 0
+            logger_win.info (f"\n{tabulate(exception_results, headers=['user', 'start', 'end', 'wall_time'])}") if os == "Windows" else logger_unix.info (f"\n{tabulate(exception_results, headers=['user', 'start', 'end', 'wall_time'])}")
             print (f"exception_results: {exception_results}") if MyPrintCondition.fprint else 0
             print (f"len(exception_results): {len(exception_results)}") if MyPrintCondition.fprint else 0
-            logger_win.info (f"exception_results: {exception_results}") if os == "Windows" else logger_unix.info (f"status nodes: {exception_results}")
+            logger_win.info (f"exception_results: {exception_results}") if os == "Windows" else logger_unix.info (f"exception_results: {exception_results}")
             logger_win.info (f"len(exception_results): {len(exception_results)}") if os == "Windows" else logger_unix.info (f"len(exception_results): {len(exception_results)}")
             
         return exception_results[0][3] if len(exception_results) > 0 else MyCredentials.general_pool_wall_time
@@ -72,7 +73,7 @@ def check_status(os):
         logger_win.info (f"status nodes: {status_results}") if os == "windows" else logger_unix.info (f"status nodes: {status_results}")
         logger_win.info (f"len(status_results): {len(status_results)}") if os == "windows" else logger_unix.info (f"len(status_results): {len(status_results)}")
         
-        return status_results
+        return status_results if len(status_results) > 0 else 0
     except my_connection.Error as e:
         print (f"error retreiving nodes status from < {MyCredentials.report_status_table} > table\n{e}") if MyPrintCondition.fprint else 0
         logger_win.error (f"error retreiving node status from < {MyCredentials.report_status_table} > table\n{e}") if os == "windows" else logger_unix.error (f"error retreiving node status from < {MyCredentials.report_status_table} > table\n{e}")
@@ -145,51 +146,55 @@ def handle_client(conn, addr):
         user = msg.split(",")[1]
         operating_system = msg.split(",")[2]
 
+        excepted_walltime = is_excepted(user, operating_system)
+        node_status = check_status(operating_system)[0][1] if len(check_status(operating_system)) > 0 else "0"
+        print (f"user, excepted_walltime, node_status ::: {user}, {excepted_walltime}, {node_status}")
         
-        # check if the socket connection request comes from windows nodes
-        if MyCredentials.windows_node_name in node: 
-            # if windows general partition -> empty windows general pool, then, valloc and finally update windows general pool with new node
-            if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
-                if "logout" in msg.split(","):
-                    logger_win.info (f"LOGOUT attempt for {user}")
-                    revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], MyCredentials.windows_pool)
-                    record_logout(user, node, MyCredentials.report_windows_table, "general")
-                else:
-                    manage_pool(msg, node, user, "windows")
+        if node_status != "dev":
+            # check if the socket connection request comes from windows nodes
+            if MyCredentials.windows_node_name in node: 
+                # if windows general partition -> empty windows general pool, then, valloc and finally update windows general pool with new node
+                if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
+                    if "logout" in msg.split(","):
+                        logger_win.info (f"LOGOUT attempt for {user}")
+                        revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], MyCredentials.windows_pool)
+                        record_logout(user, node, MyCredentials.report_windows_table, "general")
+                    else:
+                        manage_pool(msg, node, user, "windows")
+                
+                # if windows booking partition -> trigger vmanage at windows login to check booking validity
+                elif int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
+                    if "logout" in msg.split(","):
+                        logger_win.info (f"LOGOUT attempt for {user}")
+                        record_logout(user, node, MyCredentials.report_windows_table, "booking")
+                    else:
+                        record_login(user, node, MyCredentials.report_windows_table, "booking")
+                        subprocess.run(['vmanage', '-n', node, '-u', user, '-v'])
+                        
             
-            # if windows booking partition -> trigger vmanage at windows login to check booking validity
-            elif int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
-                if "logout" in msg.split(","):
-                    logger_win.info (f"LOGOUT attempt for {user}")
-                    record_logout(user, node, MyCredentials.report_windows_table, "booking")
-                else:
-                    record_login(user, node, MyCredentials.report_windows_table, "booking")
-                    subprocess.run(['vmanage', '-n', node, '-u', user, '-v'])
-                    
+            # check if the socket connection request comes from linux nodes
+            if MyCredentials.linux_node_name in node:
+                # if linux general partition -> empty linux general pool, then, valloc and finally update linux general pool with new node
+                if int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1): 
+                    if "logout" in msg.split(","):
+                        logger_unix.info (f"LOGOUT attempt for {user}")
+                        # move user back to pool by logging out of node
+                        revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], MyCredentials.linux_pool)
+                        record_logout(user, node, MyCredentials.report_linux_table, "general")
+                    else:
+                        # if len(checkpool(node, MyCredentials.pool)):        # if user goes to static url of specific node
+                        manage_pool(msg, node, user, "linux")
+                
+                # if linux booking partition -> trigger vmanage at linux login to check booking validity
+                elif int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
+                    if "logout" in msg.split(","):
+                        logger_unix.info (f"LOGOUT attempt for {user}")
+                        record_logout(user, node, MyCredentials.report_linux_table, "booking")
+                    else:
+                        record_login(user, node, MyCredentials.report_linux_table, "booking")
+                        subprocess.run(['vmanage', '-n', node, '-u', user, '-v'])
         
-        # check if the socket connection request comes from linux nodes
-        if MyCredentials.linux_node_name in node:
-            # if linux general partition -> empty linux general pool, then, valloc and finally update linux general pool with new node
-            if int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1): 
-                if "logout" in msg.split(","):
-                    logger_unix.info (f"LOGOUT attempt for {user}")
-                    # move user back to pool by logging out of node
-                    revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], MyCredentials.linux_pool)
-                    record_logout(user, node, MyCredentials.report_linux_table, "general")
-                else:
-                    # if len(checkpool(node, MyCredentials.pool)):        # if user goes to static url of specific node
-                    manage_pool(msg, node, user, "linux")
-            
-            # if linux booking partition -> trigger vmanage at linux login to check booking validity
-            elif int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
-                if "logout" in msg.split(","):
-                    logger_unix.info (f"LOGOUT attempt for {user}")
-                    record_logout(user, node, MyCredentials.report_linux_table, "booking")
-                else:
-                    record_login(user, node, MyCredentials.report_linux_table, "booking")
-                    subprocess.run(['vmanage', '-n', node, '-u', user, '-v'])
-
-        conn.send(([user, is_excepted(user, operating_system)], check_status(operating_system)[0][1]).encode(FORMAT))
+        conn.send((user + "," + str(excepted_walltime) + "," + node_status).encode(FORMAT))
         connected = False
     conn.close()
 
