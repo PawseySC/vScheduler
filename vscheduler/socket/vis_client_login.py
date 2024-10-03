@@ -12,10 +12,11 @@ SIZE = 1024
 FORMAT = "utf-8"
 
 def main():
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    
+    #client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     for ADDR in ADDRS:
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         connected = True
+        print (f"ADDR: {ADDR}")
         try:
             client.connect(ADDR)
         except socket.error as e:
@@ -23,17 +24,18 @@ def main():
             mailFunction(f"socket error - {host}", f"error connecting managment socket server ({ADDR[0]}:{ADDR[1]}) from {host} at LOGIN attempt for {user}\n{str(e)}")
             os.system(f'pkill -KILL -u {user}')
 
-        print(f"[CONNECTED] VIS CLIENT TO MGMT SERVER AT {ADDR[0]}:{ADDR[0]}")
+        print(f"[CONNECTED] VIS CLIENT TO MGMT SERVER AT {ADDR[0]}:{ADDR[1]}")
         
         while connected:
             msg = [host, user, operating_system]
             client.send((msg[0] + "," + msg[1] + "," + msg[2]).encode(FORMAT))
-            msg = client.recv(SIZE)
+            msg = client.recv(SIZE).decode(FORMAT)
             print(f"[MGMT SERVER] sent: {msg}")
             if msg[2] == "up":
                 os.system(f'echo "/usr/bin/python3 /etc/profile.d/vis_client_logout.py" | at now +{msg[1]} hour')
                 os.system(f'echo "pkill -9 -u $USER" | at now +{msg[1] + 1} minute')
             connected = False
+        client.close()
         if msg[2] != "dev":
             break
         
