@@ -147,9 +147,15 @@ def handle_client(conn, addr):
         operating_system = msg.split(",")[2]
 
         excepted_walltime = is_excepted(user, operating_system)
-        node_status = check_status(operating_system)[0][1] if check_status(operating_system) != 0 else "0"
-        print (f"user, excepted_walltime, node_status ::: {user}, {excepted_walltime}, {node_status}")
-        
+        node_status = 'up'
+        node_status_lists = check_status(operating_system)
+        if len(node_status_lists) != 0:
+            for node_status_list in node_status_lists:
+                if node in node_status_list:
+                    node_status = node_status_list[1]
+                
+        # print (f"user, excepted_walltime, node_status ::: {user}, {excepted_walltime}, {node_status}")
+                
         if node_status != "dev":
             # check if the socket connection request comes from windows nodes
             if MyCredentials.windows_node_name in node: 
