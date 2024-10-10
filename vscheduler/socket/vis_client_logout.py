@@ -28,7 +28,7 @@ def main():
         while connected:
             msg = [host, user, operating_system]
             client.send((msg[0] + "," + msg[1] + "," + msg[2] + ",logout").encode(FORMAT))
-            msg = client.recv(SIZE)
+            msg = client.recv(SIZE).decode(FORMAT)
             print(f"[MGMT SERVER] sent: {msg}")
             connected = False
         if msg[2] != "dev":
