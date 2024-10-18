@@ -4,6 +4,8 @@ from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.ssh import Node as MyNode
 from vscheduler.modules.cluster.os_type import find_os
+from vscheduler.modules.reports.record_log_io import record_logout
+from vscheduler.modules.guaca.revert_user import revert_back_to_pool
 
 booking_records = Capture_log("booking", __file__)
 logger_win = booking_records.log_agent("windows")
@@ -38,6 +40,12 @@ def logoff(user, node):
                     std_print(stdin_logoff, stdout_logoff, stderr_logoff)
                     print (f"session for {user} was killed on {node}") if MyPrintCondition.fprint else 0
                     logger_win.info (f"session for {user} was killed on {node}")
+                    if MyCredentials.windows_node_name in node:
+                        if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
+                            record_logout(user, node, MyCredentials.report_windows_table, "general")
+                            revert_back_to_pool(user, node, MyCredentials.windows_pool)
+                        elif int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
+                            record_logout(user, node, MyCredentials.report_windows_table, "booking")
                 elif user in MyCredentials.exception:
                     print (f"{user} is exception") if MyPrintCondition.fprint else 0
                     logger_win.info (f"{user} is exception")
@@ -58,6 +66,12 @@ def logoff(user, node):
                         std_print(stdin_logoff, stdout_logoff, stderr_logoff)
                         print (f"session for {user} was killed on {node}") if MyPrintCondition.fprint else 0
                         logger_unix.info (f"session for {user} was killed on {node}")
+                        if MyCredentials.linux_node_name in node:
+                            if int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1): 
+                                record_logout(user, node, MyCredentials.report_linux_table, "general")
+                                revert_back_to_pool(user, node, MyCredentials.linux_pool)
+                            elif int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
+                                record_logout(user, node, MyCredentials.report_linux_table, "booking")
                     elif user in MyCredentials.exception:
                         print (f"{user} is exception") if MyPrintCondition.fprint else 0
                         logger_unix.info (f"{user} is exception")
