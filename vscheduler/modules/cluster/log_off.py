@@ -6,7 +6,8 @@ from vscheduler.lib.ssh import Node as MyNode
 from vscheduler.modules.cluster.os_type import find_os
 
 booking_records = Capture_log("booking", __file__)
-logger_win = booking_records.log_agent("windows")   # **** logger_unix needs to be added; win flag should be sent when calling the function ****
+logger_win = booking_records.log_agent("windows")
+logger_unix = booking_records.log_agent("linux")
 
 def std_print(stdin, stdout, stderr):
     stdout_copy = []
@@ -53,25 +54,27 @@ def logoff(user, node):
                 for line in stdout_query_copy:
                     if line.split()[0] == user and user not in MyCredentials.exception:
                     # if line.split()[0] == user:
-                        stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command("sudo pkill -KILL -u %s" % (line.split()[0]))
+                        stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command("pkill -9 -u %s" % (line.split()[0]))
                         std_print(stdin_logoff, stdout_logoff, stderr_logoff)
                         print (f"session for {user} was killed on {node}") if MyPrintCondition.fprint else 0
-                        logger_win.info (f"session for {user} was killed on {node}")
+                        logger_unix.info (f"session for {user} was killed on {node}")
                     elif user in MyCredentials.exception:
                         print (f"{user} is exception") if MyPrintCondition.fprint else 0
-                        logger_win.info (f"{user} is exception")
+                        logger_unix.info (f"{user} is exception")
                     else:
                         continue
             else:
                 print (f"user < {user} > is not logged in < {node}>") if MyPrintCondition.fprint else 0
-                logger_win.info (f"user < {user} > is not logged in < {node}>")
+                logger_unix.info (f"user < {user} > is not logged in < {node}>")
             
         else:
             print (f"no os found for < {node} >") if MyPrintCondition.fprint else 0
             logger_win.warning (f"no os found for < {node} >")
+            logger_unix.warning (f"no os found for < {node} >")
             exit
         connection.close()
 
     except:
         print (f"Could not connect to ndoe < {node} > to query session and logoff") if MyPrintCondition.fprint else 0
         logger_win.error (f"Could not connect to ndoe < {node} > to query session and logoff")
+        logger_unix.error (f"Could not connect to ndoe < {node} > to query session and logoff")
