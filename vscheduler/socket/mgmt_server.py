@@ -56,6 +56,7 @@ def check_status(os):
         status_query = f"SELECT node, status, start, end FROM {MyCredentials.report_status_table} WHERE start = end"
         logger_win.info (f"status_query: {status_query}") if os == "windows" else logger_unix.info (f"status_query: {status_query}") 
         my_connection.ping()  # reconnecting mysql in case of connection timed out
+        my_connection.commit()  # This commit accepts the inserts by the other session
         with my_connection.cursor() as my_cursor:
             my_cursor.execute(status_query)
             status_results = my_cursor.fetchall()
