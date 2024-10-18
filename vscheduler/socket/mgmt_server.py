@@ -14,6 +14,7 @@ from vscheduler.modules.reports.record_log_io import record_logout
 from vscheduler.modules.guaca.revert_user import revert_back_to_pool
 from vscheduler.modules.guaca.empty_pool import empty_pool_connection
 from vscheduler.socket.mgmt_client import client_statistics as data_agent
+from vscheduler.modules.guaca.atd import at_daemon
 
 my_connection = MyDatabase.connect_report_db()
 
@@ -104,22 +105,25 @@ def generate_general_partition_hosts(os, node):
     return hosts
 
 
-def manage_pool(msg, node, user, os):
+def manage_pool(msg, node, user, walltime, os):
     # 1. empty pool by removing connected node from general pool in guaca
-    logger_win.info (f"step 1/4: Empty pool by replacing < {node} > with next available node") if os == "windows" else logger_unix.info (f"step 1/4: Empty pool by replacing < {node} > with next available node")
+    logger_win.info (f"step 1/5: Empty pool by replacing < {node} > with next available node") if os == "windows" else logger_unix.info (f"step 1/5: Empty pool by replacing < {node} > with next available node")
     empty_pool_connection(msg.split(",")[0], msg.split(",")[1], MyCredentials.linux_pool) if os == "linux" else empty_pool_connection(msg.split(",")[0], msg.split(",")[1], MyCredentials.windows_pool)
 
     # 2. trigger valloc to make user member of connected node in guaca by assigning static url
-    logger_win.info (f"step 2/4: Assigning < {user} > to < {node} > through valloc") if os == "windows" else logger_unix.info (f"step 2/4: Assigning < {user} > to < {node} > through valloc")
+    logger_win.info (f"step 2/5: Assigning < {user} > to < {node} > through valloc") if os == "windows" else logger_unix.info (f"step 2/5: Assigning < {user} > to < {node} > through valloc")
     subprocess.run(['valloc', '-n', node, '-u', user, '-v'])
 
     # 3. record login time
-    logger_win.info (f"step 3/4: Recording < {user} > login time to < {node} >") if os == "windows" else logger_unix.info (f"step 3/4: Recording < {user} > login time to < {node} >")
+    logger_win.info (f"step 3/5: Recording < {user} > login time to < {node} >") if os == "windows" else logger_unix.info (f"step 3/5: Recording < {user} > login time to < {node} >")
     record_login(user, node, MyCredentials.report_linux_table, "general") if os == "linux" else record_login(user, node, MyCredentials.report_windows_table, "general")
     
-    # 4. fill up pool by new member
-    # 4.a. load balance ON -> call mgmt_client to collect usage data from vis nodes to rank those for loadbalance
-    logger_win.info ("step 4/4: load balance/pool fill up") if os == "windows" else logger_unix.info ("step 4/4: load balance/pool fill up")
+    # 4. set `at` command to kill user's session at wall-time
+    at_daemon(user, node, MyCredentials.report_linux_table, walltime)
+    
+    # 5. fill up pool by new member
+    # 5.a. load balance ON -> call mgmt_client to collect usage data from vis nodes to rank those for loadbalance
+    logger_win.info ("step 5/5: load balance/pool fill up") if os == "windows" else logger_unix.info ("step 5/5: load balance/pool fill up")
     if MyCredentials.load_balance:
         logger_win.warning ("load_balance = TRUE") if os == "windows" else logger_unix.warning ("load_balance = TRUE")
         hosts = generate_general_partition_hosts(os, node)
@@ -127,7 +131,7 @@ def manage_pool(msg, node, user, os):
         logger_win.info (f"Usage data obtained from accessible nodes: {usage_data}") if os == "windows" else logger_unix.info (f"Usage data obtained from accessible nodes: {usage_data}")
         logger_win.info (f"{os} nodes load balancing in < {MyCredentials.windows_pool} >") if os == "windows" else logger_unix.info (f"{os} nodes load balancing in < {MyCredentials.linux_pool} >")
         loadbalance(usage_data, MyCredentials.linux_pool) if os == "linux" else loadbalance(usage_data, MyCredentials.windows_pool)
-    # 4.b. load balance OFF -> fill up pool with next node in order
+    # 5.b. load balance OFF -> fill up pool with next node in order
     else:
         logger_win.warning ("load_balance = FALSE") if os == "windows" else logger_unix.warning ("load_balance = FALSE")
         hosts = generate_general_partition_hosts(os, node)
@@ -166,7 +170,7 @@ def handle_client(conn, addr):
                         revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], MyCredentials.windows_pool)
                         record_logout(user, node, MyCredentials.report_windows_table, "general")
                     else:
-                        manage_pool(msg, node, user, "windows")
+                        manage_pool(msg, node, user, excepted_walltime, "windows")
                 
                 # if windows booking partition -> trigger vmanage at windows login to check booking validity
                 elif int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
@@ -189,7 +193,7 @@ def handle_client(conn, addr):
                         record_logout(user, node, MyCredentials.report_linux_table, "general")
                     else:
                         # if len(checkpool(node, MyCredentials.pool)):        # if user goes to static url of specific node
-                        manage_pool(msg, node, user, "linux")
+                        manage_pool(msg, node, user, excepted_walltime, "linux")
                 
                 # if linux booking partition -> trigger vmanage at linux login to check booking validity
                 elif int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
