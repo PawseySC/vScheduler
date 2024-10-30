@@ -1,5 +1,6 @@
 # manages sessions active time in general pool avoiding to stay longer than allowed wall-time
-import os, time, sched
+import os, subprocess, time, sched
+from subprocess import Popen, PIPE, CalledProcessError
 from vscheduler.log.log import Capture_log
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.modules.reports.record_log_io import record_logout
@@ -16,7 +17,12 @@ def post_log_off(user, node, table):
     
 def at_daemon(user, node, table, walltime):
     logger_unix.info (f"at daemon start, user, node, table, walltime: {user}, {node}, {table}, {walltime}")
-    os.system(f'echo "vkill -u {user} -n {node} -v" | at now + {walltime} hour')
+    # os.system(f'echo "vkill -u {user} -n {node} -v" | at now + {walltime} hour')
+    command = f'echo "vkill -u {user} -n {node} -v" | /usr/bin/at now + {walltime} hour'
+    subprocess.call(f"{command}", shell=True)
+    # os.system(command)
+    # result = os.popen(command).read()
+    # logger_unix.info (f"Output from {command}:\n{result}")
     # scheduler = sched.scheduler(time.time, time.sleep)
     # specific_time = time.time() + walltime * 3600  # seconds from now
     # logger_unix.info (f"specific_time: {specific_time}")
