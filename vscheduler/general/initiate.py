@@ -9,7 +9,7 @@ class PrintCondition():
     fprint = True if '-v' in sys.argv[1:] else False
 
 class Initiation:
-    node = user = start = end = status = mode = time = ''
+    node = user = start = end = status = mode = partition = time = ''
     email = session = list = activate = deactivate = False
     
     for arg in range (1, arg_num-1):
@@ -58,14 +58,20 @@ class Initiation:
         #     status = 'idle'
         elif sys.argv[arg+1] == 'reserved':     # booked (only for bookable partition)
             status = 'reserved'
-        elif sys.argv[arg] == 'status':
-            mode = 'status'
-        elif sys.argv[arg] == 'list':
-            mode = 'list'
-        elif sys.argv[arg] == 'activate':
-            mode = 'activate'
-        elif sys.argv[arg] == 'deactivate':
-            mode = 'deactivate'
+        elif sys.argv[arg] == 'create':
+            mode = 'create'
+            partition = sys.argv[arg+1]
+        elif sys.argv[arg] == 'delete':
+            mode = 'delete'
+            partition = sys.argv[arg+1]
+        # elif sys.argv[arg] == 'status':
+        #     mode = 'status'
+        # elif sys.argv[arg] == 'list':
+        #     mode = 'list'
+        # elif sys.argv[arg] == 'activate':
+        #     mode = 'activate'
+        # elif sys.argv[arg] == 'deactivate':
+        #     mode = 'deactivate'
         
 
     if sys.argv[1:].count('-u') > 1 or sys.argv[1:].count('-n') > 1 or sys.argv[1:].count('-d') > 1 or sys.argv[1:].count('--add') > 1 or sys.argv[1:].count('--remove') > 1 or sys.argv[1:].count('--status') > 1:
