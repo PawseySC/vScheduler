@@ -1,4 +1,6 @@
 # removes/adds users to general pool at maintenance
+import os, warnings
+warnings.filterwarnings('ignore')
 import guacamole
 import pandas as pd
 from vscheduler.log.log import Capture_log
@@ -12,30 +14,87 @@ logger_unix = records.log_agent("linux")
 session = guacamole.session("https://dev-guacamole.pawsey.org.au", "mysql", "guacadmin", "pckuW4q4eL9hB2jjZX8R")
 
 def change_maint_status (mode, partition):
+    logger_unix.info (f"mode1: {mode}")
     try:
         users = session.list_users()
-        general_pool_users = []
+        general_pool_users = individual_node_users = user_groups = []
         [general_pool_users.append(user) for user in users if partition in session.detail_user_groups(user)]
         general_pool_users_df = pd.DataFrame({'USERNAME':general_pool_users})
         general_pool_users_df[partition] = "*"
         print (f"\n{partition} users: ({len(general_pool_users_df)})\n{general_pool_users_df.sort_values('USERNAME', ascending=True)}") if MyPrintCondition.fprint else 0
-        logger_unix.info (f"\n{partition} users: ({len(general_pool_users_df)})\n{general_pool_users_df.sort_values('USERNAME', ascending=True)}") if partition == MyCredentials.linux_pool else 0
-        logger_win.info (f"\n{partition} users: ({len(general_pool_users_df)})\n{general_pool_users_df.sort_values('USERNAME', ascending=True)}") if partition == MyCredentials.windows_pool else 0
+        logger_unix.info (f"\n{partition} users: ({len(general_pool_users_df)})\n{general_pool_users_df.sort_values('USERNAME', ascending=True)}") #if partition == MyCredentials.linux_pool else 0
+        # logger_win.info (f"\n{partition} users: ({len(general_pool_users_df)})\n{general_pool_users_df.sort_values('USERNAME', ascending=True)}") #if partition == MyCredentials.windows_pool else 0
     except session.error as e:
         print (f"error in checking guacamole users:\n{e}") if MyPrintCondition.fprint else 0
         logger_unix.info (f"error in checking guacamole users:\n{e}") if partition == MyCredentials.linux_pool else 0
-        logger_win.info (f"error in checking guacamole users:\n{e}") if partition == MyCredentials.windows_pool else 0
+        # logger_win.info (f"error in checking guacamole users:\n{e}") if partition == MyCredentials.windows_pool else 0
+        
     if mode == "create":
-        [(session.update_user_group(user, partition, "remove") for user in general_pool_users_df['USERNAME'].values.tolist())]
+        logger_unix.info (f"mode2: {mode}")
+        [(session.update_user_group(user, partition, "remove"), logger_unix.info (f"< {user} > updated")) for user in general_pool_users_df['USERNAME'].values.tolist()]    # remove users from pool
+        logger_unix.info (f"individual_node_users: {individual_node_users}")
+        for user in users:  # remove users from individual nodes
+            user_groups = session.detail_user_groups(user)
+            for user_group in user_groups:
+                if partition == MyCredentials.linux_pool:
+                    logger_unix.info ("linux pool == partition")
+                    logger_unix.info (user_group)
+                    if MyCredentials.linux_node_name in user_group:
+                        logger_unix.info (user)
+                        individual_node_users.append(user)
+                        session.update_user_group(user, user_group, "remove")
+                        logger_unix.info (f"< {user} > updated")
+                    # [individual_node_users.append(user) for user in users if MyCredentials.linux_node_name in session.detail_user_groups(user)]
+                elif partition == MyCredentials.windows_pool:
+                    logger_win.info ("windows pool == partition")
+                    logger_win.info (user_group)
+                    if MyCredentials.windows_node_name in user_group:
+                        logger_win.info (user)
+                        individual_node_users.append(user)
+                        session.update_user_group(user, user_group, "remove")
+                        logger_win.info (f"< {user} > updated")
+                    # [individual_node_users.append(user) for user in users if MyCredentials.windows_node_name in session.detail_user_groups(user)]
+
+        logger_unix.info (f"individual_node_users: {individual_node_users}")
+        # [(session.update_user_group(user, group, "remove"), logger_unix.info (f"< {user} > updated")) for group in user_groups]
         print (f"Maintenance mode successfully enabled for < {partition} >\nusers access to < {partition} > was removed.") if MyPrintCondition.fprint else 0
-        logger_unix.info (f"Maintenance mode successfully enabled for < {partition} >\nusers access to < {partition} > was removed.") if partition == MyCredentials.linux_pool else 0
-        logger_win.info (f"Maintenance mode successfully enabled for < {partition} >\nusers access to < {partition} > was removed.") if partition == MyCredentials.windows_pool else 0
+        logger_unix.info (f"Maintenance mode successfully enabled for < {partition} >\nusers access to < {partition} > was removed.") #if partition == MyCredentials.linux_pool else 0
+        # logger_win.info (f"Maintenance mode successfully enabled for < {partition} >\nusers access to < {partition} > was removed.") #if partition == MyCredentials.windows_pool else 0
         # also, need to remove users from allocated nodes
         # ****** change the parttion availability, so vinfo shows that as down <--- For now, manual change in config till design the best solution
+        
     elif mode == "delete":
-        [(session.update_user_group(user, partition, "add") for user in general_pool_users_df['USERNAME'].values.tolist())]
+        if partition == MyCredentials.linux_pool:
+            # ---> query ldap for only setonix_vis users
+            try:
+                os.system("ldapsearch -H ldaps://ldap-pool.pawsey.org.au -b dc=pawsey,dc=org,dc=au -o ldif-wrap=no -xLLL '(memberof=cn=setonix_vis*)' uid | grep '^uid:' > temp")
+                setonix_users = pd.read_csv("temp", header=None, names=["USERNAME"])
+                os.system("rm temp")
+                setonix_users["USERNAME"] = setonix_users["USERNAME"].str.replace(r"uid: ", "")
+                setonix_users["setonix"] = "*"
+                print (f"\nSETONIX LDAP: ({len(setonix_users)})\n{setonix_users.sort_values('USERNAME', ascending=True)}") if MyPrintCondition.fprint else 0
+                logger_unix.info (f"\nSETONIX LDAP: ({len(setonix_users)})\n{setonix_users.sort_values('USERNAME', ascending=True)}")
+            except os.error as e:
+                print (f"error in querying ldap for setonix_vis:\n{e}") if MyPrintCondition.fprint else 0
+                logger_unix.error (f"error in querying ldap for setonix_vis:\n{e}")
+            [(session.update_user_group(user, partition, "add"), logger_unix.info (f"< {user} > updated")) for user in setonix_users['USERNAME'].values.tolist()]
+        elif partition == MyCredentials.windows_pool:
+            # ---> query ldap for only nebula users
+            try:
+                os.system("ldapsearch -H ldaps://ldap-pool.pawsey.org.au -b dc=pawsey,dc=org,dc=au -o ldif-wrap=no -xLLL '(memberof=cn=nebula*)' uid | grep '^uid:' > temp")
+                nebula_users = pd.read_csv("temp", header=None, names=["USERNAME"])
+                os.system("rm temp")
+                nebula_users["USERNAME"] = nebula_users["USERNAME"].str.replace(r"uid: ", "")
+                nebula_users["nebula"] = "*"
+                print (f"\nNEBULA LDAP: ({len(nebula_users)})\n{nebula_users.sort_values('USERNAME', ascending=True)}") if MyPrintCondition.fprint else 0
+                logger_win.info (f"\nNEBULA LDAP: ({len(nebula_users)})\n{nebula_users.sort_values('USERNAME', ascending=True)}")
+            except os.error as e:
+                print (f"error in querying ldap for nebula:\n{e}") if MyPrintCondition.fprint else 0
+                logger_win.error (f"error in querying ldap for nebula:\n{e}")
+            [(session.update_user_group(user, partition, "add"), logger_unix.info (f"< {user} > updated")) for user in nebula_users['USERNAME'].values.tolist()]
+
         print (f"Maintenance mode successfully disabled for < {partition} >\nusers access to < {partition} > was enabled.") if MyPrintCondition.fprint else 0
-        logger_unix (f"Maintenance mode successfully disabled for < {partition} >\nusers access to < {partition} > was enabled.") if partition == MyCredentials.linux_pool else 0
-        logger_win (f"Maintenance mode successfully disabled for < {partition} >\nusers access to < {partition} > was enabled.") if partition == MyCredentials.windows_pool else 0
+        logger_unix.info (f"Maintenance mode successfully disabled for < {partition} >\nusers access to < {partition} > was enabled.") #if partition == MyCredentials.linux_pool else 0
+        # logger_win.info (f"Maintenance mode successfully disabled for < {partition} >\nusers access to < {partition} > was enabled.") #if partition == MyCredentials.windows_pool else 0
         # no need to put users back to their allocated nodes before maintenance
         # ****** change the parttion availability, so vinfo shows that as up <--- For now, manual change in config till design the best solution   

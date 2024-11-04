@@ -10,8 +10,9 @@ from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 # from vscheduler.modules.cluster.maintenance import activation_status as status_activation
 from vscheduler.modules.guaca.maintenance import change_maint_status
 
-records = Capture_log("exception", __file__)
-logger = records.log_agent()
+records = Capture_log("control", __file__)
+logger_win = records.log_agent("windows")
+logger_unix = records.log_agent("linux")
 
 # Process class
 # class Process(multiprocessing.Process):
@@ -35,6 +36,7 @@ logger = records.log_agent()
 
 def main():
     if not initiate.node:
+        print (initiate.mode, initiate.partition)
         change_maint_status (initiate.mode, initiate.partition)
         # for i in range (MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
         #     node = MyCredentials.windows_node_name + '0' + str(i) if i <= 9 else MyCredentials.windows_node_name + str(i)
