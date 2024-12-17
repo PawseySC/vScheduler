@@ -12,7 +12,7 @@ logger_exception = records.log_agent("exception")
 
 # Process class
 class Process(multiprocessing.Process):
-    def __init__(self, username, mode, start, end, time):
+    def __init__(self, username, mode, time, start, end):
         super(Process, self).__init__()
         self.username = username
         self.mode = mode
@@ -34,21 +34,21 @@ def main():
             if initiate.user:
                 print ("no username is needed when listing exceptions\nplease see help")
             else:
-                p = Process("", "list", initiate.start, initiate.end, "")
+                p = Process("", "list", "", initiate.start, initiate.end)
                 p.start()
                 p.join()
         elif initiate.mode == 'status':
             if not initiate.user:
                 print ("username is needed when querying exception status\nplease see help")
             else:
-                p = Process(initiate.user, "status", initiate.start, initiate.end, "")
+                p = Process(initiate.user, "status", "", initiate.start, initiate.end)
                 p.start()
                 p.join()
         elif initiate.mode == 'activate':
             if not initiate.user or not initiate.time:
                 print ("vexcept activate requires username and time\nplease see help")
             else:
-                p = Process(initiate.user, "activate", initiate.time)
+                p = Process(initiate.user, "activate", initiate.time, "", "")
                 p.start()
                 p.join()
                 # [(Process(users, "activate"), Process(users, "activate").start(), Process(users, "activate").join()) for users in initiate.user]
@@ -56,7 +56,7 @@ def main():
             if not initiate.user:
                 print ("vexcept deactivate requires username\nplease see help")
             else:
-                p = Process(initiate.user, "deactivate", "")
+                p = Process(initiate.user, "deactivate", "", "", "")
                 p.start()
                 p.join()
                 # [(Process(users, "deactivate"), Process(users, "deactivate").start(), Process(users, "deactivate").join()) for users in initiate.user]

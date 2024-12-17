@@ -24,7 +24,7 @@ def exception_list(user, start, end):
             exception_list_query = exception_list_query + f" AND start >= '{start}'"
         if end:
             exception_list_query = exception_list_query + f" AND end <= '{end}'"
-        # print (f"exception_list_query: {exception_list_query}") if MyPrintCondition.fprint else 0
+        print (f"exception_list_query: {exception_list_query}") if MyPrintCondition.fprint else 0
         logger_exception.info (f"exception_list_query: {exception_list_query}")
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as my_cursor:
@@ -32,8 +32,9 @@ def exception_list(user, start, end):
             exception_query_results = my_cursor.fetchall()        
         # print (f"exception_query_results: {exception_query_results}") if MyPrintCondition.fprint else 0
         logger_exception.info (f"exception_query_results: {exception_query_results}")
-        print (f"{user} is not excepted" if len(exception_query_results) == 0 else f"{exception_query_results[0][0]} is excepted since {exception_query_results[0][1]} with wall time of {exception_query_results[0][3]} hours") if MyPrintCondition.fprint else 0
-        logger_exception.info (f"{user} is not exception" if len(exception_query_results) == 0 else f"{exception_query_results[0][0]} is excepted since {exception_query_results[0][1]} with wall time of {exception_query_results[0][3]} hours")
+        
+        [print (f"{user} is not excepted" if len(exception_query_results) == 0 else f"{exception_query_result[0]} is excepted since {exception_query_result[1]} with wall time of {exception_query_result[3]} hours") for exception_query_result in exception_query_results] if MyPrintCondition.fprint else 0
+        [logger_exception.info (f"{user} is not excepted" if len(exception_query_results) == 0 else f"{exception_query_result[0]} is excepted since {exception_query_result[1]} with wall time of {exception_query_result[3]} hours") for exception_query_result in exception_query_results]
         return exception_query_results
     except my_connection.Error as e:
         print (f"exception record error for user < {user} > in query = {exception_list_query}\n{e}") if MyPrintCondition.fprint else 0

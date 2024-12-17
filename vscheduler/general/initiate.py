@@ -64,14 +64,14 @@ class Initiation:
         elif sys.argv[arg] == 'delete':
             mode = 'delete'
             partition = sys.argv[arg+1]
-        # elif sys.argv[arg] == 'status':
-        #     mode = 'status'
-        # elif sys.argv[arg] == 'list':
-        #     mode = 'list'
-        # elif sys.argv[arg] == 'activate':
-        #     mode = 'activate'
-        # elif sys.argv[arg] == 'deactivate':
-        #     mode = 'deactivate'
+        elif sys.argv[arg] == 'status':
+            mode = 'status'
+        elif sys.argv[arg] == 'list':
+            mode = 'list'
+        elif sys.argv[arg] == 'activate':
+            mode = 'activate'
+        elif sys.argv[arg] == 'deactivate':
+            mode = 'deactivate'
         
 
     if sys.argv[1:].count('-u') > 1 or sys.argv[1:].count('-n') > 1 or sys.argv[1:].count('-d') > 1 or sys.argv[1:].count('--add') > 1 or sys.argv[1:].count('--remove') > 1 or sys.argv[1:].count('--status') > 1:
