@@ -1,33 +1,32 @@
-# determines time brackets for searching bookings time slots
-import sys, os, datetime
-from time import gmtime, strftime
+# calculates time brackets for bookings time slots searches
+import datetime
 from vscheduler.log.log import Capture_log
-from vscheduler.general.initiate import PrintCondition as MyPrintCondition
-from vscheduler.lib.config import Credentials as MyCredentials
+from vscheduler.general.initiate import PrintCondition
+from vscheduler.lib.config import Credentials
 
+time_records = Capture_log("timer", __file__)
+logger = time_records.log_agent("general")
 
 class Brackets:
 
-    now = datetime.datetime.utcnow()
+    # utc_now = datetime.datetime.utcnow()    # deprectaed
+    utc_now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
     local_time = datetime.datetime.now()
-    start_bracket = now - datetime.timedelta(hours=MyCredentials.booking_session)
-    end_bracket = now + datetime.timedelta(hours=MyCredentials.booking_session)
+    start_bracket = utc_now - datetime.timedelta(hours=Credentials.booking_session)
+    end_bracket = utc_now + datetime.timedelta(hours=Credentials.booking_session)
     
-    def what_time(now, local_time, start_bracket, end_bracket):
-        time_records = Capture_log("general", __file__)
-        logger = time_records.log_agent("linux")
-        
+    def what_time(utc_now, local_time, start_bracket, end_bracket):
         local_timezone = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
         print (
-                f"""\nnow in system local timezome: {local_timezone} - {local_time}
-                now in UTC: {now}, 
+                f"""\nnow in system local timezome ({local_timezone}): {local_time}
+                now in UTC: {utc_now}, 
                 start Bracket in UTC: {start_bracket}
                 end Bracket in UTC: {end_bracket} 
                 Difference: {end_bracket-start_bracket}\n"""
-            ) if MyPrintCondition.fprint else 0
+            ) if PrintCondition.fprint else 0
         logger.info (
-                f"""\nnow in system local timezome: {local_timezone} - {local_time}
-                now in UTC: {now}, 
+                f"""\nnow in system local timezome ({local_timezone}): {local_time}
+                now in UTC: {utc_now}, 
                 start Bracket in UTC: {start_bracket}
                 end Bracket in UTC: {end_bracket} 
                 Difference: {end_bracket-start_bracket}"""

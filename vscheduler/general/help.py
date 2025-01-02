@@ -1,3 +1,15 @@
+"""
+help module
+As of python 2.7, optparse is deprecated.
+
+argparse features listed on https://code.google.com/archive/p/argparse/:
+- handling positional arguments
+- supporting sub-commands
+- allowing alternative option prefixes like + and /
+- handling zero-or-more and one-or-more style arguments
+- producing more informative usage messages
+- providing a much simpler interface for custom types and actions
+"""
 import sys
 from optparse import OptionParser, OptionError
 
@@ -46,7 +58,7 @@ Notes:
         This program is to manage web-based user desktop sessions established 
         through Apache Guacamole (www.guacamole.apache.org). Access could be on the 
         go or through reservations via booked scheduler (www.bookedscheduler.com). 
-        Remote desktop link is populated at end user Guacamole dashboard.
+        Remote desktop link is populated at Guacamole dashboard for end user.
         
         ''' %(title, prog, version))
 
