@@ -1,0 +1,73 @@
+database:
+  booked:
+    host: IP/URL
+    user: username
+    passwd: password
+    db: database
+    port: 3306
+
+  guaca:
+    host: IP/URL
+    user: username
+    passwd: password
+    db: database
+    port: 3306
+
+  report:
+    host: IP/URL
+    user: user
+    passwd: password
+    db: database
+    port: 3306
+    table:
+      windows: table1
+      linux: table2
+      status: table3
+      exception: table4
+
+# define: &key id_rsa
+ssh:
+  user: user                                # user to ssh into client nodes passwordlessly
+  key: /home/<user>/.ssh/id_rsa             # private key matching public key populated in client nodes
+  # ssh_key: *key
+  exception: ['user1', 'user2']             # users to be excepted been checked against bookings when logging into booking partition
+
+time:                                       # in hours
+  booking_session: 24                       # time period in which bookings are chacked at login event
+  general_pool_wall_time: 8
+
+partition:
+  windows:
+    node: node
+    booking: 
+      status: True
+      range: [1, 4]
+    general: 
+      status: True
+      range: [5, 7]
+      pool: pool1                           # connection group name in guacamole
+
+  linux:
+    node: node
+    booking: 
+      status: False
+      range: [2, 2]
+    general: 
+      status: True
+      range: [16, 29]
+      pool: pool2
+
+email:
+  from: from@example.domain
+  to: to@example.domain
+  server: server.example.domain
+  domain: example.domain
+
+log:
+  level: INFO                               # Log level to be recorded: INFO, DEBUG, WARNING, ERROR, CRITICAL
+
+load:
+  balance: False                            # if False, general pool allocation will happen in order
+
+async:
+  status: True
