@@ -1,7 +1,5 @@
-# distinguishes commands arguments
+# distinguishes/procesesses commands arguments
 import sys
-from vscheduler.general.help import Help
-from vscheduler.lib.config import Credentials as MyCredentials
 
 arg_num = len(sys.argv)
 
@@ -10,26 +8,26 @@ class PrintCondition():
 
 class Initiation:
     node = user = start = end = status = mode = partition = time = ''
-    email = session = list = activate = deactivate = False
+    list = activate = deactivate = False
     
     for arg in range (1, arg_num-1):
         if sys.argv[arg] == '-u':
             if arg+1 <= arg_num-1 and sys.argv[arg+1] != '-n' and sys.argv[arg+1] != '-d' and sys.argv[arg+1] != '-v' and sys.argv[arg+1] != '-t':
                 user = sys.argv[arg+1]
             else:
-                print ("error in arguments, please see help")
+                print ("error in argument: -u, please see help")
                 sys.exit()
         elif sys.argv[arg] == '-n':
             if arg+1 <= arg_num-1 and sys.argv[arg+1] != '-u' and sys.argv[arg+1] != '-d' and sys.argv[arg+1] != '-v' and sys.argv[arg+1] != '-t':
                 node = sys.argv[arg+1]
             else:
-                print ("error in arguments, please see help")
+                print ("error in argument: -n, please see help")
                 sys.exit()
         elif sys.argv[arg] == '-t':
             if arg+1 <= arg_num-1 and sys.argv[arg+1] != '-n' and sys.argv[arg+1] != '-u' and sys.argv[arg+1] != '-d' and sys.argv[arg+1] != '-v':
                 time = sys.argv[arg+1]
             else:
-                print ("error in arguments, please see help")
+                print ("error in argument: -t, please see help")
                 sys.exit()
         elif sys.argv[arg] == '-d':
             if arg+1 <= arg_num-1 and sys.argv[arg+1] != '-u' and sys.argv[arg+1] != '-n' and sys.argv[arg+1] != '-v' and sys.argv[arg+1] != '-t':
@@ -39,13 +37,14 @@ class Initiation:
                     if sys.argv[arg+2] and sys.argv[arg+2] != '-u' and sys.argv[arg+2] != '-n' and sys.argv[arg+2] != '-v' and sys.argv[arg+2] != '-t':
                         end = sys.argv[arg+2]
                     else:
-                        print ("error in arguments, please see help")
+                        print ("error in argument: -d, please see help")
                         sys.exit()
             else:
-                print ("error in arguments, please see help")
+                print ("error in argument: -d, please see help")
                 sys.exit()
-        elif sys.argv[arg+1] == 'up':
-            status = 'up'                       # up means fresh node in production with no one logged in = idle
+        
+        elif sys.argv[arg+1] == 'up':           # up means fresh node in production with no one logged in = idle
+            status = 'up'                       
         elif sys.argv[arg+1] == 'down':
             status = 'down'
         elif sys.argv[arg+1] == 'maint':
@@ -74,6 +73,6 @@ class Initiation:
             mode = 'deactivate'
         
 
-    if sys.argv[1:].count('-u') > 1 or sys.argv[1:].count('-n') > 1 or sys.argv[1:].count('-d') > 1 or sys.argv[1:].count('--add') > 1 or sys.argv[1:].count('--remove') > 1 or sys.argv[1:].count('--status') > 1:
-        print ("error in arguments, please see help")
+    if sys.argv[1:].count('-u') > 1 or sys.argv[1:].count('-n') > 1 or sys.argv[1:].count('-d') > 1 or sys.argv[1:].count('--activate') > 1 or sys.argv[1:].count('--deactivate') > 1 or sys.argv[1:].count('--status') > 1:
+        print ("error: repeated arguments, please see help")
         sys.exit()
