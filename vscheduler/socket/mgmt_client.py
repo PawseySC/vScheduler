@@ -1,60 +1,65 @@
 # socket client sitting in management instance in charge of gathering nodes usage statisctics for load balance
 import socket, time
-from vscheduler.log.log import Capture_log
-from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from tabulate import tabulate
+from vscheduler.general.initiate import PrintCondition
 from vscheduler.general.alert import mailFunction
+from vscheduler.log.log import CaptureLog
 
 port = 65002
-
-socket_records = Capture_log("socket", __file__)
-logger_win = socket_records.log_agent("windows")
-logger_unix = socket_records.log_agent("linux")
-
+socket_records = CaptureLog("client", __file__)
+logger = socket_records.log_agent("socket")
 
 def client_statistics(domains, os):
-    print (f"domains: {domains}") if MyPrintCondition.fprint else 0
-    logger_win.info (f"domains: {domains}") if os == "windows" else logger_unix.info (f"domains: {domains}")
-    hosts =[]
-
-    # fetch domain IPs
+    """
+    collects clients resource statisctcal data for load balance
+    by connecting to sockt server running on each client and receiving
+    the nodes usage data.
+    To do this received domains need to be converted to IP for socket communication.
+    """
+    print (f"domains: {domains}") if PrintCondition.fprint else 0
+    logger.info (f"domains: {domains}")
+    ips =[]
+            
+    # fetch domain ips
     for domain in domains:
+        ips = list({addr[-1][0] for addr in socket.getaddrinfo (domain, 0, 0, 0, 0)})
         # addr = socket.getaddrinfo (domain, 0,0,0,0)
         # for result in addr:
-        #     hosts.append(result[-1][0])
-        #     hosts = list(set(hosts))
-        hosts = list({addr[-1][0] for addr in socket.getaddrinfo (domain, 0, 0, 0, 0)})
-    print (f"hosts IPs: {hosts}") if MyPrintCondition.fprint else 0
-    logger_win.info (f"hosts IPs: {hosts}") if os == "windows" else logger_unix.info (f"hosts IPs: {hosts}")
-
-    all_data = {}
-    for host in hosts:
+        #     ips.append(result[-1][0])
+        #     ips = list(set(ips))
+    print (f"ips: {ips}") if PrintCondition.fprint else 0
+    logger.info (f"\nips:\n{ips}")
+    
+    nodes_data = {}
+    for ip in ips:
         client_socket = socket.socket()                 # instantiate
         try:
-            client_socket.connect((host, port))         # connect to the server
+            client_socket.connect((ip, port))         # connect to the server
         except socket.error as e:
-            print (f"Caught exception socket.error: {e} {host} {port}") if MyPrintCondition.fprint else 0
-            logger_win.critical (f"Caught exception socket.error: {e} {host} {port}") if os == "windows" else logger_unix.critical (f"Caught exception socket.error: {e} {host} {port}")
-            mailFunction("socket error","error connecting vis node socket server\n" + e + " " + host + " " + port, "", "")
+            print (f"Caught exception socket error from {ip}:{port}\n{e}") if PrintCondition.fprint else 0
+            logger.critical (f"Caught exception socket error from {ip}:{port}\n{e}")
+            mailFunction("socket error", f"error connecting vis node socket server on {ip}:{port}\n{e}", "", "")
             continue
 
-        message = "Requesting data from " + str(host)
-        print (message) if MyPrintCondition.fprint else 0
-        logger_win.info (message) if os == "windows" else logger_unix.info (message)
+        message = "Connected.. Requesting data from " + str(ip)
+        print (message) if PrintCondition.fprint else 0
+        logger.info (message)
 
         while True:
             client_socket.send(message.encode())        # send message
             data = client_socket.recv(1024).decode()    # receive response
 
-            print (f"Received from {host}: {data}") if MyPrintCondition.fprint else 0
-            logger_win.info (f"Received from {host}: {data}") if os == "windows" else logger_unix.info (f"Received from {host}: {data}")
-            all_data[host] = data.split(",")
+            print (f"Received from {ip}: {data}") if PrintCondition.fprint else 0
+            logger.info (f"Received from {ip}: {data}")
+            nodes_data[ip] = data.split(",")
             time.sleep(0.1)
             if data:
                 break
         
         client_socket.close()  # close the connection
+    
+    # combine three flat lists into a 2D array showing collected resource statistics in a consolidated format
+    print (f"\n{tabulate({list(zip(domains, ips, nodes_data))}, headers=['domain', 'ip', 'data'])}") if PrintCondition.fprint else 0
+    logger.info (f"\n{tabulate({list(zip(domains, ips, nodes_data))}, headers=['domain', 'ip', 'data'])}")
         
-    return all_data
-
-# if __name__ == '__main__':
-#     client_program()
+    return nodes_data
