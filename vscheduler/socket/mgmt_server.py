@@ -1,22 +1,19 @@
-# management socket server in charge of managing general/booking connections and members
-from tabulate import tabulate
+# management socket server in charge of managing incoming socket connections from clients for general or booking pools
 import socket, threading, subprocess
+from tabulate import tabulate
 import numpy as np
-from vscheduler.log.log import Capture_log
-from vscheduler.lib.database import Database as MyDatabase
-# from vscheduler.general.timer import Brackets as MyBrackets
+from vscheduler.general.initiate import PrintCondition
+from vscheduler.lib.database import Database
 from vscheduler.lib.config import Credentials as MyCredentials
-from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.log.log import CaptureLog
 from vscheduler.modules.cluster.load_balance import loadbalance
-from vscheduler.modules.guaca.fill_pool import fillup as fill_up
 from vscheduler.modules.reports.record_log_io import record_login
 from vscheduler.modules.reports.record_log_io import record_logout
 from vscheduler.modules.guaca.revert_user import revert_back_to_pool
 from vscheduler.modules.guaca.empty_pool import empty_pool_connection
-from vscheduler.socket.mgmt_client import client_statistics as data_agent
+from vscheduler.modules.guaca.fill_pool import fillup as fill_up
 from vscheduler.modules.guaca.atd import at_daemon
-
-my_connection = MyDatabase.connect_report_db()
+from vscheduler.socket.mgmt_client import client_statistics as data_agent
 
 IP = ""
 PORT = 65001
@@ -24,61 +21,75 @@ ADDR = (IP, PORT)
 SIZE = 1024
 FORMAT = "utf-8"
 
-socket_records = Capture_log("socket", __file__)
-logger_win = socket_records.log_agent("windows")
-logger_unix = socket_records.log_agent("linux")
+socket_records = CaptureLog("server", __file__)
+logger = socket_records.log_agent("socket")
+# socket_records = CaptureLog("socket", __file__)
+# win_logger = socket_records.log_agent("windows")
+# linux_logger = socket_records.log_agent("linux")
+connection = Database.connect_report_db()
 
-
-def is_excepted(user, os):
+def exception(user, os):
+    """
+    retreives wall time set for specific user.
+    in case no record found for a specific user in database,
+    general wall time set in config will be returned.
+    """
     try:
         exception_query = f"SELECT user, start, end, wall_time FROM {MyCredentials.report_exception_table} WHERE user = '{user}' AND start = end"
-        print (f"exception_query: {exception_query}")
-        my_connection.ping()  # reconnecting mysql in case of connection timed out
-        with my_connection.cursor() as my_cursor:
-            my_cursor.execute(exception_query)
-            exception_results = my_cursor.fetchall()
-            print (f"\n{tabulate(exception_results, headers=['user', 'start', 'end', 'wall_time'])}") if MyPrintCondition.fprint else 0
-            logger_win.info (f"\n{tabulate(exception_results, headers=['user', 'start', 'end', 'wall_time'])}") if os == "Windows" else logger_unix.info (f"\n{tabulate(exception_results, headers=['user', 'start', 'end', 'wall_time'])}")
-            print (f"exception_results: {exception_results}") if MyPrintCondition.fprint else 0
-            print (f"len(exception_results): {len(exception_results)}") if MyPrintCondition.fprint else 0
-            logger_win.info (f"exception_results: {exception_results}") if os == "Windows" else logger_unix.info (f"exception_results: {exception_results}")
-            logger_win.info (f"len(exception_results): {len(exception_results)}") if os == "Windows" else logger_unix.info (f"len(exception_results): {len(exception_results)}")
+        # print (f"exception_query: {exception_query}") if PrintCondition.fprint else 0
+        connection.ping()  # reconnecting mysql in case of connection timed out
+        with connection.cursor() as cursor:
+            cursor.execute(exception_query)
+            exception_results = cursor.fetchall()
+            print (f"\n{tabulate(exception_results, headers=['user', 'start', 'end', 'wall_time'])}") if PrintCondition.fprint else 0
+            # win_logger.info (f"\n{tabulate(exception_results, headers=['user', 'start', 'end', 'wall_time'])}") if os == "Windows" else linux_logger.info (f"\n{tabulate(exception_results, headers=['user', 'start', 'end', 'wall_time'])}")
+            logger.info (f"\nlen(exception_results): {len(exception_results)}\n{tabulate(exception_results, headers=['user', 'start', 'end', 'wall_time'])}")
+            # print (f"exception_results: {exception_results}") if PrintCondition.fprint else 0
+            # print (f"len(exception_results): {len(exception_results)}") if PrintCondition.fprint else 0
+            # win_logger.info (f"exception_results: {exception_results}") if os == "Windows" else linux_logger.info (f"exception_results: {exception_results}")
+            # win_logger.info (f"len(exception_results): {len(exception_results)}") if os == "Windows" else linux_logger.info (f"len(exception_results): {len(exception_results)}")
             
         return exception_results[0][3] if len(exception_results) > 0 else MyCredentials.general_pool_wall_time
-    except my_connection.Error as e:
-        print (f"error retreiving exceptions from < {MyCredentials.report_exception_table} > table\n{e}") if MyPrintCondition.fprint else 0
-        logger_win.error (f"error retreiving exceptions from < {MyCredentials.report_exception_table} > table\n{e}") if os == "Windows" else logger_unix.error (f"error retreiving exceptions from < {MyCredentials.report_exception_table} > table\n{e}")
+    except connection.Error as e:
+        print (f"error retreiving exceptions from < {MyCredentials.report_exception_table} > table\n{e}") if PrintCondition.fprint else 0
+        # win_logger.error (f"error retreiving exceptions from < {MyCredentials.report_exception_table} > table\n{e}") if os == "Windows" else linux_logger.error (f"error retreiving exceptions from < {MyCredentials.report_exception_table} > table\n{e}")
+        logger.error (f"error retreiving exceptions from < {MyCredentials.report_exception_table} > table\n{e}")
     
     
 def check_status(os):
     try:
         sentence = []
         status_query = f"SELECT node, status, start, end FROM {MyCredentials.report_status_table} WHERE start = end"
-        logger_win.info (f"status_query: {status_query}") if os == "windows" else logger_unix.info (f"status_query: {status_query}") 
-        my_connection.ping()  # reconnecting mysql in case of connection timed out
-        my_connection.commit()  # This commit accepts the inserts by the other session
-        with my_connection.cursor() as my_cursor:
-            my_cursor.execute(status_query)
-            status_results = my_cursor.fetchall()
+        # win_logger.info (f"status_query: {status_query}") if os == "windows" else linux_logger.info (f"status_query: {status_query}") 
+        logger.info (f"status_query: {status_query}")
+        connection.ping()  # reconnecting mysql in case of connection timed out
+        connection.commit()  # This commit accepts the inserts by the other session
+        with connection.cursor() as cursor:
+            cursor.execute(status_query)
+            status_results = cursor.fetchall()
         # for row_status in status_results:
         #     node_name = row_status[0]
         #     node_status = row_status[1]
         #     status_start = row_status[2]
         #     status_end = row_status[3]
         #     sentence.insert(len(sentence), [node_name , node_status, status_start, status_end])
-        # print ("\n", tabulate(sentence, headers=['node', 'status', 'start', 'end'])) if MyPrintCondition.fprint else 0
-        # logger_win.info ("\n" + tabulate(sentence, headers=['node', 'status', 'start', 'end'])) if os == "windows" else logger_unix.info ("\n" + tabulate(sentence, headers=['node', 'status', 'start', 'end']))
-        print (f"\n{tabulate(status_results, headers=['node', 'status', 'start', 'end'])}") if MyPrintCondition.fprint else 0
-        logger_win.info (f"\n{tabulate(status_results, headers=['node', 'status', 'start', 'end'])}") if os == "windows" else logger_unix.info (f"\n{tabulate(status_results, headers=['node', 'status', 'start', 'end'])}")
-        print (f"status nodes: {status_results}") if MyPrintCondition.fprint else 0
-        print (f"len(status_results): {len(status_results)}") if MyPrintCondition.fprint else 0
-        logger_win.info (f"status nodes: {status_results}") if os == "windows" else logger_unix.info (f"status nodes: {status_results}")
-        logger_win.info (f"len(status_results): {len(status_results)}") if os == "windows" else logger_unix.info (f"len(status_results): {len(status_results)}")
+        # print ("\n", tabulate(sentence, headers=['node', 'status', 'start', 'end'])) if PrintCondition.fprint else 0
+        # win_logger.info ("\n" + tabulate(sentence, headers=['node', 'status', 'start', 'end'])) if os == "windows" else linux_logger.info ("\n" + tabulate(sentence, headers=['node', 'status', 'start', 'end']))
+        print (f"\n{tabulate(status_results, headers=['node', 'status', 'start', 'end'])}") if PrintCondition.fprint else 0
+        # win_logger.info (f"\n{tabulate(status_results, headers=['node', 'status', 'start', 'end'])}") if os == "windows" else linux_logger.info (f"\n{tabulate(status_results, headers=['node', 'status', 'start', 'end'])}")
+        logger.info (f"\n{tabulate(status_results, headers=['node', 'status', 'start', 'end'])}")
+        print (f"status nodes: {status_results}") if PrintCondition.fprint else 0
+        print (f"len(status_results): {len(status_results)}") if PrintCondition.fprint else 0
+        # win_logger.info (f"status nodes: {status_results}") if os == "windows" else linux_logger.info (f"status nodes: {status_results}")
+        logger.info (f"status nodes: {status_results}")
+        # win_logger.info (f"len(status_results): {len(status_results)}") if os == "windows" else linux_logger.info (f"len(status_results): {len(status_results)}")
+        logger.info (f"len(status_results): {len(status_results)}")
         
         return status_results if len(status_results) > 0 else 0
-    except my_connection.Error as e:
-        print (f"error retreiving nodes status from < {MyCredentials.report_status_table} > table\n{e}") if MyPrintCondition.fprint else 0
-        logger_win.error (f"error retreiving node status from < {MyCredentials.report_status_table} > table\n{e}") if os == "windows" else logger_unix.error (f"error retreiving node status from < {MyCredentials.report_status_table} > table\n{e}")
+    except connection.Error as e:
+        print (f"error retreiving nodes status from < {MyCredentials.report_status_table} > table\n{e}") if PrintCondition.fprint else 0
+        # win_logger.error (f"error retreiving node status from < {MyCredentials.report_status_table} > table\n{e}") if os == "windows" else linux_logger.error (f"error retreiving node status from < {MyCredentials.report_status_table} > table\n{e}")
+        logger.error (f"error retreiving node status from < {MyCredentials.report_status_table} > table\n{e}")
     
     
 # return list of production nodes which are functional
@@ -88,7 +99,7 @@ def generate_general_partition_hosts(os, node):
         # for i in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
         #     host = MyCredentials.linux_node_name + "0" + i if i < 10 else MyCredentials.linux_node_name + i
         #     if host not in exception_results:
-        #         print (f"linux node < {host} > not in exception list") if MyPrintCondition.fprint else 0
+        #         print (f"linux node < {host} > not in exception list") if PrintCondition.fprint else 0
         #         logger.info (f"linux node < {host} > not in exception list")
         #         hosts.append(host)
         hosts = [MyCredentials.linux_node_name + "0" + str(i) if i < 10 else MyCredentials.linux_node_name + str(i) for i in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1)]
@@ -96,27 +107,31 @@ def generate_general_partition_hosts(os, node):
         # for i in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
         #     host = MyCredentials.windows_node_name + "0" + i if i < 10 else MyCredentials.windows_node_name + i
         #     if host not in exception_results:
-        #         print (f"windows node < {host} > not in exception list") if MyPrintCondition.fprint else 0
+        #         print (f"windows node < {host} > not in exception list") if PrintCondition.fprint else 0
         #         logger.info (f"windows node < {host} > not in exception list")
         #         hosts.append(host)
         hosts = [MyCredentials.windows_node_name + "0" + str(i) if i < 10 else MyCredentials.windows_node_name + str(i) for i in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1)]
     status_results = check_status(os)
     hosts = [x for x in hosts if x not in np.array(status_results)[:,0]] if status_results != 0 else hosts
-    logger_win.info (f"hosts: {hosts}") if os == "windows" else logger_unix.info (f"hosts: {hosts}")
+    # win_logger.info (f"hosts: {hosts}") if os == "windows" else linux_logger.info (f"hosts: {hosts}")
+    logger.info (f"hosts: {hosts}")
     return hosts
 
 
 def manage_pool(msg, node, user, walltime, os):
     # 1. empty pool by removing connected node from general pool in guaca
-    logger_win.info (f"step 1/5: Empty pool by replacing < {node} > with next available node") if os == "windows" else logger_unix.info (f"step 1/5: Empty pool by replacing < {node} > with next available node")
+    # win_logger.info (f"step 1/5: Empty pool by replacing < {node} > with next available node") if os == "windows" else linux_logger.info (f"step 1/5: Empty pool by replacing < {node} > with next available node")
+    logger.info (f"step 1/5: Empty pool by replacing < {node} > with next available node")
     empty_pool_connection(msg.split(",")[0], msg.split(",")[1], MyCredentials.linux_pool) if os == "linux" else empty_pool_connection(msg.split(",")[0], msg.split(",")[1], MyCredentials.windows_pool)
 
     # 2. trigger valloc to make user member of connected node in guaca by assigning static url
-    logger_win.info (f"step 2/5: Assigning < {user} > to < {node} > through valloc") if os == "windows" else logger_unix.info (f"step 2/5: Assigning < {user} > to < {node} > through valloc")
+    # win_logger.info (f"step 2/5: Assigning < {user} > to < {node} > through valloc") if os == "windows" else linux_logger.info (f"step 2/5: Assigning < {user} > to < {node} > through valloc")
+    logger.info (f"step 2/5: Assigning < {user} > to < {node} > through valloc")
     subprocess.run(['valloc', '-n', node, '-u', user, '-v'])
 
     # 3. record login time
-    logger_win.info (f"step 3/5: Recording < {user} > login time to < {node} >") if os == "windows" else logger_unix.info (f"step 3/5: Recording < {user} > login time to < {node} >")
+    # win_logger.info (f"step 3/5: Recording < {user} > login time to < {node} >") if os == "windows" else linux_logger.info (f"step 3/5: Recording < {user} > login time to < {node} >")
+    logger.info (f"step 3/5: Recording < {user} > login time to < {node} >")
     record_login(user, node, MyCredentials.report_linux_table, "general") if os == "linux" else record_login(user, node, MyCredentials.report_windows_table, "general")
     
     # 4. set `at` command to kill user's session at wall-time
@@ -124,34 +139,42 @@ def manage_pool(msg, node, user, walltime, os):
     
     # 5. fill up pool by new member
     # 5.a. load balance ON -> call mgmt_client to collect usage data from vis nodes to rank those for loadbalance
-    logger_win.info ("step 5/5: load balance/pool fill up") if os == "windows" else logger_unix.info ("step 5/5: load balance/pool fill up")
+    # win_logger.info ("step 5/5: load balance/pool fill up") if os == "windows" else linux_logger.info ("step 5/5: load balance/pool fill up")
+    logger.info ("step 5/5: load balance/pool fill up")
     if MyCredentials.load_balance:
-        logger_win.warning ("load_balance = TRUE") if os == "windows" else logger_unix.warning ("load_balance = TRUE")
+        # win_logger.warning ("load_balance = TRUE") if os == "windows" else linux_logger.warning ("load_balance = TRUE")
+        logger.warning ("load_balance = TRUE")
         hosts = generate_general_partition_hosts(os, node)
         usage_data = data_agent(hosts, os)
-        logger_win.info (f"Usage data obtained from accessible nodes: {usage_data}") if os == "windows" else logger_unix.info (f"Usage data obtained from accessible nodes: {usage_data}")
-        logger_win.info (f"{os} nodes load balancing in < {MyCredentials.windows_pool} >") if os == "windows" else logger_unix.info (f"{os} nodes load balancing in < {MyCredentials.linux_pool} >")
+        # win_logger.info (f"Usage data obtained from accessible nodes: {usage_data}") if os == "windows" else linux_logger.info (f"Usage data obtained from accessible nodes: {usage_data}")
+        logger.info (f"Usage data obtained from accessible nodes: {usage_data}")
+        # win_logger.info (f"{os} nodes load balancing in < {MyCredentials.windows_pool} >") if os == "windows" else linux_logger.info (f"{os} nodes load balancing in < {MyCredentials.linux_pool} >")
+        logger.info (f"{os} nodes load balancing in < {MyCredentials.windows_pool} >")
         loadbalance(usage_data, MyCredentials.linux_pool) if os == "linux" else loadbalance(usage_data, MyCredentials.windows_pool)
     # 5.b. load balance OFF -> fill up pool with next node in order
     else:
-        logger_win.warning ("load_balance = FALSE") if os == "windows" else logger_unix.warning ("load_balance = FALSE")
+        # win_logger.warning ("load_balance = FALSE") if os == "windows" else linux_logger.warning ("load_balance = FALSE")
+        logger.warning ("load_balance = FALSE")
         hosts = generate_general_partition_hosts(os, node)
         fill_up(node, hosts)
 
 
 def handle_client(conn, addr):
-    logger_win.info (f"[NEW VIS NODE CONNECTION TO MGMT] {addr}")
-    logger_unix.info (f"[NEW VIS NODE CONNECTION TO MGMT] {addr}")
+    # win_logger.info (f"[NEW VIS NODE CONNECTION TO MGMT] {addr}")
+    logger.info (f"[NEW VIS NODE CONNECTION TO MGMT] {addr}")
+    # linux_logger.info (f"[NEW VIS NODE CONNECTION TO MGMT] {addr}")
+    logger.info (f"[NEW VIS NODE CONNECTION TO MGMT] {addr}")
 
     connected = True
     while connected:
         msg = conn.recv(SIZE).decode(FORMAT)
-        logger_win.info (f"MSG FROM VIS NODE: {msg.split(',')}") if MyCredentials.windows_node_name in msg else logger_unix.info (f"MSG FROM VIS NODE: {msg.split(',')}")
+        # win_logger.info (f"MSG FROM VIS NODE: {msg.split(',')}") if MyCredentials.windows_node_name in msg else linux_logger.info (f"MSG FROM VIS NODE: {msg.split(',')}")
+        logger.info (f"MSG FROM VIS NODE: {msg.split(',')}")
         node = msg.split(",")[0]
         user = msg.split(",")[1]
         operating_system = msg.split(",")[2]
 
-        excepted_walltime = is_excepted(user, operating_system)
+        excepted_walltime = exception(user, operating_system)
         node_status = 'up'
         node_status_lists = check_status(operating_system)
         if len(node_status_lists) != 0:
@@ -167,7 +190,8 @@ def handle_client(conn, addr):
                 # if windows general partition -> empty windows general pool, then, valloc and finally update windows general pool with new node
                 if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
                     if "logout" in msg.split(","):
-                        logger_win.info (f"LOGOUT attempt for {user}")
+                        # win_logger.info (f"LOGOUT attempt for {user}")
+                        logger.info (f"LOGOUT attempt for {user}")
                         revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], MyCredentials.windows_pool)
                         record_logout(user, node, MyCredentials.report_windows_table, "general")
                     else:
@@ -176,7 +200,8 @@ def handle_client(conn, addr):
                 # if windows booking partition -> trigger vmanage at windows login to check booking validity
                 elif int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
                     if "logout" in msg.split(","):
-                        logger_win.info (f"LOGOUT attempt for {user}")
+                        # win_logger.info (f"LOGOUT attempt for {user}")
+                        logger.info (f"LOGOUT attempt for {user}")
                         record_logout(user, node, MyCredentials.report_windows_table, "booking")
                     else:
                         record_login(user, node, MyCredentials.report_windows_table, "booking")
@@ -188,7 +213,8 @@ def handle_client(conn, addr):
                 # if linux general partition -> empty linux general pool, then, valloc and finally update linux general pool with new node
                 if int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1): 
                     if "logout" in msg.split(","):
-                        logger_unix.info (f"LOGOUT attempt for {user}")
+                        # linux_logger.info (f"LOGOUT attempt for {user}")
+                        logger.info (f"LOGOUT attempt for {user}")
                         # move user back to pool by logging out of node
                         revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], MyCredentials.linux_pool)
                         record_logout(user, node, MyCredentials.report_linux_table, "general")
@@ -199,7 +225,8 @@ def handle_client(conn, addr):
                 # if linux booking partition -> trigger vmanage at linux login to check booking validity
                 elif int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
                     if "logout" in msg.split(","):
-                        logger_unix.info (f"LOGOUT attempt for {user}")
+                        # linux_logger.info (f"LOGOUT attempt for {user}")
+                        logger.info (f"LOGOUT attempt for {user}")
                         record_logout(user, node, MyCredentials.report_linux_table, "booking")
                     else:
                         record_login(user, node, MyCredentials.report_linux_table, "booking")
@@ -213,20 +240,26 @@ def handle_client(conn, addr):
 
 
 def main():
-    logger_win.info ("[STARTING] MGMT SERVER STARTING...")
-    logger_unix.info ("[STARTING] MGMT SERVER STARTING...")
+    # win_logger.info ("[STARTING] MGMT SERVER STARTING...")
+    logger.info ("[STARTING] MGMT SERVER STARTING...")
+    # linux_logger.info ("[STARTING] MGMT SERVER STARTING...")
+    logger.info ("[STARTING] MGMT SERVER STARTING...")
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind(ADDR)
     server.listen()
-    logger_win.info (f"[LISTENING] MGMT SERVER LISTENING ON {IP}:{PORT}")
-    logger_unix.info (f"[LISTENING] MGMT SERVER LISTENING ON {IP}:{PORT}")
+    # win_logger.info (f"[LISTENING] MGMT SERVER LISTENING ON {IP}:{PORT}")
+    logger.info (f"[LISTENING] MGMT SERVER LISTENING ON {IP}:{PORT}")
+    # linux_logger.info (f"[LISTENING] MGMT SERVER LISTENING ON {IP}:{PORT}")
+    logger.info (f"[LISTENING] MGMT SERVER LISTENING ON {IP}:{PORT}")
 
     while True:
         conn, addr = server.accept()
         thread = threading.Thread(target=handle_client, args=(conn, addr))
         thread.start()
-        logger_win.info (f"[ACTIVE CONNECTIONS TO MGMT] {threading.active_count() - 1}")
-        logger_unix.info (f"[ACTIVE CONNECTIONS TO MGMT] {threading.active_count() - 1}")
+        # win_logger.info (f"[ACTIVE CONNECTIONS TO MGMT] {threading.active_count() - 1}")
+        logger.info (f"[ACTIVE CONNECTIONS TO MGMT] {threading.active_count() - 1}")
+        # linux_logger.info (f"[ACTIVE CONNECTIONS TO MGMT] {threading.active_count() - 1}")
+        logger.info (f"[ACTIVE CONNECTIONS TO MGMT] {threading.active_count() - 1}")
 
 if __name__ == "__main__":
     main()
