@@ -1,10 +1,10 @@
 # removes user group record from guacamole deleting connection link from user's guacamole dashboard
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
 my_connection = MyDatabase.connect_guaca_db()
 
-pool_records = Capture_log("booking/pool", __file__)
+pool_records = CaptureLog("booking/pool", __file__)
 logger_unix = pool_records.log_agent("linux")   # windows logger is needed by passing the node
 
 def modify(x,y):

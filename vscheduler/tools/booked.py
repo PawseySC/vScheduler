@@ -1,6 +1,6 @@
 # management script for bookable partition
 import multiprocessing, click
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
@@ -14,7 +14,7 @@ from vscheduler.modules.booked.instances import reservation_instances           
 from vscheduler.modules.booked.deleted import deleted                              # retreives status id of each reservation instances
 from vscheduler.modules.cluster.log_off import logoff
 
-booking_records = Capture_log("booking", __file__)
+booking_records = CaptureLog("booking", __file__)
 logger_win = booking_records.log_agent("windows")
 
 # Process class

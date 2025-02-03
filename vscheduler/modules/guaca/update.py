@@ -1,5 +1,5 @@
 # updates user group records in guacamole making changes to connection links in user's guacamole dashboard
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
@@ -7,7 +7,7 @@ my_connection = MyDatabase.connect_guaca_db()
 from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.guaca.guaca_user_group import guacamole_user_group
 
-pool_records = Capture_log("booking/pool", __file__)
+pool_records = CaptureLog("booking/pool", __file__)
 logger_unix = pool_records.log_agent("linux")   # windows logger is needed by passing the node
 
 def update (x,y,z, caller, cluster):

@@ -3,11 +3,11 @@ import os, warnings
 warnings.filterwarnings('ignore')
 import guacamole
 import pandas as pd
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 
-records = Capture_log("maintenance", __file__)
+records = CaptureLog("maintenance", __file__)
 logger_win = records.log_agent("windows")
 logger_unix = records.log_agent("linux")
 

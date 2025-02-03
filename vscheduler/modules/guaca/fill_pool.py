@@ -1,11 +1,11 @@
 # fills up the pool based on nodes order defined in config; 
 # this is when load balancing if off.
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.guaca.conn_permission import connection_permission
 
-pool_records = Capture_log("pool", __file__)
+pool_records = CaptureLog("pool", __file__)
 logger_win = pool_records.log_agent("windows")
 logger_unix = pool_records.log_agent("linux")
 

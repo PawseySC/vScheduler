@@ -1,12 +1,12 @@
 # retreives user identification in booked
 from tabulate import tabulate
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
 
 my_connection = MyDatabase.connect_booked_db()
 
-booking_records = Capture_log("booking", __file__)
+booking_records = CaptureLog("booking", __file__)
 logger_win = booking_records.log_agent("windows")    # **** logger_unix needs to be added; win flag should be sent when calling the function ****
 
 

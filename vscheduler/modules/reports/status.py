@@ -1,5 +1,5 @@
 # called by stat tool
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.database import Database as MyDatabase
@@ -11,7 +11,7 @@ import numpy as np
 
 my_connection = MyDatabase.connect_report_db()
 
-records = Capture_log("status", __file__)
+records = CaptureLog("status", __file__)
 logger_win = records.log_agent("windows")
 logger_unix = records.log_agent("linux")
 

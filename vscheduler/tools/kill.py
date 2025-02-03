@@ -1,6 +1,6 @@
 # sesssion killing script
 import multiprocessing, click, time
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from tabulate import tabulate
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import Initiation as initiate
@@ -8,7 +8,7 @@ from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.modules.cluster.log_off import logoff
 from vscheduler.modules.cluster.who import who
 
-records = Capture_log("booking/pool", __file__)
+records = CaptureLog("booking/pool", __file__)
 logger_win = records.log_agent("windows")
 logger_unix = records.log_agent("linux")
 

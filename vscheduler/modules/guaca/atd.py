@@ -1,12 +1,12 @@
 # manages sessions active time in general pool avoiding to stay longer than allowed wall-time
 import os, subprocess, time, sched
 from subprocess import Popen, PIPE, CalledProcessError
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.modules.reports.record_log_io import record_logout
 from vscheduler.modules.guaca.revert_user import revert_back_to_pool
 
-atd_records = Capture_log("atd", __file__)
+atd_records = CaptureLog("atd", __file__)
 logger_unix = atd_records.log_agent("linux")
 
 def post_log_off(user, node, table):

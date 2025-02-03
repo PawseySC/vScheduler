@@ -1,4 +1,4 @@
-# sends email notification from Clients
+# sends email notification from clients
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText

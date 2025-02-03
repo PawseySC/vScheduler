@@ -1,6 +1,6 @@
 # refreshes pool member
 from tabulate import tabulate
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
@@ -11,7 +11,7 @@ from vscheduler.socket.mgmt_client import client_statistics as data_agent
 from vscheduler.socket.mgmt_server import generate_general_partition_hosts
 
 my_connection = MyDatabase.connect_guaca_db()
-socket_records = Capture_log("socket", __file__)
+socket_records = CaptureLog("socket", __file__)
 logger_win = socket_records.log_agent("windows")
 logger_unix = socket_records.log_agent("linux")
 

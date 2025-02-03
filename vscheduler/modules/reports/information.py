@@ -1,5 +1,5 @@
 # called by vinfo tool
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.database import Database as MyDatabase
@@ -13,7 +13,7 @@ import re
 
 my_connection = MyDatabase.connect_report_db()
 
-records = Capture_log("status", __file__)
+records = CaptureLog("status", __file__)
 logger = records.log_agent("info")
 
 pd.set_option('display.colheader_justify', 'left')

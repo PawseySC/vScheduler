@@ -1,6 +1,6 @@
 # sync script for bookable partition
 import multiprocessing, click
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
@@ -18,7 +18,7 @@ from vscheduler.modules.guaca.insert import insert
 from vscheduler.modules.guaca.update import update
 from vscheduler.modules.guaca.modify import modify
 
-booking_records = Capture_log("booking", __file__)
+booking_records = CaptureLog("booking", __file__)
 logger_win = booking_records.log_agent("windows")
 
 

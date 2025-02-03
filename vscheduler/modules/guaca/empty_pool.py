@@ -1,11 +1,11 @@
 # removes the connection from pool to be filled up again in order (modules.guaca.fill_pool) or by load balancing (modules.cluster.load_balance)
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.alert import mailFunction
 from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.guaca.conn_permission import del_connection
 
-pool_records = Capture_log("pool", __file__)
+pool_records = CaptureLog("pool", __file__)
 logger_win = pool_records.log_agent("windows")
 logger_unix = pool_records.log_agent("linux")
 

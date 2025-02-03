@@ -1,13 +1,13 @@
 # records login/out events in relevant report table
 from datetime import datetime
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 
 my_connection = MyDatabase.connect_report_db()
 
-records_io = Capture_log("login/out", __file__)
+records_io = CaptureLog("login/out", __file__)
 logger_win = records_io.log_agent("windows")
 logger_unix = records_io.log_agent("linux")
 
