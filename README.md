@@ -23,10 +23,12 @@
 
     ```
     sudo apt install python3-pip            # install pip
-    sudo apt install python3-virtualenv     # install virtual environment
-    virtualenv .env                         # setup virtual environment
-    source .env/bin/activate                # activate virtual environment
-    (.env) $ pip install -e .               # run in setup.py directory to install all required packages inside virtual environment
+    sudo apt install python3-venv
+    python3 -m venv .venv
+    #sudo apt install python3-virtualenv     # install virtual environment
+    #virtualenv .venv                         # setup virtual environment
+    source .venv/bin/activate                # activate virtual environment
+    (.venv) $ pip install -e .               # run in setup.py directory to install all required packages inside virtual environment
     deactivate                              # to exit from virtual environment
     ```
     Above will install follwing packages along with their dependencies in python virtual environment:
