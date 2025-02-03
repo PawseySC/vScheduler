@@ -1,6 +1,6 @@
 # quota script
 import multiprocessing, click
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
@@ -15,7 +15,7 @@ from vscheduler.modules.booked.user import user_details_by_user_id
 from rich.console import Console
 from rich.table import Table
 
-booking_records = Capture_log("booking", __file__)
+booking_records = CaptureLog("booking", __file__)
 logger_win = booking_records.log_agent("windows")
 logger_unix = booking_records.log_agent("linux")
 

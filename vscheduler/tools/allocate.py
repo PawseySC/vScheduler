@@ -1,6 +1,6 @@
 # allocates connection link to specific node of general pool in user's guacamole dashboard
 import multiprocessing, click
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
@@ -12,7 +12,7 @@ from vscheduler.modules.guaca.guaca_user_group import guacamole_user_group
 from vscheduler.modules.guaca.check_group import check_group
 from vscheduler.modules.guaca.update import update
 
-records = Capture_log("booking/pool", __file__)
+records = CaptureLog("booking/pool", __file__)
 logger_win = records.log_agent("windows")
 logger_unix = records.log_agent("linux")
 

@@ -1,7 +1,7 @@
 import logging
-from vscheduler.lib.config import Credentials
+from vscheduler.lib import config
 
-class Capture_log(object):
+class CaptureLog(object):
     """
     Logging class to be called in methods capturing event logs into dedicated log file
     """
@@ -10,7 +10,7 @@ class Capture_log(object):
         self.flag = flag
         self.location = location
     
-    def extendable_logger(self, log_name, file_name, level=Credentials.log_level):
+    def extendable_logger(self, log_name, file_name, level = config.log['level']):
         handler = logging.FileHandler(file_name)
         handler.setFormatter(self.formatter) 
         specified_logger = logging.getLogger(log_name)
@@ -20,5 +20,5 @@ class Capture_log(object):
     
     def log_agent(self, partition):
         # agent_logger = self.extendable_logger(self.flag + " " + self.location, f'/home/ubuntu/visualisation_scheduler/vscheduler/log/{MyCredentials.report_windows_table}-log.log') if partition == "windows" else self.extendable_logger(self.flag + " " + self.location, f'/home/ubuntu/visualisation_scheduler/vscheduler/log/{MyCredentials.report_linux_table}-log.log')
-        agent_logger = self.extendable_logger(self.flag + " " + self.location, f'/home/ubuntu/visualisation_scheduler/vscheduler/log/{partition}.log')
+        agent_logger = self.extendable_logger(f"{self.flag} {self.location}", f'/home/ubuntu/visualisation_scheduler/vscheduler/log/{partition}.log')
         return agent_logger

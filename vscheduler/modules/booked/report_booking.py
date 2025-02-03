@@ -1,6 +1,6 @@
 import os, sys
 from pathlib import Path
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.general.timer import Brackets as MyBrackets
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.modules.booked.host import host_by_name
@@ -11,7 +11,7 @@ from vscheduler.modules.booked.user import user_details
 from vscheduler.modules.booked.instances import reservation_instances
 from datetime import timedelta
 
-records = Capture_log("booking", __file__)
+records = CaptureLog("booking", __file__)
 logger_win = records.log_agent("windows")    # **** logger_unix needs to be added; win flag should be sent when calling the function ****
 
 

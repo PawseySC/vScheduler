@@ -1,6 +1,6 @@
 # checks rdp port via telnet connection periodically (ports 3389) to remove zombie node from being a general pool member upon unsuccessful telnet query by flagging that in report db
 import time, asyncio
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.modules.reports.status import status_update as update_status
@@ -9,7 +9,7 @@ from vscheduler.modules.guaca.entity import entity
 from vscheduler.general.alert import mailFunction
 
 my_connection = MyDatabase.connect_guaca_db()
-socket_records = Capture_log("zombie", __file__)
+socket_records = CaptureLog("zombie", __file__)
 logger_zombie = socket_records.log_agent("zombie")
 
 

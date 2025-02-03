@@ -1,11 +1,11 @@
 # retreives user group in guacamole
 from tabulate import tabulate
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
 my_connection = MyDatabase.connect_guaca_db()
 
-pool_records = Capture_log("pool", __file__)
+pool_records = CaptureLog("pool", __file__)
 logger_unix = pool_records.log_agent("linux")   # windows logger is needed by passing the node
 
 def guacamole_user_group(group_entity):

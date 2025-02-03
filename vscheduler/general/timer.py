@@ -1,10 +1,10 @@
 # calculates time brackets for bookings time slots searches
 import datetime
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition
-from vscheduler.lib.config import Credentials
+from vscheduler.lib import config
 
-time_records = Capture_log("timer", __file__)
+time_records = CaptureLog("timer", __file__)
 logger = time_records.log_agent("general")
 
 class Brackets:
@@ -12,8 +12,8 @@ class Brackets:
     # utc_now = datetime.datetime.utcnow()    # deprectaed
     utc_now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
     local_time = datetime.datetime.now()
-    start_bracket = utc_now - datetime.timedelta(hours=Credentials.booking_session)
-    end_bracket = utc_now + datetime.timedelta(hours=Credentials.booking_session)
+    start_bracket = utc_now - datetime.timedelta(hours = config.time['booking_session'])
+    end_bracket = utc_now + datetime.timedelta(hours = config.time['booking_session'])
     
     def what_time(utc_now, local_time, start_bracket, end_bracket):
         local_timezone = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo

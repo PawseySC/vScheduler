@@ -1,5 +1,5 @@
 # called by stat tool
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.database import Database as MyDatabase
@@ -7,7 +7,7 @@ from vscheduler.general.timer import Brackets as MyBrackets
 
 my_connection = MyDatabase.connect_report_db()
 
-records = Capture_log("exception", __file__)
+records = CaptureLog("exception", __file__)
 logger_exception = records.log_agent("exception")
 
 

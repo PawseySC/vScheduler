@@ -1,6 +1,6 @@
 # makes a node exception not to be called in allocation process, or gives exception status of all/specific node(s)
 import multiprocessing, click
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.timer import Brackets as MyBrackets
 from vscheduler.general.initiate import Initiation as initiate
@@ -10,7 +10,7 @@ from vscheduler.modules.reports.status import status_update as update_status
 # from vscheduler.modules.reports.status import exception_remove as remove_exception
 # from vscheduler.modules.reports.status import exception_status as status_exception
 
-records = Capture_log("exception", __file__)
+records = CaptureLog("exception", __file__)
 logger_win = records.log_agent("windows")
 logger_unix = records.log_agent("linux")
 

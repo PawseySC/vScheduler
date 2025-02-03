@@ -1,5 +1,5 @@
 # logs off user from node
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.ssh import Node as MyNode
@@ -7,7 +7,7 @@ from vscheduler.modules.cluster.os_type import find_os
 from vscheduler.modules.reports.record_log_io import record_logout
 from vscheduler.modules.guaca.revert_user import revert_back_to_pool
 
-booking_records = Capture_log("booking", __file__)
+booking_records = CaptureLog("booking", __file__)
 logger_win = booking_records.log_agent("windows")
 logger_unix = booking_records.log_agent("linux")
 

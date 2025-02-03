@@ -1,11 +1,11 @@
 # returns the user session in remote node in sec
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.ssh import Node as MyNode
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.modules.cluster.os_type import find_os
 
-pool_records = Capture_log("pool", __file__)
+pool_records = CaptureLog("pool", __file__)
 logger_win = pool_records.log_agent("windows")
 logger_unix = pool_records.log_agent("linux")
 

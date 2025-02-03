@@ -1,5 +1,5 @@
 # allocates least busy node conection group to general pool
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 # import numpy as np
@@ -9,7 +9,7 @@ from vscheduler.modules.guaca.entity import entity
 # from vscheduler.modules.guaca.guacausergroup import guacamole_user_group
 from vscheduler.modules.guaca.conn_permission import connection_permission
 
-pool_records = Capture_log("pool", __file__)
+pool_records = CaptureLog("pool", __file__)
 logger_unix = pool_records.log_agent("linux")   # **** logger_win needs to be added; win flag should be sent when calling the function ****
 
 

@@ -1,6 +1,6 @@
 # report script
 import multiprocessing, click
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.general.initiate import Initiation as initiate
@@ -24,7 +24,7 @@ from tabulate import tabulate
 # my_connection = MyDatabase.connect_booked_db()
 # my_cursor = my_connection.cursor()
 
-records = Capture_log("booking/pool", __file__)
+records = CaptureLog("booking/pool", __file__)
 logger_win = records.log_agent("windows")
 logger_unix = records.log_agent("linux")
 

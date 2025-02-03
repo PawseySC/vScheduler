@@ -1,13 +1,13 @@
 # checks the general pool connection node
 from tabulate import tabulate
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.guaca.conn_permission import guacamole_connection
 my_connection = MyDatabase.connect_guaca_db()
 
-pool_records = Capture_log("pool", __file__)
+pool_records = CaptureLog("pool", __file__)
 logger = pool_records.log_agent("linux")    # **** logger_win needs to be added; win flag should be sent when calling the function ****
 
 def checkpool(node, pool):

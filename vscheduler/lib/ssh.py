@@ -1,10 +1,10 @@
 # establishes ssh connection to each node
 import sys, warnings, os
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition
-from vscheduler.lib.config import Credentials
+from vscheduler.lib import config
 
-ssh_records = Capture_log("ssh", __file__)
+ssh_records = CaptureLog("ssh", __file__)
 logger = ssh_records.log_agent("lib")
 
 try:
@@ -20,10 +20,9 @@ except:
     pip install paramiko\n''')
     sys.exit(1)
 
-
 warnings.filterwarnings(action="ignore",module=".*paramiko.*")
-if os.path.isfile(Credentials.ssh_key):
-    key = paramiko.RSAKey.from_private_key_file(Credentials.ssh_key)
+if os.path.isfile(config.ssh['key']):
+    key = paramiko.RSAKey.from_private_key_file(config.ssh['key'])
 else:
     print ("ssh key not found")
     logger.critical ("ssh key not found")
@@ -33,12 +32,12 @@ class Node:
     @staticmethod
     def connect_node(computer):
         try:
-            node_name = computer + '.' + Credentials.domain
+            node_name = computer + '.' + config.email['domain']
             node_conn = paramiko.SSHClient()
             node_conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             node_conn.connect(
                             hostname = node_name, 
-                            username = Credentials.ssh_username, 
+                            username = config.ssh['user'],
                             pkey = key, 
                             timeout=5)
             return node_conn

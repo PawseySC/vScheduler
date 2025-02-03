@@ -9,7 +9,7 @@ from tabulate import tabulate
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.lib.config import Credentials as MyCredentials
@@ -21,7 +21,7 @@ import datetime
 
 my_connection = MyDatabase.connect_report_db()
 
-records = Capture_log("pool", __file__)
+records = CaptureLog("pool", __file__)
 logger_win = records.log_agent("windows")
 logger_unix = records.log_agent("linux")
 

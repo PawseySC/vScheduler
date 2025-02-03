@@ -1,12 +1,12 @@
 # allocates connection link to specific node of general pool in user's guacamole dashboard
 import multiprocessing
-from vscheduler.log.log import Capture_log
+from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.modules.reports.exception import exception_update, exception_list
 
 
-records = Capture_log("exception", __file__)
+records = CaptureLog("exception", __file__)
 logger_exception = records.log_agent("exception")
 
 
