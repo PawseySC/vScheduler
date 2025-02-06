@@ -1,6 +1,6 @@
 # allocates least busy node conection group to general pool
 from vscheduler.log.log import CaptureLog
-from vscheduler.lib.config import Credentials as MyCredentials
+from vscheduler.lib import config
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 # import numpy as np
 from vscheduler.modules.cluster.who import who
@@ -15,8 +15,8 @@ logger_unix = pool_records.log_agent("linux")   # **** logger_win needs to be ad
 
 def loadbalance(usage_data, pool):
     # x = {}
-    # for i in range (MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
-    #     node = MyCredentials.linux_node_name + '0' + str(i) if i <= 9 else MyCredentials.linux_node_name + str(i)
+    # for i in range (config.partition['linux']['general']['range'][0], config.partition['linux']['general']['range'][1]+1):
+    #     node = config.partition['linux']['node'] + '0' + str(i) if i <= 9 else config.partition['linux']['node'] + str(i)
         # if cpu(node):
         #     if i == 1:
         #         x = [[node, cpu(node), len(who(node))]]

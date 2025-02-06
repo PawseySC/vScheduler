@@ -2,7 +2,7 @@
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.ssh import Node as MyNode
-from vscheduler.lib.config import Credentials as MyCredentials
+from vscheduler.lib import config
 from vscheduler.modules.cluster.os_type import find_os
 
 booking_records = CaptureLog("booking", __file__)
@@ -23,16 +23,16 @@ def who(node: str) -> str:
             stdin , stdout, stderr = my_connection.exec_command("who")
         else:
             print (f"no os found for < {node} >") if MyPrintCondition.fprint else 0
-            logger_win.warning (f"no os found for < {node} >") if MyCredentials.windows_node_name in node else logger_unix.warning (f"no os found for < {node} >")
+            logger_win.warning (f"no os found for < {node} >") if config.partition['windows']['node'] in node else logger_unix.warning (f"no os found for < {node} >")
             exit
 
         if stderr:
             print (f"Errors: {stderr.read()}") if MyPrintCondition.fprint else 0
-            logger_win.error (f"Errors: {stderr.read()}") if MyCredentials.windows_node_name in node else logger_unix.error (f"Errors: {stderr.read()}")
+            logger_win.error (f"Errors: {stderr.read()}") if config.partition['windows']['node'] in node else logger_unix.error (f"Errors: {stderr.read()}")
         for line in stdout:
             print (line.strip('\n')) if MyPrintCondition.fprint else 0
-            logger_win.info (line.strip('\n')) if MyCredentials.windows_node_name in node else logger_unix.info (line.strip('\n'))
-            if not line.split()[0] in MyCredentials.exception:
+            logger_win.info (line.strip('\n')) if config.partition['windows']['node'] in node else logger_unix.info (line.strip('\n'))
+            if not line.split()[0] in config.ssh['exception']:
                 users.append(line.split()[0])
             else:
                 continue
@@ -41,4 +41,4 @@ def who(node: str) -> str:
 
     except:
         print (f"could not connect to < {node} > to query user") if MyPrintCondition.fprint else 0
-        logger_win.error (f"could not connect to < {node} > to query user") if MyCredentials.windows_node_name in node else logger_unix.error (f"could not connect to < {node} > to query user")
+        logger_win.error (f"could not connect to < {node} > to query user") if config.partition['windows']['node'] in node else logger_unix.error (f"could not connect to < {node} > to query user")

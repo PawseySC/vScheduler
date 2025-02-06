@@ -2,7 +2,7 @@
 import os, subprocess, time, sched
 from subprocess import Popen, PIPE, CalledProcessError
 from vscheduler.log.log import CaptureLog
-from vscheduler.lib.config import Credentials as MyCredentials
+from vscheduler.lib import config
 from vscheduler.modules.reports.record_log_io import record_logout
 from vscheduler.modules.guaca.revert_user import revert_back_to_pool
 
@@ -11,7 +11,7 @@ logger_unix = atd_records.log_agent("linux")
 
 def post_log_off(user, node, table):
     logger_unix.info (f"post_log_ff start, user, node, table: {user}, {node}, {table}")
-    revert_back_to_pool(user, node, MyCredentials.linux_pool if MyCredentials.linux_node_name in node else MyCredentials.windows_pool)
+    revert_back_to_pool(user, node, config.partition['linux']['general']['pool'] if config.partition['linux']['node'] in node else config.partition['windows']['general']['pool'])
     record_logout(user, node, table, "general")
     logger_unix.info ("post_log_ff end")
     

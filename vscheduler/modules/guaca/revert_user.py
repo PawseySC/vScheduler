@@ -1,6 +1,6 @@
 # reverts user to general partition of pool at logout
 from vscheduler.log.log import CaptureLog
-from vscheduler.lib.config import Credentials as MyCredentials
+from vscheduler.lib import config
 from vscheduler.general.alert import mailFunction
 from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.guaca.update import update

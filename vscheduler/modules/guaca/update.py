@@ -1,6 +1,6 @@
 # updates user group records in guacamole making changes to connection links in user's guacamole dashboard
 from vscheduler.log.log import CaptureLog
-from vscheduler.lib.config import Credentials as MyCredentials
+from vscheduler.lib import config
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
 my_connection = MyDatabase.connect_guaca_db()
@@ -14,8 +14,8 @@ def update (x,y,z, caller, cluster):
     try:
         print (f"x(member_entity_id): {x}, y(node_user_group_id): {y},  z(pool_user_group_id): {z}, caller:{caller}, cluster:{cluster}") if MyPrintCondition.fprint else 0
         logger_unix.info (f"x(member_entity_id): {x}, y(node_user_group_id): {y}, z(pool_user_group_id): {z}, caller:{caller}, cluster:{cluster}")
-        windows_pool_entity = entity(MyCredentials.windows_pool)
-        linux_pool_entity = entity(MyCredentials.linux_pool)
+        windows_pool_entity = entity(config.partition['windows']['general']['pool'])
+        linux_pool_entity = entity(config.partition['linux']['general']['pool'])
         windows_pool_user_group = guacamole_user_group(windows_pool_entity[0][0])
         linux_pool_user_group = guacamole_user_group(linux_pool_entity[0][0])
         # allocation = "UPDATE guacamole_user_group_member SET member_entity_id = '%s' WHERE user_group_id = '%s'" %(x, y)  # when simeltanous multiple booking not allowed

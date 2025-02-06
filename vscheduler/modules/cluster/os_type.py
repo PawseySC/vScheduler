@@ -1,6 +1,6 @@
 # find os of remote node
 from vscheduler.log.log import CaptureLog
-from vscheduler.lib.config import Credentials as MyCredentials
+from vscheduler.lib import config
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.ssh import Node as MyNode
 
@@ -11,7 +11,7 @@ logger_unix = records.log_agent("linux")
 def find_os(node):
     my_connection = MyNode.connect_node(node)
 
-    if MyCredentials.windows_node_name in node:
+    if config.partition['windows']['node'] in node:
         command = 'python -c "import platform; print (platform.uname()[0])"'
     else:
         command = 'python3 -c "import platform; print (platform.uname()[0])"'
@@ -54,4 +54,4 @@ def find_os(node):
 
     except:
         print (f"could not connect to < {node} > to query os type") if MyPrintCondition.fprint else 0
-        logger_win.error (f"could not connect to < {node} > to query os type") if MyCredentials.windows_node_name in node else logger_unix.error (f"could not connect to < {node} > to query os type")
+        logger_win.error (f"could not connect to < {node} > to query os type") if config.partition['windows']['node'] in node else logger_unix.error (f"could not connect to < {node} > to query os type")

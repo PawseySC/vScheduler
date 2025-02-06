@@ -1,7 +1,7 @@
 # checks rdp port via telnet connection periodically (ports 3389) to remove zombie node from being a general pool member upon unsuccessful telnet query by flagging that in report db
 import time, asyncio
 from vscheduler.log.log import CaptureLog
-from vscheduler.lib.config import Credentials as MyCredentials
+from vscheduler.lib import config
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.modules.reports.status import status_update as update_status
 from vscheduler.modules.guaca.pool_refresh import refresh
@@ -35,7 +35,7 @@ async def wait_host_port(host, port, duration=3, delay=1):
     tmax = time.time() + duration
     while time.time() < tmax:
         try:
-            _reader, writer = await asyncio.wait_for(asyncio.open_connection(host + "." + MyCredentials.domain, port), timeout=5)
+            _reader, writer = await asyncio.wait_for(asyncio.open_connection(host + "." + config.email['domain'], port), timeout=5)
             writer.close()
             await writer.wait_closed()
             logger_zombie.info (f"< {host} > is reachable on port < {port} >")
@@ -66,7 +66,7 @@ async def wait_host_port(host, port, duration=3, delay=1):
 #     return False
 
 def check_zombie():
-    port = MyCredentials.remote_port
+    port = config.asyncc['port']
     # linux_pool_entity = entity(MyCredentials.linux_pool)
     # windows_pool_entity = entity(MyCredentials.windows_pool)    
     
@@ -96,19 +96,19 @@ def check_zombie():
     # linux_poke_result = asyncio.run(wait_host_port(linux_host, port))
     # windows_poke_result = asyncio.run(wait_host_port(windows_host, port))
     
-    linux_hosts_general = [MyCredentials.linux_node_name + "0" + str(i) if i < 10 else MyCredentials.linux_node_name + str(i) for i in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1)]
-    linux_hosts_booking = [MyCredentials.linux_node_name + "0" + str(i) if i < 10 else MyCredentials.linux_node_name + str(i) for i in range(MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1)]
-    windows_hosts_general = [MyCredentials.windows_node_name + "0" + str(i) if i < 10 else MyCredentials.windows_node_name + str(i) for i in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1)]
-    windows_hosts_booking = [MyCredentials.windows_node_name + "0" + str(i) if i < 10 else MyCredentials.windows_node_name + str(i) for i in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1)]
+    linux_hosts_general = [config.partition['linux']['node'] + "0" + str(i) if i < 10 else config.partition['linux']['node'] + str(i) for i in range(config.partition['linux']['general']['range'][0], config.partition['linux']['general']['range'][1]+1)]
+    linux_hosts_booking = [config.partition['linux']['node'] + "0" + str(i) if i < 10 else config.partition['linux']['node'] + str(i) for i in range(config.partition['linux']['booking']['range'][0], config.partition['linux']['booking']['range'][1]+1)]
+    windows_hosts_general = [config.partition['windows']['node'] + "0" + str(i) if i < 10 else config.partition['windows']['node'] + str(i) for i in range(config.partition['windows']['general']['range'][0], config.partition['windows']['general']['range'][1]+1)]
+    windows_hosts_booking = [config.partition['windows']['node'] + "0" + str(i) if i < 10 else config.partition['windows']['node'] + str(i) for i in range(config.partition['windows']['booking']['range'][0], config.partition['windows']['booking']['range'][1]+1)]
     
-    [asyncio.run(wait_host_port(host, port)) for host in linux_hosts_general if MyCredentials.linux_general]
-    [asyncio.run(wait_host_port(host, port)) for host in linux_hosts_booking if MyCredentials.linux_booking]
-    [asyncio.run(wait_host_port(host, port)) for host in windows_hosts_general if MyCredentials.windows_general]
-    [asyncio.run(wait_host_port(host, port)) for host in windows_hosts_booking if MyCredentials.windows_booking]
-    # asyncio.run(wait_host_port(linux_hosts_general, port)) if MyCredentials.linux_general else 0
-    # asyncio.run(wait_host_port(linux_hosts_booking, port)) if MyCredentials.linux_booking else 0
-    # asyncio.run(wait_host_port(windows_hosts_general, port)) if MyCredentials.windows_general else 0
-    # asyncio.run(wait_host_port(windows_hosts_booking, port)) if MyCredentials.windows_booking else 0
+    [asyncio.run(wait_host_port(host, port)) for host in linux_hosts_general if config.partition['linux']['general']['status']]
+    [asyncio.run(wait_host_port(host, port)) for host in linux_hosts_booking if config.partition['linux']['booking']['status']]
+    [asyncio.run(wait_host_port(host, port)) for host in windows_hosts_general if config.partition['windows']['general']['status']]
+    [asyncio.run(wait_host_port(host, port)) for host in windows_hosts_booking if config.partition['windows']['booking']['status']]
+    # asyncio.run(wait_host_port(linux_hosts_general, port)) if config.partition['linux']['general']['status'] else 0
+    # asyncio.run(wait_host_port(linux_hosts_booking, port)) if config.partition['linux']['booking']['status'] else 0
+    # asyncio.run(wait_host_port(windows_hosts_general, port)) if config.partition['windows']['general']['status'] else 0
+    # asyncio.run(wait_host_port(windows_hosts_booking, port)) if config.partition['windows']['booking']['status'] else 0
     # asyncio.run(foo("w08.pawsey.org.au", port))
     
     # logger_zombie.info (f"\n< {linux_pool_entity[0][1]} > async result: {linux_poke_result}\n< {windows_pool_entity[0][1]} > async result: {windows_poke_result}")
@@ -130,5 +130,5 @@ def check_zombie():
     
         
 if __name__ == '__main__':
-    if MyCredentials.async_mode:
+    if config.asyncc['status']:
         check_zombie()
