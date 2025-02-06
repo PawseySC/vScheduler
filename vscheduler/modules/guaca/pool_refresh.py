@@ -2,7 +2,7 @@
 from tabulate import tabulate
 from vscheduler.log.log import CaptureLog
 from vscheduler.lib.database import Database as MyDatabase
-from vscheduler.lib.config import Credentials as MyCredentials
+from vscheduler.lib import config
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.cluster.load_balance import loadbalance
@@ -22,10 +22,10 @@ def refresh (node):
     member to remove and replace it with another node depending on node 
     balance being ON or OFF in the config.
     '''
-    os = "windows" if MyCredentials.windows_node_name in node else "linux"
+    os = "windows" if config.partition['windows']['node'] in node else "linux"
     print (f"osososos = {os}")
     # find the current pool member identity in guacamole db
-    pool_entity = entity(MyCredentials.windows_pool) if MyCredentials.windows_node_name in node else entity(MyCredentials.linux_pool)
+    pool_entity = entity(config.partition['windows']['general']['pool']) if config.partition['windows']['node'] in node else entity(config.partition['linux']['general']['pool'])
     
     # find the node identity in guacamole db
     connection = f"SELECT connection_id, connection_name FROM guacamole_connection WHERE connection_name = '{node}'"
@@ -47,12 +47,12 @@ def refresh (node):
         # load balance ON -> call mgmt_client to collect usage data from vis nodes to rank those for loadbalance
 
         logger_win.info ("load balance/pool fill up") if os == "windows" else logger_unix.info ("load balance/pool fill up")
-        if MyCredentials.load_balance:
+        if config.load['balance']:
             logger_win.warning ("load_balance = TRUE") if os == "windows" else logger_unix.warning ("load_balance = TRUE")
             usage_data = data_agent(hosts, os)
             logger_win.info (f"Usage data obtained from accessible nodes: {usage_data}") if os == "windows" else logger_unix.info (f"Usage data obtained from accessible nodes: {usage_data}")
-            logger_win.info (f"{os} nodes load balancing in < {MyCredentials.windows_pool} >") if os == "windows" else logger_unix.info (f"{os} nodes load balancing in < {MyCredentials.linux_pool} >")
-            loadbalance(usage_data, MyCredentials.linux_pool) if os == "linux" else loadbalance(usage_data, MyCredentials.windows_pool)
+            logger_win.info (f"{os} nodes load balancing in < {config.partition['windows']['general']['pool']} >") if os == "windows" else logger_unix.info (f"{os} nodes load balancing in < {config.partition['linux']['general']['pool']} >")
+            loadbalance(usage_data, config.partition['linux']['general']['pool']) if os == "linux" else loadbalance(usage_data, config.partition['windows']['general']['pool'])
         # load balance OFF -> fill up pool with next node in order
         else:
             logger_win.warning ("load_balance = FALSE") if os == "windows" else logger_unix.warning ("load_balance = FALSE")

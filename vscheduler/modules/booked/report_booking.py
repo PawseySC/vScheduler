@@ -2,7 +2,6 @@ import os, sys
 from pathlib import Path
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.timer import Brackets as MyBrackets
-from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.modules.booked.host import host_by_name
 from vscheduler.modules.booked.resource import resource_reservations
 from vscheduler.modules.booked.reservation import user_reservations

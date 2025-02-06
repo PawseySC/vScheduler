@@ -1,7 +1,7 @@
 # makes a node exception not to be called in allocation process, or gives exception status of all/specific node(s)
 import multiprocessing, click
 from vscheduler.log.log import CaptureLog
-from vscheduler.lib.config import Credentials as MyCredentials
+from vscheduler.lib import config
 from vscheduler.general.timer import Brackets as MyBrackets
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition

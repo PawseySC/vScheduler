@@ -1,7 +1,7 @@
 # fills up the pool based on nodes order defined in config; 
 # this is when load balancing if off.
 from vscheduler.log.log import CaptureLog
-from vscheduler.lib.config import Credentials as MyCredentials
+from vscheduler.lib import config
 from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.guaca.conn_permission import connection_permission
 
@@ -11,41 +11,41 @@ logger_unix = pool_records.log_agent("linux")
 
 
 def toss(node):
-    if MyCredentials.windows_node_name in node:
-        current_number = int(node.replace(MyCredentials.windows_node_name, ""))
-        logger_win.info (f"current_number+1: {current_number+1}") if MyCredentials.windows_node_name in node else logger_unix.info (f"current_number+1: {current_number+1}")
-        if current_number+1 in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
+    if config.partition['windows']['node'] in node:
+        current_number = int(node.replace(config.partition['windows']['node'], ""))
+        logger_win.info (f"current_number+1: {current_number+1}") if config.partition['windows']['node'] in node else logger_unix.info (f"current_number+1: {current_number+1}")
+        if current_number+1 in range(config.partition['windows']['general']['range'][0], config.partition['windows']['general']['range'][1]+1):
             current_number +=1
-            logger_win.info (f"current_number: {current_number}") if MyCredentials.windows_node_name in node else logger_unix.info (f"current_number: {current_number}")
+            logger_win.info (f"current_number: {current_number}") if config.partition['windows']['node'] in node else logger_unix.info (f"current_number: {current_number}")
         else:
-            current_number = MyCredentials.windows_general_range[0]
-        new_node = MyCredentials.windows_node_name + "0" + str(current_number) if current_number <= 9 else MyCredentials.windows_node_name + str(current_number)
+            current_number = config.partition['windows']['general']['range'][0]
+        new_node = config.partition['windows']['node'] + "0" + str(current_number) if current_number <= 9 else config.partition['windows']['node'] + str(current_number)
 
-    elif MyCredentials.linux_node_name in node:
-        current_number = int(node.replace(MyCredentials.linux_node_name, ""))
-        logger_win.info (f"current_number+1: {current_number+1}") if MyCredentials.windows_node_name in node else logger_unix.info (f"current_number+1: {current_number+1}")
-        if current_number+1 in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
+    elif config.partition['linux']['node'] in node:
+        current_number = int(node.replace(config.partition['linux']['node'], ""))
+        logger_win.info (f"current_number+1: {current_number+1}") if config.partition['windows']['node'] in node else logger_unix.info (f"current_number+1: {current_number+1}")
+        if current_number+1 in range(config.partition['linux']['general']['range'][0], config.partition['linux']['general']['range'][1]+1):
             current_number +=1
-            logger_win.info (f"current_number: {current_number}") if MyCredentials.windows_node_name in node else logger_unix.info (f"current_number: {current_number}")
+            logger_win.info (f"current_number: {current_number}") if config.partition['windows']['node'] in node else logger_unix.info (f"current_number: {current_number}")
         else:
-            current_number = MyCredentials.linux_general_range[0]
-        new_node = MyCredentials.linux_node_name + "0" + str(current_number) if current_number <= 9 else MyCredentials.linux_node_name + str(current_number)
+            current_number = config.partition['linux']['general']['range'][0]
+        new_node = config.partition['linux']['node'] + "0" + str(current_number) if current_number <= 9 else config.partition['linux']['node'] + str(current_number)
         
     return new_node
 
 
 def fillup(node, hosts):
-    logger_win.info (f"Current node in the pool is {node}") if MyCredentials.windows_node_name in node else logger_unix.info (f"Current node in the pool is {node}")
+    logger_win.info (f"Current node in the pool is {node}") if config.partition['windows']['node'] in node else logger_unix.info (f"Current node in the pool is {node}")
     new_node = toss (node)
     if len (hosts) > 0:
         while new_node not in hosts:
             new_node = toss (new_node)
     
-    pool_entity = entity(MyCredentials.windows_pool) if MyCredentials.windows_node_name in node else entity(MyCredentials.linux_pool)
+    pool_entity = entity(config.partition['windows']['general']['pool']) if config.partition['windows']['node'] in node else entity(config.partition['linux']['general']['pool'])
 
-    logger_win.info (f"New node in the pool is {new_node}") if MyCredentials.windows_node_name in node else logger_unix.info (f"New node in the pool is {new_node}")
+    logger_win.info (f"New node in the pool is {new_node}") if config.partition['windows']['node'] in node else logger_unix.info (f"New node in the pool is {new_node}")
     new_node_entity = entity(new_node)
-    logger_win.info (f"new_node_entity: {new_node_entity}") if MyCredentials.windows_node_name in node else logger_unix.info (f"new_node_entity: {new_node_entity}")
-    logger_win.info (f"pool_entity: {pool_entity}") if MyCredentials.windows_node_name in node else logger_unix.info (f"pool_entity: {pool_entity}")
+    logger_win.info (f"new_node_entity: {new_node_entity}") if config.partition['windows']['node'] in node else logger_unix.info (f"new_node_entity: {new_node_entity}")
+    logger_win.info (f"pool_entity: {pool_entity}") if config.partition['windows']['node'] in node else logger_unix.info (f"pool_entity: {pool_entity}")
 
     connection_permission(new_node_entity[0][1], pool_entity[0][0])

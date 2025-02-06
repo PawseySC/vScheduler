@@ -1,7 +1,7 @@
 # management script for bookable partition
 import multiprocessing, click
 from vscheduler.log.log import CaptureLog
-from vscheduler.lib.config import Credentials as MyCredentials
+from vscheduler.lib import config
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.general.timer import Brackets as MyBrackets
@@ -135,16 +135,16 @@ def main():
         #     p = Process(i, initiate.user, node)
         #     p.start()       # Create a new process and invoke the Process.run() method
         #     p.join()        # Process.join() to wait for task completion
-        if MyCredentials.windows_booking or MyCredentials.linux_booking:
-            if MyCredentials.windows_booking:
-                for i in range (MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
-                    node = MyCredentials.windows_node_name + '0' + str(i) if i <= 9 else MyCredentials.windows_node_name + str(i)
+        if config.partition['windows']['booking']['status'] or config.partition['linux']['booking']['status'] :
+            if config.partition['windows']['booking']['status'] :
+                for i in range (config.partition['windows']['booking']['range'][0], config.partition['windows']['booking']['range'][1]+1):
+                    node = config.partition['windows']['node'] + '0' + str(i) if i <= 9 else config.partition['windows']['node'] + str(i)
                     p = Process(i, initiate.user, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
-            if MyCredentials.linux_booking:
-                for i in range (MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
-                    node = MyCredentials.linux_node_name + '0' + str(i) if i <= 9 else MyCredentials.linux_node_name + str(i)
+            if config.partition['linux']['booking']['status'] :
+                for i in range (config.partition['linux']['booking']['range'][0], config.partition['linux']['booking']['range'][1]+1):
+                    node = config.partition['linux']['node'] + '0' + str(i) if i <= 9 else config.partition['linux']['node'] + str(i)
                     p = Process(i, initiate.user, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
@@ -152,10 +152,10 @@ def main():
             print ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
             logger_win.info ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg")
     else:
-        if (MyCredentials.windows_node_name in initiate.node and 
-                int(initiate.node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1) or 
-                (MyCredentials.linux_node_name in initiate.node and 
-                int(initiate.node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1))):
+        if (config.partition['windows']['node'] in initiate.node and 
+                int(initiate.node.removeprefix(config.partition['windows']['node'])) in range(config.partition['windows']['booking']['range'][0], config.partition['windows']['booking']['range'][1]+1) or 
+                (config.partition['linux']['node'] in initiate.node and 
+                int(initiate.node.removeprefix(config.partition['linux']['node'])) in range(config.partition['linux']['booking']['range'][0], config.partition['linux']['booking']['range'][1]+1))):
             p = Process("", initiate.user, initiate.node)
             p.start()       # Create a new process and invoke the Process.run() method
             p.join()        # Process.join() to wait for task completion
