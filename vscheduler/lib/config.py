@@ -9,8 +9,6 @@ class Config:
     def loadConfigs(self):
         with open(self.file, 'r') as file:
             self.config = yaml.safe_load(file)
-        print (self.config)
-        print (self)
         
     def parseConfigs(self):
         self.database = self.config['database']
@@ -20,6 +18,6 @@ class Config:
         self.email = self.config['email']
         self.log = self.config['log']
         self.load = self.config['load']
-        self.asyncs = self.config['async']
+        self.asyncs = self.config['asyncs']
         
 config = Config("config.yml")

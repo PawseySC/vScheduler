@@ -1,5 +1,5 @@
 # establishes ssh connection to each node
-import sys, warnings, os
+import warnings, os, paramiko
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition
 from vscheduler.lib import config
@@ -7,18 +7,6 @@ from vscheduler.lib import config
 ssh_records = CaptureLog("ssh", __file__)
 logger = ssh_records.log_agent("lib")
 
-try:
-    import paramiko
-except:
-    print ('''
-    You need paramiko module.
-    https://www.paramiko.org/installing.html
-    pip install paramiko\n''')
-    logger.critical ('''
-    \nYou need paramiko module.
-    https://www.paramiko.org/installing.html
-    pip install paramiko\n''')
-    sys.exit(1)
 
 warnings.filterwarnings(action="ignore",module=".*paramiko.*")
 if os.path.isfile(config.ssh['key']):
@@ -26,9 +14,12 @@ if os.path.isfile(config.ssh['key']):
 else:
     print ("ssh key not found")
     logger.critical ("ssh key not found")
-    exit
+    quit()
 
 class Node:
+    """
+    Establishes ssh connection to client from management server using the dedicated key in config 
+    """
     @staticmethod
     def connect_node(computer):
         try:
@@ -42,6 +33,6 @@ class Node:
                             timeout=5)
             return node_conn
         except paramiko.SSHException as e:
-            print (f"couldn't connect {computer} via ssh\n{e}") if PrintCondition.fprint else 0
-            logger.critical (f"couldn't connect {computer} via ssh\n{e}")
+            print (f"couldn't connect < {computer} > via ssh\n{e}") if PrintCondition.fprint else 0
+            logger.critical (f"couldn't connect < {computer} > via ssh\n{e}")
             pass

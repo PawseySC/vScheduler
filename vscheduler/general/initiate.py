@@ -1,12 +1,19 @@
 # distinguishes/procesesses commands arguments
 import sys
-
 arg_num = len(sys.argv)
 
+
 class PrintCondition():
+    """
+    Allows printing outcome in verbose mode using -v in interactive commandline commands
+    """
     fprint = True if '-v' in sys.argv[1:] else False
 
+
 class Initiation:
+    """
+    Initialises all arguments in command e.g -n -u etc
+    """
     node = user = start = end = status = mode = partition = time = ''
     list = activate = deactivate = False
     

@@ -69,6 +69,6 @@ log:
 load:
   balance: False                            # if False, general pool allocation will happen in order
 
-asyncc:
+asyncs:
   status: True
   port: 3389
