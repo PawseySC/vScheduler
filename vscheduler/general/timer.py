@@ -8,7 +8,9 @@ time_records = CaptureLog("timer", __file__)
 logger = time_records.log_agent("general")
 
 class Brackets:
-
+    """
+    Returns time arguments required for query from/to database(s)
+    """
     # utc_now = datetime.datetime.utcnow()    # deprectaed
     utc_now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
     local_time = datetime.datetime.now()

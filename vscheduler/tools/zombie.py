@@ -130,5 +130,5 @@ def check_zombie():
     
         
 if __name__ == '__main__':
-    if config.asyncc['status']:
+    if config.asyncs['status']:
         check_zombie()

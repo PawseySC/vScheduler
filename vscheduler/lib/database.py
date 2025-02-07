@@ -1,5 +1,5 @@
 # establishes db connection to booked and guaca dbs
-import sys
+import pymysql
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition
 from vscheduler.lib import config
@@ -8,20 +8,11 @@ from vscheduler.general.alert import mailFunction
 database_records = CaptureLog("database", __file__)
 logger = database_records.log_agent("lib")
 
-try:
-    import pymysql
-except:
-    print ('''
-    You need pymysql module.
-    https://pypi.org/project/PyMySQL/
-    pip install PyMySQL\n''') if PrintCondition.fprint else 0
-    logger.critical ('''
-    \nYou need pymysql module.
-    https://pypi.org/project/PyMySQL/
-    pip install PyMySQL\n''')
-    sys.exit(1)
 
-class Database:    
+class Database:
+    """
+    Establishes connection to database(s) from management server to query from/to
+    """
     @staticmethod
     def connect_booked_db():
         try:
