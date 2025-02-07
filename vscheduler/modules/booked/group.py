@@ -1,4 +1,3 @@
-# retreives users group id and name in booked
 from tabulate import tabulate
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
@@ -6,11 +5,14 @@ from vscheduler.lib.database import Database as MyDatabase
 
 my_connection = MyDatabase.connect_booked_db()
 
-booking_records = CaptureLog("booking", __file__)
-logger_win = booking_records.log_agent("windows")    # **** logger_unix needs to be added; win flag should be sent when calling the function ****
+group_records = CaptureLog("group", __file__)
+logger = group_records.log_agent("windbookedows")
 
 
 def group_id(user_id):
+    """
+    Retreives user's group id using user id in booked db
+    """
     try:
         sentence = []
         group = f"SELECT user_id, group_id FROM user_groups WHERE user_id = '{user_id}'"
@@ -22,15 +24,18 @@ def group_id(user_id):
             users_id = row_group[0]
             groups_id = row_group[1]
             sentence.insert(len(sentence), [users_id , groups_id])
-        print ("\n", tabulate(sentence, headers=['users_id', 'groups_id'])) if MyPrintCondition.fprint else 0
-        logger_win.info ("\n" + tabulate(sentence, headers=['users_id', 'groups_id']))
+        print (f"\n{tabulate(sentence, headers=['users_id', 'groups_id'])}") if MyPrintCondition.fprint else 0
+        logger.info (f"\n{tabulate(sentence, headers=['users_id', 'groups_id'])}")
         return group_results
     except:
         print (f"group error; user id < {user_id} > is not available in booked\n") if MyPrintCondition.fprint else 0
-        logger_win.error (f"group error; user id < {user_id} > is not available in booked")
+        logger.error (f"group error; user id < {user_id} > is not available in booked")
 
 
 def group_name(group_id):
+    """
+    Retreives user's group name using group id in booked db
+    """
     try:
         sentence = []
         group = f"SELECT group_id, name FROM `groups` WHERE group_id = '{group_id}'"
@@ -42,15 +47,18 @@ def group_name(group_id):
             group_id = row_group[0]
             name = row_group[1]
             sentence.insert(len(sentence), [group_id , name])
-        print ("\n", tabulate(sentence, headers=['group_id', 'name'])) if MyPrintCondition.fprint else 0
-        logger_win.info ("\n" + tabulate(sentence, headers=['group_id', 'name']))
+        print (f"\n{tabulate(sentence, headers=['group_id', 'name'])}") if MyPrintCondition.fprint else 0
+        logger.info (f"\n{tabulate(sentence, headers=['group_id', 'name'])}")
         return group_results
     except:
         print (f"group error; group id < {group_id} > is not available in booked to extract its name\n") if MyPrintCondition.fprint else 0
-        logger_win.error (f"group error; group id < {group_id} > is not available in booked to extract its name")
+        logger.error (f"group error; group id < {group_id} > is not available in booked to extract its name")
 
 
 def group_members(group_id):
+    """
+    Retreives group members using group id in booked db
+    """
     try:
         sentence = []
         id = []
@@ -64,9 +72,9 @@ def group_members(group_id):
             groups_id = row_members[1]
             sentence.insert(len(sentence), [users_id , groups_id])
             id.append(users_id)
-        print ("\n", tabulate(sentence, headers=['users_id', 'groups_id'])) if MyPrintCondition.fprint else 0
-        logger_win.info ("\n" + tabulate(sentence, headers=['users_id', 'groups_id']))
+        print (f"\n{tabulate(sentence, headers=['users_id', 'groups_id'])}") if MyPrintCondition.fprint else 0
+        logger.info (f"\n{tabulate(sentence, headers=['users_id', 'groups_id'])}")
         return id
     except:
         print (f"member error; group id < {group_id} > is not available in booked to extract its members\n") if MyPrintCondition.fprint else 0
-        logger_win.error (f"member error; group id < {group_id} > is not available in booked to extract its members")
+        logger.error (f"member error; group id < {group_id} > is not available in booked to extract its members")
