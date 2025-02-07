@@ -1,4 +1,3 @@
-# retreives quota of user on specific resource in booked
 from tabulate import tabulate
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
@@ -6,11 +5,14 @@ from vscheduler.lib.database import Database as MyDatabase
 
 my_connection = MyDatabase.connect_booked_db()
 
-booking_records = CaptureLog("booking", __file__)
-logger_win = booking_records.log_agent("windows")    # **** logger_unix needs to be added; win flag should be sent when calling the function ****
+quotas_records = CaptureLog("quotas", __file__)
+logger_win = quotas_records.log_agent("booked")
 
 
 def quotas(resources_id, groups_id):
+    """
+    Retreives user quota in booked db for specific resource
+    """
     try:
         sentence = []
         if groups_id and resources_id:
@@ -38,8 +40,8 @@ def quotas(resources_id, groups_id):
             sentence.insert(len(sentence), [quota_id , quota_limit, unit, duration, resource_id, group_id, schedule_id, enforced_days, enforced_time_start, enforced_time_end])
         print ("EMPTY quota_results") if MyPrintCondition.fprint and not quota_results else 0
         logger_win.info ("EMPTY quota_results")
-        print ("\n", tabulate(sentence, headers=['quota_id', 'quota_limit', 'unit', 'duration', 'resource_id', 'group_id', 'schedule_id', 'enforced_days', 'enforced_time_start', 'enforced_time_end'])) if MyPrintCondition.fprint and quota_results else 0
-        logger_win.info ("\n" + tabulate(sentence, headers=['quota_id', 'quota_limit', 'unit', 'duration', 'resource_id', 'group_id', 'schedule_id', 'enforced_days', 'enforced_time_start', 'enforced_time_end']))
+        print (f"\n{tabulate(sentence, headers=['quota_id', 'quota_limit', 'unit', 'duration', 'resource_id', 'group_id', 'schedule_id', 'enforced_days', 'enforced_time_start', 'enforced_time_end'])}") if MyPrintCondition.fprint and quota_results else 0
+        logger_win.info (f"\n{tabulate(sentence, headers=['quota_id', 'quota_limit', 'unit', 'duration', 'resource_id', 'group_id', 'schedule_id', 'enforced_days', 'enforced_time_start', 'enforced_time_end'])}")
         return quota_results if quota_results else ""
     except:
         print (f"quota error; resource id < {resources_id} > or group id < {groups_id} > was not found in booked\n") if MyPrintCondition.fprint else 0
