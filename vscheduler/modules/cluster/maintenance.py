@@ -1,4 +1,3 @@
-# caled by exceptt tool
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib import config
@@ -8,35 +7,47 @@ import pandas as pd
 
 my_connection = MyDatabase.connect_report_db()
 
-records = CaptureLog("exception", __file__)
-logger_win = records.log_agent("windows")
-logger_unix = records.log_agent("linux")
+maintenance_records = CaptureLog("maintenance", __file__)
+logger = maintenance_records.log_agent("cluster")
 
 
 def activation(node):
+    """
+    Is called by except tool to activate/flag the node as maint in the db 
+    """
     # exception_query = f"INSERT INTO {MyCredentials.report_maintenance_table} (node, status, start, end) VALUES '{node}', 'Y', {MyBrackets.local_time}, {MyBrackets.local_time}"
     exception_query = f"INSERT INTO {config.database['report']['status']} (node, status, start, end) VALUES '{node}', 'Y', {MyBrackets.local_time}, {MyBrackets.local_time}"
-    logger_win.info (f"exception_query: {exception_query}") if config.partition['windows']['node'] in node else logger_unix.info (f"exception_query: {exception_query}")
+    # logger_win.info (f"exception_query: {exception_query}") if config.partition['windows']['node'] in node else logger_unix.info (f"exception_query: {exception_query}")
+    logger.info (f"exception_query: {exception_query}")
     my_connection.ping()  # reconnecting mysql in case of connection timed out
     with my_connection.cursor() as my_cursor:
         my_cursor.execute(exception_query)
         my_connection.commit()
     print (f"{my_cursor.rowcount} record(s) inserted") if MyPrintCondition.fprint else 0  
-    logger_win.info (f"{my_cursor.rowcount} record(s) inserted") if config.partition['windows']['node'] in node else logger_unix.info (f"{my_cursor.rowcount} record(s) inserted")
+    # logger_win.info (f"{my_cursor.rowcount} record(s) inserted") if config.partition['windows']['node'] in node else logger_unix.info (f"{my_cursor.rowcount} record(s) inserted")
+    logger.info (f"{my_cursor.rowcount} record(s) inserted")
     # NOTIFY USERS ??? <<<<<<<<
     
 def deactivation(node):
+    """
+    Is called by except tool to deactivate/deflag the node as maint in the db 
+    """
     exception_query = f"UPDATE {config.database['report']['status']} SET status = 'N', end = {MyBrackets.local_time} WHERE node = '{node}' AND status = 'DOWN', start = end AND start < {MyBrackets.local_time}"
-    logger_win.info (f"exception_query: {exception_query}") if config.partition['windows']['node'] in node else logger_unix.info (f"exception_query: {exception_query}")
+    # logger_win.info (f"exception_query: {exception_query}") if config.partition['windows']['node'] in node else logger_unix.info (f"exception_query: {exception_query}")
+    logger.info (f"exception_query: {exception_query}")
     my_connection.ping()  # reconnecting mysql in case of connection timed out
     with my_connection.cursor() as my_cursor:
         my_cursor.execute(exception_query)
         my_connection.commit()
     print (f"{my_cursor.rowcount} record(s) updated") if MyPrintCondition.fprint else 0  
-    logger_win.info (f"{my_cursor.rowcount} record(s) updated") if config.partition['windows']['node'] in node else logger_unix.info (f"{my_cursor.rowcount} record(s) updated")
+    # logger_win.info (f"{my_cursor.rowcount} record(s) updated") if config.partition['windows']['node'] in node else logger_unix.info (f"{my_cursor.rowcount} record(s) updated")
+    logger.info (f"{my_cursor.rowcount} record(s) updated")
     # NOTIFY USERS ??? <<<<<<<<
 
 def activation_status(node, start, end):
+    """
+    Is called by except tool to get node status in the db 
+    """
     query = " WHERE " if node or start or end else 0
     if query:
         if node:
