@@ -1,9 +1,8 @@
-# refreshes pool member
 from tabulate import tabulate
 from vscheduler.log.log import CaptureLog
-from vscheduler.lib.database import Database as MyDatabase
-from vscheduler.lib import config
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib import config
+from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.cluster.load_balance import loadbalance
 from vscheduler.modules.guaca.fill_pool import fillup as fill_up
@@ -11,13 +10,14 @@ from vscheduler.socket.mgmt_client import client_statistics as data_agent
 from vscheduler.socket.mgmt_server import generate_general_partition_hosts
 
 my_connection = MyDatabase.connect_guaca_db()
-socket_records = CaptureLog("socket", __file__)
-logger_win = socket_records.log_agent("windows")
-logger_unix = socket_records.log_agent("linux")
+
+poolrefresh_records = CaptureLog("poolrefresh", __file__)
+logger = poolrefresh_records.log_agent("guaca")
+
 
 def refresh (node):
     '''
-    By setting status of a node as out of order with vset --status
+    Refreshes pool member by setting status of a node as out of order with vset --status
     it calls this module to double check if that node is a general pool
     member to remove and replace it with another node depending on node 
     balance being ON or OFF in the config.
@@ -42,21 +42,28 @@ def refresh (node):
         check_results = cursor.fetchall()
     if len(check_results) > 0 and check_results[0][0] == connection_results[0][0]:
         hosts = generate_general_partition_hosts (os, node)
-        logger_win.info (f"hosts: {hosts}") if os == "windows" else logger_unix.info (f"hosts: {hosts}")
+        # logger_win.info (f"hosts: {hosts}") if os == "windows" else logger_unix.info (f"hosts: {hosts}")
+        logger.info (f"hosts: {hosts}")
         # fill up pool by new member
         # load balance ON -> call mgmt_client to collect usage data from vis nodes to rank those for loadbalance
 
-        logger_win.info ("load balance/pool fill up") if os == "windows" else logger_unix.info ("load balance/pool fill up")
+        # logger_win.info ("load balance/pool fill up") if os == "windows" else logger_unix.info ("load balance/pool fill up")
+        logger.info ("load balance/pool fill up")
         if config.load['balance']:
-            logger_win.warning ("load_balance = TRUE") if os == "windows" else logger_unix.warning ("load_balance = TRUE")
+            # logger_win.warning ("load_balance = TRUE") if os == "windows" else logger_unix.warning ("load_balance = TRUE")
+            logger.warning ("load_balance = TRUE")
             usage_data = data_agent(hosts, os)
-            logger_win.info (f"Usage data obtained from accessible nodes: {usage_data}") if os == "windows" else logger_unix.info (f"Usage data obtained from accessible nodes: {usage_data}")
-            logger_win.info (f"{os} nodes load balancing in < {config.partition['windows']['general']['pool']} >") if os == "windows" else logger_unix.info (f"{os} nodes load balancing in < {config.partition['linux']['general']['pool']} >")
+            # logger_win.info (f"Usage data obtained from accessible nodes: {usage_data}") if os == "windows" else logger_unix.info (f"Usage data obtained from accessible nodes: {usage_data}")
+            logger.info (f"Usage data obtained from accessible nodes: {usage_data}")
+            # logger_win.info (f"{os} nodes load balancing in < {config.partition['windows']['general']['pool']} >") if os == "windows" else logger_unix.info (f"{os} nodes load balancing in < {config.partition['linux']['general']['pool']} >")
+            logger.info (f"{os} nodes load balancing in < {config.partition['windows']['general']['pool']} >") if os == "windows" else logger.info (f"{os} nodes load balancing in < {config.partition['linux']['general']['pool']} >")
             loadbalance(usage_data, config.partition['linux']['general']['pool']) if os == "linux" else loadbalance(usage_data, config.partition['windows']['general']['pool'])
         # load balance OFF -> fill up pool with next node in order
         else:
-            logger_win.warning ("load_balance = FALSE") if os == "windows" else logger_unix.warning ("load_balance = FALSE")
+            # logger_win.warning ("load_balance = FALSE") if os == "windows" else logger_unix.warning ("load_balance = FALSE")
+            logger.warning ("load_balance = FALSE")
             fill_up(node, hosts)
     else:
         print (f"< {node} > was not in the pool, so no change in pool happened") if MyPrintCondition.fprint else 0
-        logger_win.info (f"< {node} > was not in the pool, so no change in pool happened") if os == "windows" else logger_unix.info (f"< {node} > was not in the pool, so no change in pool happened")    
+        # logger_win.info (f"< {node} > was not in the pool, so no change in pool happened") if os == "windows" else logger_unix.info (f"< {node} > was not in the pool, so no change in pool happened")    
+        logger.info (f"< {node} > was not in the pool, so no change in pool happened")

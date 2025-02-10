@@ -1,14 +1,17 @@
-# retreives user group in guacamole
 from tabulate import tabulate
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
+
 my_connection = MyDatabase.connect_guaca_db()
 
-pool_records = CaptureLog("pool", __file__)
-logger_unix = pool_records.log_agent("linux")   # **** logger_win needs to be added; win flag should be sent when calling the function ****
+checkgroup_records = CaptureLog("checkgroup", __file__)
+logger = checkgroup_records.log_agent("guaca")
 
 def check_group(user_group):
+    """
+    Retreives user group in guacamole
+    """
     try:
         sentence = []
         check_group = f"SELECT user_group_id, member_entity_id FROM guacamole_user_group_member WHERE user_group_id = '{user_group}'"
@@ -18,7 +21,7 @@ def check_group(user_group):
             check_group_results = cursor.fetchall()
         if len(check_group_results) == 0:
             print ("EMPTY check_group") if MyPrintCondition.fprint else 0
-            logger_unix.info ("EMPTY check_group")
+            logger.info ("EMPTY check_group")
             return
         else:
             for row_check_group in check_group_results:
@@ -26,9 +29,9 @@ def check_group(user_group):
                 member_entity_id = row_check_group[1]
                 sentence.insert(len(sentence), [user_group_id , member_entity_id])
         print ("\n", tabulate(sentence, headers=['user_group_id', 'member_entity_id'])) if MyPrintCondition.fprint else 0
-        logger_unix.info ("\n" + tabulate(sentence, headers=['user_group_id', 'member_entity_id']))
+        logger.info ("\n" + tabulate(sentence, headers=['user_group_id', 'member_entity_id']))
 
         return check_group_results
     except:
         print ("error in checking guacamole user group member") if MyPrintCondition.fprint else 0
-        logger_unix.error ("error in checking guacamole user group member")
+        logger.error ("error in checking guacamole user group member")

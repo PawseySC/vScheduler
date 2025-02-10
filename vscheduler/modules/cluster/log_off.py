@@ -105,11 +105,9 @@ def logoff(user, node):
         else:
             print (f"no os found for < {node} >") if MyPrintCondition.fprint else 0
             logger.warning (f"no os found for < {node} >")
-            logger.warning (f"no os found for < {node} >")
             exit
         connection.close()
 
     except:
         print (f"Could not connect to ndoe < {node} > to query session and logoff") if MyPrintCondition.fprint else 0
-        logger.error (f"Could not connect to ndoe < {node} > to query session and logoff")
         logger.error (f"Could not connect to ndoe < {node} > to query session and logoff")
