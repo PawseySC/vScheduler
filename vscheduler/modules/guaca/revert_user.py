@@ -1,4 +1,3 @@
-# reverts user to general partition of pool at logout
 from vscheduler.log.log import CaptureLog
 from vscheduler.lib import config
 from vscheduler.general.alert import mailFunction
@@ -7,22 +6,26 @@ from vscheduler.modules.guaca.update import update
 from vscheduler.modules.guaca.insert import insert
 from vscheduler.modules.guaca.guaca_user_group import guacamole_user_group
 
-pool_records = CaptureLog("pool", __file__)
-logger_unix = pool_records.log_agent("linux")   # windows logger is needed by passing the node
+revert_user_records = CaptureLog("revert user", __file__)
+logger = revert_user_records.log_agent("guaca")
+
 
 def revert_back_to_pool(user, node, pool):
+    """
+    Reverts user to general partition of pool at logout
+    """
     pool_entity = entity(pool)
-    logger_unix.info (f"pool_entity of < {pool} >: < {pool_entity} >")
+    logger.info (f"pool_entity of < {pool} >: < {pool_entity} >")
     if pool_entity is not None:
         pool_group = guacamole_user_group(pool_entity[0][0])
     else:
         mailFunction("NoneType error",f"NoneType object is not subscriptable\nvscheduler > modules > guaca > revertuser > revert (line 17)\npool_group = guacamole_user_group({pool_entity}) = {guacamole_user_group(pool_entity[0][0])}", "", "")
-        logger_unix.critical (f"NoneType object is not subscriptable\nvscheduler > modules > guaca > revertuser > revert (line 17)\npool_group = guacamole_user_group({pool_entity}) = {guacamole_user_group(pool_entity[0][0])}")
+        logger.critical (f"NoneType object is not subscriptable\nvscheduler > modules > guaca > revertuser > revert (line 17)\npool_group = guacamole_user_group({pool_entity}) = {guacamole_user_group(pool_entity[0][0])}")
         pass
 
     user_entity = entity(user)
-    logger_unix.info (f"pool_group of < {pool} >: < {pool_group} >")
-    logger_unix.info (f"user_entity of < {user} >: < {user_entity} >")
+    logger.info (f"pool_group of < {pool} >: < {pool_group} >")
+    logger.info (f"user_entity of < {user} >: < {user_entity} >")
     update(user_entity[0][0], guacamole_user_group(entity(node)[0][0])[0][0], pool_group[0][0], "revert", pool)
 
 # def insert_new_to_pool(user, pool):
