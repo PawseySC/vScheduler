@@ -21,12 +21,14 @@ import datetime
 
 my_connection = MyDatabase.connect_report_db()
 
-records = CaptureLog("pool", __file__)
-logger_win = records.log_agent("windows")
-logger_unix = records.log_agent("linux")
+report_pool_records = CaptureLog("report_pool", __file__)
+logger = report_pool_records.log_agent("reports")
 
 
 def pool_report_generator(hostname, username, start, end):
+    """
+    Generates report for pool
+    """
     sentence = []
     query = ""
     accumulation = 0
@@ -84,7 +86,8 @@ def pool_report_generator(hostname, username, start, end):
     print (actual_usage_report_results_list)
     print (tabulate(actual_usage_report_results, headers='keys', tablefmt='psql'))
     print ("sum: ", actual_usage_report_results['duration'].sum())
-    logger_win.info ("\n" + tabulate(actual_usage_report_results, headers='keys', tablefmt='psql')) if config.partition['windows']['node'] in hostname else logger_unix.info ("\n" + tabulate(actual_usage_report_results, headers='keys', tablefmt='psql'))
+    # logger_win.info ("\n" + tabulate(actual_usage_report_results, headers='keys', tablefmt='psql')) if config.partition['windows']['node'] in hostname else logger_unix.info ("\n" + tabulate(actual_usage_report_results, headers='keys', tablefmt='psql'))
+    logger.info ("\n" + tabulate(actual_usage_report_results, headers='keys', tablefmt='psql'))
     with my_connection.cursor() as my_cursor:
         my_cursor.execute(actual_usage_report)
         actual_usage_report_results = my_cursor.fetchall()

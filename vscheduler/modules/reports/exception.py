@@ -1,4 +1,3 @@
-# called by stat tool
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib import config
@@ -7,8 +6,8 @@ from vscheduler.general.timer import Brackets as MyBrackets
 
 my_connection = MyDatabase.connect_report_db()
 
-records = CaptureLog("exception", __file__)
-logger_exception = records.log_agent("exception")
+exception_records = CaptureLog("exception", __file__)
+logger = exception_records.log_agent("reports")
 
 
 def exception_list(user, start, end):
@@ -26,23 +25,24 @@ def exception_list(user, start, end):
         if end:
             exception_list_query = exception_list_query + f" AND end <= '{end}'"
         print (f"exception_list_query: {exception_list_query}") if MyPrintCondition.fprint else 0
-        logger_exception.info (f"exception_list_query: {exception_list_query}")
+        logger.info (f"exception_list_query: {exception_list_query}")
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as my_cursor:
             my_cursor.execute(exception_list_query)
             exception_query_results = my_cursor.fetchall()        
         # print (f"exception_query_results: {exception_query_results}") if MyPrintCondition.fprint else 0
-        logger_exception.info (f"exception_query_results: {exception_query_results}")
+        logger.info (f"exception_query_results: {exception_query_results}")
         
         [print (f"{user} is not excepted" if len(exception_query_results) == 0 else f"{exception_query_result[0]} is excepted since {exception_query_result[1]} with wall time of {exception_query_result[3]} hours") for exception_query_result in exception_query_results] if MyPrintCondition.fprint else 0
-        [logger_exception.info (f"{user} is not excepted" if len(exception_query_results) == 0 else f"{exception_query_result[0]} is excepted since {exception_query_result[1]} with wall time of {exception_query_result[3]} hours") for exception_query_result in exception_query_results]
+        [logger.info (f"{user} is not excepted" if len(exception_query_results) == 0 else f"{exception_query_result[0]} is excepted since {exception_query_result[1]} with wall time of {exception_query_result[3]} hours") for exception_query_result in exception_query_results]
         return exception_query_results
     except my_connection.Error as e:
         print (f"exception record error for user < {user} > in query = {exception_list_query}\n{e}") if MyPrintCondition.fprint else 0
-        logger_exception.error (f"exception record error for user < {user} > in query = {exception_list_query}\n{e}")
+        logger.error (f"exception record error for user < {user} > in query = {exception_list_query}\n{e}")
         
 def exception_update(user, mode, wall_time):
     """
+    Called by stat tool
     Updates exception status of specific user by adding or removing the user from exception table.
     """
     try:
@@ -52,13 +52,13 @@ def exception_update(user, mode, wall_time):
         if mode == "activate":
             if len(exceptions) > 0:                
                 print (f"{user} is already excepted since {exceptions[0][1]} with wall time of {exceptions[0][3]} hours") if MyPrintCondition.fprint else 0
-                logger_exception.info (f"{user} is already excepted since {exceptions[0][1]} with wall time of {exceptions[0][3]} hours")
+                logger.info (f"{user} is already excepted since {exceptions[0][1]} with wall time of {exceptions[0][3]} hours")
             else:
                 exception_update_query = f"INSERT INTO {config.database['report']['table']['exception']} (user, start, end, wall_time) VALUES ('{user}', '{MyBrackets.local_time}', '{MyBrackets.local_time}', {wall_time})"
         elif mode == "deactivate":
             if len(exceptions) == 0:
                 print (f"{user} is not excepted already") if MyPrintCondition.fprint else 0
-                logger_exception.info (f"{user} is not excepted already")
+                logger.info (f"{user} is not excepted already")
             else:
                 exception_update_query = f"UPDATE {config.database['report']['table']['exception']} SET end = '{MyBrackets.local_time}' WHERE user = '{user}' AND start = end"
         if exception_update_query:
@@ -67,11 +67,11 @@ def exception_update(user, mode, wall_time):
                 my_cursor.execute(exception_update_query)
                 my_connection.commit()
             # print (f"exception_update_query: {exception_update_query}") if MyPrintCondition.fprint else 0 
-            logger_exception.info (f"exception_update_query: {exception_update_query}")
+            logger.info (f"exception_update_query: {exception_update_query}")
             print (f"{my_cursor.rowcount} record(s) inserted/updated into exception table") if MyPrintCondition.fprint else 0 
-            logger_exception.info (f"{my_cursor.rowcount} record(s) inserted/updated into exception table")
+            logger.info (f"{my_cursor.rowcount} record(s) inserted/updated into exception table")
             exception_list(user, "", "")
        
     except my_connection.Error as e:
         print (f"exception record error for user < {user} > in query = {exception_update_query}\n{e}") if MyPrintCondition.fprint else 0
-        logger_exception.error (f"exception record error for user < {user} > in query = {exception_update_query}\n{e}")
+        logger.error (f"exception record error for user < {user} > in query = {exception_update_query}\n{e}")

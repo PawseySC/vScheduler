@@ -1,4 +1,3 @@
-# called by vinfo tool
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib import config
@@ -13,8 +12,8 @@ import re
 
 my_connection = MyDatabase.connect_report_db()
 
-records = CaptureLog("status", __file__)
-logger = records.log_agent("info")
+information_records = CaptureLog("information", __file__)
+logger = information_records.log_agent("reports")
 
 pd.set_option('display.colheader_justify', 'left')
 pd.options.display.max_colwidth = 100
@@ -65,6 +64,9 @@ all_nodes_merged = pd.concat(all_nodes, axis=0)
 
 
 def print_info():
+    """
+    Called by vinfo tool generating nodes status information
+    """
     # print (f"all nodes merged:\n {all_nodes_merged}")
     try:
         query = f"SELECT node, status, pool from status WHERE start = end"
