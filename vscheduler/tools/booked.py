@@ -1,4 +1,3 @@
-# management script for bookable partition
 import multiprocessing, click
 from vscheduler.log.log import CaptureLog
 from vscheduler.lib import config
@@ -14,8 +13,8 @@ from vscheduler.modules.booked.instances import reservation_instances           
 from vscheduler.modules.booked.deleted import deleted                              # retreives status id of each reservation instances
 from vscheduler.modules.cluster.log_off import logoff
 
-booking_records = CaptureLog("booking", __file__)
-logger_win = booking_records.log_agent("windows")
+booking_records = CaptureLog("booked", __file__)
+logger = booking_records.log_agent("tools")
 
 # Process class
 class Process(multiprocessing.Process):
@@ -28,16 +27,19 @@ class Process(multiprocessing.Process):
         self.del_found = False
 
     def run(self):
+        """
+        Management script for bookable partition
+        """
         user = ""
         # time.sleep(1)
         print ("\n==>> Process id: {}".format(self.id)) if MyPrintCondition.fprint and self.id else 0
-        logger_win.info ("==>Process id: {}".format(self.id)) if self.id else 0
+        logger.info ("==>Process id: {}".format(self.id)) if self.id else 0
 
         resource_id = host_by_name(self.hostname)                                                   # retreives node resource id
         series_ids = resource_reservations(resource_id[0][0]) if resource_id else quit()  # NO BOOKING AT ALL               # retreives node series ids
         users = who(self.hostname) if not self.username else [self.username]                        # retreives node logged in users
         print (f"\nusers logged in or asked to be checked in < {self.hostname} >: {users}") if MyPrintCondition.fprint else 0
-        logger_win.info (f"\nusers logged in or asked to be checked in < {self.hostname} >: {users}")
+        logger.info (f"\nusers logged in or asked to be checked in < {self.hostname} >: {users}")
         instances = reservation_instances(MyBrackets.start_bracket, MyBrackets.end_bracket)         # retreives booking records within time brackets
 
         if users:
@@ -45,86 +47,86 @@ class Process(multiprocessing.Process):
                 self.found = False
                 self.del_found = False
                 print (f"\n--> user: {user}") if MyPrintCondition.fprint else 0
-                logger_win.info (f"\n--> user: {user}")
+                logger.info (f"\n--> user: {user}")
 
                 user_identity = user_details_by_username(user)                                      # retreives user identification
                 if user_identity:
                     reservations = user_reservations_by_user_id(user_identity[0][0])                # retreives user booking records
                 else: 
                     print (f"user < {user} > does not exist in booked db") if MyPrintCondition.fprint else 0
-                    logger_win.info (f"user < {user} > does not exist in booked db")
+                    logger.info (f"user < {user} > does not exist in booked db")
                     logoff(user, self.hostname)
                     continue    
                 # print (f"reservations for", user, reservations)
                 if instances:
                     for instance in instances:
                         print (f"instance: {instance}") if MyPrintCondition.fprint else 0
-                        logger_win.info (f"instance: {instance}")
+                        logger.info (f"instance: {instance}")
                         print (f"instance[3]: {instance[3]}") if MyPrintCondition.fprint else 0
-                        logger_win.info (f"instance[3]: {instance[3]}")
+                        logger.info (f"instance[3]: {instance[3]}")
                         if instance[1] <= MyBrackets.now and instance[2] >= MyBrackets.now:         # if the booking is current
                             print ("booking for the current time") if MyPrintCondition.fprint else 0
-                            logger_win.info ("booking for the current time")
+                            logger.info ("booking for the current time")
                             if not any(instance[3] in x for x in series_ids):
                                 print (f"none of reservation instances records matches booking(s) made for < {self.hostname} >") if MyPrintCondition.fprint else 0
-                                logger_win.info (f"none of reservation instances records matches booking(s) made for < {self.hostname} >")
+                                logger.info (f"none of reservation instances records matches booking(s) made for < {self.hostname} >")
                                 exit
                             else:
                                 for series_id in series_ids:
                                     print (f"series_id[0]: {series_id[0]}") if MyPrintCondition.fprint else 0
-                                    logger_win.info (f"series_id[0]: {series_id[0]}")
+                                    logger.info (f"series_id[0]: {series_id[0]}")
                                     if series_id[0] == instance[3]:
                                         if not any(instance[0] in x for x in reservations):
                                             print (f"none of records matches booking made by < {user} >") if MyPrintCondition.fprint else 0
-                                            logger_win.info (f"none of records matches booking made by < {user} >")
+                                            logger.info (f"none of records matches booking made by < {user} >")
                                         else:
                                             for reservation in reservations:
                                                 print (f"reservation: {reservation}") if MyPrintCondition.fprint else 0
-                                                logger_win.info (f"reservation: {reservation}")
+                                                logger.info (f"reservation: {reservation}")
                                                 print (f"reservation[0]: {reservation[0]}") if MyPrintCondition.fprint else 0
-                                                logger_win.info (f"reservation[0]: {reservation[0]}")
+                                                logger.info (f"reservation[0]: {reservation[0]}")
                                                 print (f"instance[0]: {instance[0]}") if MyPrintCondition.fprint else 0
-                                                logger_win.info (f"instance[0]: {instance[0]}")
+                                                logger.info (f"instance[0]: {instance[0]}")
                                                 if reservation[0] == instance[0]:
                                                     if deleted(instance[3])[0][1] != 2:     # checks if booking is deleted
                                                         # if reservation[1] == user_identity[0]:
                                                         # **** add a condition here to make sure booking is for now ****
                                                         self.found = True
                                                         print ("all good") if MyPrintCondition.fprint else 0
-                                                        logger_win.info ("all good")
+                                                        logger.info ("all good")
                                                         break
                                                     else:
                                                         self.del_found = True
                                                         print ("deleted record") if MyPrintCondition.fprint else 0
-                                                        logger_win.info ("deleted record")
+                                                        logger.info ("deleted record")
                                                 else:
                                                     print (f"booking record not for < {user} >") if MyPrintCondition.fprint else 0
-                                                    logger_win.info (f"booking record not for < {user} >")
+                                                    logger.info (f"booking record not for < {user} >")
                                     else:
                                         print (f"record of < {self.hostname} > does not match this booking") if MyPrintCondition.fprint else 0
-                                        logger_win.info (f"record of < {self.hostname} > does not match this booking")
+                                        logger.info (f"record of < {self.hostname} > does not match this booking")
                         else:
                             print ("booking not for the current time") if MyPrintCondition.fprint else 0
-                            logger_win.info ("booking not for the current time")
+                            logger.info ("booking not for the current time")
                 else:
                     print (f"no current booking for < {self.hostname} > in the time bracket set in the config - skipping and killing all sessions") if MyPrintCondition.fprint else 0
-                    logger_win.info (f"no current booking for < {self.hostname} > in the time bracket set in the config - skipping and killing all sessions")
+                    logger.info (f"no current booking for < {self.hostname} > in the time bracket set in the config - skipping and killing all sessions")
                     logoff(user, self.hostname)
                     continue
                 if self.found == True:
                     print (f"matched the booking for < {user} > - session on < {self.hostname} > is valid") if MyPrintCondition.fprint else 0
-                    logger_win.info (f"matched the booking for < {user} > - session on < {self.hostname} > is valid")
+                    logger.info (f"matched the booking for < {user} > - session on < {self.hostname} > is valid")
                 else:
                     if not self.del_found:
                         print (f"no match found for < {user} > on < {self.hostname} > - session will be killed") if MyPrintCondition.fprint else 0
-                        logger_win.info (f"no match found for < {user} > on < {self.hostname} > - session will be killed")
+                        logger.info (f"no match found for < {user} > on < {self.hostname} > - session will be killed")
                     else:
                         print (f"booking for < {user} > on < {self.hostname} > has been deleted - session will be killed") if MyPrintCondition.fprint else 0
-                        logger_win.info (f"booking for < {user} > on < {self.hostname} > has been deleted - session will be killed")
+                        logger.info (f"booking for < {user} > on < {self.hostname} > has been deleted - session will be killed")
                     logoff(user, self.hostname)       
         else:
             print (f"no one is using < {self.hostname} > - skipping") if MyPrintCondition.fprint else 0
-            logger_win.info (f"no one is using < {self.hostname} > - skipping")
+            logger.info (f"no one is using < {self.hostname} > - skipping")
 
 
 def main():
@@ -150,7 +152,7 @@ def main():
                     p.join()        # Process.join() to wait for task completion
         else:
             print ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
-            logger_win.info ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg")
+            logger.info ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg")
     else:
         if (config.partition['windows']['node'] in initiate.node and 
                 int(initiate.node.removeprefix(config.partition['windows']['node'])) in range(config.partition['windows']['booking']['range'][0], config.partition['windows']['booking']['range'][1]+1) or 
@@ -161,7 +163,7 @@ def main():
             p.join()        # Process.join() to wait for task completion
         else:
             print (f"< {initiate.node} > is not in bookable range") if MyPrintCondition.fprint else 0
-            logger_win.info (f"< {initiate.node} > is not in bookable range")
+            logger.info (f"< {initiate.node} > is not in bookable range")
 
 
 if __name__ == '__main__':

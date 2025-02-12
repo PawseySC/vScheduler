@@ -1,4 +1,3 @@
-# vinfo script
 import multiprocessing, click, time
 from vscheduler.log.log import CaptureLog
 from tabulate import tabulate
@@ -8,8 +7,8 @@ from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.modules.reports.information import print_info
 from vscheduler.modules.reports.information import session
 
-records = CaptureLog("info", __file__)
-logger = records.log_agent("info")
+tools_records = CaptureLog("info", __file__)
+logger = tools_records.log_agent("tools")
 
 
 # Process class
@@ -23,6 +22,9 @@ class Process(multiprocessing.Process):
         session (self.hostname)
         
 def main():
+    """
+    vinfo script giving overview of all nodes' status
+    """
     if initiate.session:
         print (initiate.session)
         if not initiate.node:

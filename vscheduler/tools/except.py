@@ -1,4 +1,3 @@
-# allocates connection link to specific node of general pool in user's guacamole dashboard
 import multiprocessing
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import Initiation as initiate
@@ -6,8 +5,8 @@ from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.modules.reports.exception import exception_update, exception_list
 
 
-records = CaptureLog("exception", __file__)
-logger_exception = records.log_agent("exception")
+exception_records = CaptureLog("exception", __file__)
+logger = exception_records.log_agent("tools")
 
 
 # Process class
@@ -21,6 +20,9 @@ class Process(multiprocessing.Process):
         self.time = time
     
     def run(self):
+        """
+        Allocates connection link to specific node of general pool in user's guacamole dashboard
+        """
         # time.sleep(1)
         # print (f"user: {self.username}") if MyPrintCondition.fprint else 0
         if self.mode == "list" or self.mode == "status":
