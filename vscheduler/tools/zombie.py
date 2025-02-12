@@ -1,4 +1,3 @@
-# checks rdp port via telnet connection periodically (ports 3389) to remove zombie node from being a general pool member upon unsuccessful telnet query by flagging that in report db
 import time, asyncio
 from vscheduler.log.log import CaptureLog
 from vscheduler.lib import config
@@ -9,12 +8,17 @@ from vscheduler.modules.guaca.entity import entity
 from vscheduler.general.alert import mailFunction
 
 my_connection = MyDatabase.connect_guaca_db()
-socket_records = CaptureLog("zombie", __file__)
-logger_zombie = socket_records.log_agent("zombie")
+
+zombie_records = CaptureLog("zombie", __file__)
+logger = zombie_records.log_agent("tools")
 
 
 async def wait_host_port(host, port, duration=3, delay=1):
     """
+    Checks rdp port via telnet connection periodically (ports 3389) 
+    to remove zombie node from being a general pool member 
+    upon unsuccessful telnet query by flagging that in report db
+    
     Repeatedly try if a port on a host is open until duration seconds passed
     
     Parameters
@@ -38,12 +42,12 @@ async def wait_host_port(host, port, duration=3, delay=1):
             _reader, writer = await asyncio.wait_for(asyncio.open_connection(host + "." + config.email['domain'], port), timeout=5)
             writer.close()
             await writer.wait_closed()
-            logger_zombie.info (f"< {host} > is reachable on port < {port} >")
+            logger.info (f"< {host} > is reachable on port < {port} >")
             return True
         except:
             if delay:
                 await asyncio.sleep(delay)
-    logger_zombie.critical (f"< {host} > could not be reached on port < {port} >")  
+    logger.critical (f"< {host} > could not be reached on port < {port} >")  
     refresh (host)        # refresh pool if connection to pool member fails
     update_status(host, "down") # flag it in db as down
     mailFunction(f"{host} <-> {port}", f"< {host} > could not be reached on port < {port} >", "", "")
@@ -56,7 +60,7 @@ async def wait_host_port(host, port, duration=3, delay=1):
 #             _reader, writer = await asyncio.wait_for(asyncio.open_connection(host, port), timeout=5)
 #             writer.close()
 #             await writer.wait_closed()
-#             logger_zombie.info (f"< {host} > is reachable on port < {port} >")
+#             logger.info (f"< {host} > is reachable on port < {port} >")
 #             print (True)
 #             return True
 #         except:
@@ -111,22 +115,22 @@ def check_zombie():
     # asyncio.run(wait_host_port(windows_hosts_booking, port)) if config.partition['windows']['booking']['status'] else 0
     # asyncio.run(foo("w08.pawsey.org.au", port))
     
-    # logger_zombie.info (f"\n< {linux_pool_entity[0][1]} > async result: {linux_poke_result}\n< {windows_pool_entity[0][1]} > async result: {windows_poke_result}")
+    # logger.info (f"\n< {linux_pool_entity[0][1]} > async result: {linux_poke_result}\n< {windows_pool_entity[0][1]} > async result: {windows_poke_result}")
     # if not linux_poke_result:
-    #     logger_zombie.critical (f"< {linux_node} > could not be reached on port < {port} >")  
+    #     logger.critical (f"< {linux_node} > could not be reached on port < {port} >")  
     #     refresh (linux_node)        # refresh pool if connection to pool member fails
     #     update_status(linux_node, "down") # flag it in db as down
     #     mailFunction(f"{linux_node} <-> {port}", f"< {linux_node} > could not be reached on port < {port} >", "", "")
     # else:
-    #     logger_zombie.info (f"< {linux_node} > is reachable on port < {port} >")
+    #     logger.info (f"< {linux_node} > is reachable on port < {port} >")
         
     # if not windows_poke_result:
-    #     logger_zombie.critical (f"< {windows_node} > could not be reached on port < {port} >")
+    #     logger.critical (f"< {windows_node} > could not be reached on port < {port} >")
     #     refresh (windows_node)      # refresh pool if connection to pool member fails
     #     update_status(windows_node, "down") # flag it in db as down
     #     mailFunction(f"{windows_node} <-> {port}", f"< {windows_node} > could not be reached on port < {port} >", "", "")  
     # else:
-    #     logger_zombie.info (f"< {windows_node} > is reachable on port < {port} >")
+    #     logger.info (f"< {windows_node} > is reachable on port < {port} >")
     
         
 if __name__ == '__main__':

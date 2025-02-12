@@ -1,4 +1,3 @@
-# makes a node exception not to be called in allocation process, or gives exception status of all/specific node(s)
 import multiprocessing, click
 from vscheduler.log.log import CaptureLog
 from vscheduler.lib import config
@@ -10,9 +9,8 @@ from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 # from vscheduler.modules.cluster.maintenance import activation_status as status_activation
 from vscheduler.modules.guaca.maintenance import change_maint_status
 
-records = CaptureLog("control", __file__)
-logger_win = records.log_agent("windows")
-logger_unix = records.log_agent("linux")
+control_records = CaptureLog("control", __file__)
+logger = control_records.log_agent("tools")
 
 # Process class
 # class Process(multiprocessing.Process):
@@ -35,6 +33,9 @@ logger_unix = records.log_agent("linux")
 #             status_activation (self.hostname, start, end)
 
 def main():
+    """
+    Makes a node exception not to be called in allocation process, or gives exception status of all/specific node(s)
+    """
     if not initiate.node:
         print (initiate.mode, initiate.partition)
         change_maint_status (initiate.mode, initiate.partition)

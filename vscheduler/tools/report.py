@@ -1,4 +1,3 @@
-# report script
 import multiprocessing, click
 from vscheduler.log.log import CaptureLog
 from vscheduler.lib import config
@@ -17,16 +16,13 @@ from vscheduler.general.timer import Brackets as MyBrackets
 # from vscheduler.modules.booked.deleted import deleted                              # retreives status id of each reservation instances
 # from vscheduler.modules.cluster.who import who                                     # who's logged in each node
 # from vscheduler.modules.cluster.log_off import logoff
-
 from vscheduler.modules.reports.report_pool import pool_report_generator
-
 from tabulate import tabulate
 # my_connection = MyDatabase.connect_booked_db()
 # my_cursor = my_connection.cursor()
 
-records = CaptureLog("booking/pool", __file__)
-logger_win = records.log_agent("windows")
-logger_unix = records.log_agent("linux")
+report_records = CaptureLog("report", __file__)
+logger = report_records.log_agent("tools")
 
 # sendMail = True
 # counter = 0
@@ -66,12 +62,16 @@ class Process(multiprocessing.Process):
         self.username = username
 
     def run(self):
+        """
+        Report script
+        """
         # time.sleep(1)
         print ("\n==>> Process id: {}".format(self.id)) if MyPrintCondition.fprint and self.id else 0
-        if config.partition['windows']['node'] in self.hostname:
-            logger_win.info ("==>Process id: {}".format(self.id)) if self.id else 0
-        elif config.partition['linux']['node'] in self.hostname:
-            logger_unix.info ("==>Process id: {}".format(self.id)) if self.id else 0
+        # if config.partition['windows']['node'] in self.hostname:
+        #     logger_win.info ("==>Process id: {}".format(self.id)) if self.id else 0
+        # elif config.partition['linux']['node'] in self.hostname:
+        #     logger_unix.info ("==>Process id: {}".format(self.id)) if self.id else 0
+        logger.info ("==>Process id: {}".format(self.id)) if self.id else 0
 
         start = '2000-01-01' if not initiate.start else initiate.start
         end = MyBrackets.local_time if not initiate.end else initiate.end
