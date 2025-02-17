@@ -1,5 +1,5 @@
 # establishes ssh connection to each node
-import warnings, os, paramiko
+import warnings, sys, os, paramiko
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition
 from vscheduler.lib import config
@@ -12,9 +12,8 @@ warnings.filterwarnings(action="ignore",module=".*paramiko.*")
 if os.path.isfile(config.ssh['key']):
     key = paramiko.RSAKey.from_private_key_file(config.ssh['key'])
 else:
-    print ("ssh key not found")
     logger.critical ("ssh key not found")
-    quit()
+    sys.exit ("ssh key not found")
 
 class Node:
     """

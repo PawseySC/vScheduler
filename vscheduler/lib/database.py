@@ -1,5 +1,5 @@
 # establishes db connection to booked and guaca dbs
-import pymysql
+import sys, pymysql
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition
 from vscheduler.lib import config
@@ -26,10 +26,9 @@ class Database:
                                 charset="utf8")
                 return db_con
         except pymysql.Error as e:
-            print (f"error connecting booked database\n{e}") if PrintCondition.fprint else 0
             mailFunction("db error", f"error connecting booked database\n{e}", "", "")
             logger.critical (f"error connecting booked database\n{e}")
-            quit()
+            sys.exit (f"error connecting booked database\n{e}")
 
     def connect_guaca_db():
         try:
@@ -42,10 +41,9 @@ class Database:
                             charset="utf8")
             return db_con
         except pymysql.Error as e:
-            print (f"error connecting guaca database\n{e}") if PrintCondition.fprint else 0
             mailFunction("db error", f"error connecting guaca database\n{e}", "", "")
             logger.critical (f"error connecting guaca database\n{e}")
-            quit()
+            sys.exit (f"error connecting guaca database\n{e}")
 
     def connect_report_db():
         try:
@@ -58,7 +56,6 @@ class Database:
                             charset="utf8")
             return db_con
         except pymysql.Error as e:
-            print (f"error connecting report database\n{e}") if PrintCondition.fprint else 0
             mailFunction("db error", f"error connecting report database\n{e}", "", "")
             logger.critical (f"error connecting report database\n{e}")
-            quit()
+            sys.exit (f"error connecting report database\n{e}")
