@@ -2,32 +2,32 @@
 import warnings, sys, os, paramiko
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition
-from vscheduler.lib import config
+from vscheduler.lib.config import Config
 
 ssh_records = CaptureLog("ssh", __file__)
 logger = ssh_records.log_agent("lib")
 
 
 warnings.filterwarnings(action="ignore",module=".*paramiko.*")
-if os.path.isfile(config.ssh['key']):
-    key = paramiko.RSAKey.from_private_key_file(config.ssh['key'])
+if os.path.isfile(Config.config['ssh']['key']):
+    key = paramiko.RSAKey.from_private_key_file(Config.config['ssh']['key'])
 else:
     logger.critical ("ssh key not found")
     sys.exit ("ssh key not found")
 
 class Node:
     """
-    Establishes ssh connection to client from management server using the dedicated key in config 
+    Establishes ssh connection to client from management server using the dedicated key in config
     """
     @staticmethod
     def connect_node(computer):
         try:
-            node_name = computer + '.' + config.email['domain']
+            node_name = computer + '.' + Config.config['email']['domain']
             node_conn = paramiko.SSHClient()
             node_conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             node_conn.connect(
                             hostname = node_name, 
-                            username = config.ssh['user'],
+                            username = Config.config['ssh']['user'],
                             pkey = key, 
                             timeout=5)
             return node_conn

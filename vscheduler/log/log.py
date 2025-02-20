@@ -1,6 +1,7 @@
 import os, logging
-from vscheduler.lib import config
-
+from vscheduler.lib.config import Config
+print (Config)
+print (type(Config))
 class CaptureLog(object):
     """
     Logging class facilitates methods to capture event logs into dedicated log file
@@ -10,7 +11,7 @@ class CaptureLog(object):
         self.flag = flag
         self.location = location
     
-    def extendable_logger(self, log_name, file_name, level = config.log['level']):
+    def extendable_logger(self, log_name, file_name, level = Config.config["log"]['level']):
         handler = logging.FileHandler(file_name)
         handler.setFormatter(self.formatter) 
         specified_logger = logging.getLogger(log_name)
