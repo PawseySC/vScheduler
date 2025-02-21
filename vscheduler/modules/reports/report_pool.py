@@ -12,7 +12,7 @@ from plotly.subplots import make_subplots
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.general.initiate import Initiation as initiate
-from vscheduler.lib import config
+from vscheduler.lib.config import Config
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.general.alert import mailFunction
 from vscheduler.general.alert2 import email_with_embeded_image
@@ -60,7 +60,7 @@ def pool_report_generator(hostname, username, start, end):
                         query = query + f"end <= '{end}'"
                         
     # print (query)
-    actual_usage_report = f"SELECT * FROM {config.database['report']['table']['linux']}" + query
+    actual_usage_report = f"SELECT * FROM {Config.config['database']['report']['table']['linux']}" + query
     actual_usage_report_results = pd.read_sql(actual_usage_report, my_connection)
     actual_usage_report_results["email"] = ""
     actual_usage_report_results["first name"] = ""
@@ -86,7 +86,7 @@ def pool_report_generator(hostname, username, start, end):
     print (actual_usage_report_results_list)
     print (tabulate(actual_usage_report_results, headers='keys', tablefmt='psql'))
     print ("sum: ", actual_usage_report_results['duration'].sum())
-    # logger_win.info ("\n" + tabulate(actual_usage_report_results, headers='keys', tablefmt='psql')) if config.partition['windows']['node'] in hostname else logger_unix.info ("\n" + tabulate(actual_usage_report_results, headers='keys', tablefmt='psql'))
+    # logger_win.info ("\n" + tabulate(actual_usage_report_results, headers='keys', tablefmt='psql')) if Config.config['partition']['windows']['node'] in hostname else logger_unix.info ("\n" + tabulate(actual_usage_report_results, headers='keys', tablefmt='psql'))
     logger.info ("\n" + tabulate(actual_usage_report_results, headers='keys', tablefmt='psql'))
     with my_connection.cursor() as my_cursor:
         my_cursor.execute(actual_usage_report)
