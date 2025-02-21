@@ -1,6 +1,6 @@
 import multiprocessing, click
 from vscheduler.log.log import CaptureLog
-from vscheduler.lib import config
+from vscheduler.lib.config import Config
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.general.timer import Brackets as MyBrackets
@@ -73,9 +73,9 @@ class Process(multiprocessing.Process):
                                     elif group_check and any(user_entity[0][0] in x for x in group_check):
                                         for row_group_check in group_check:
                                             if row_group_check[1] == user_entity[0][0]:
-                                                pool_entity = entity(config.partition['windows']['node']) if config.partition['windows']['node'] in self.hostname else entity(config.partition['linux']['node'])
+                                                pool_entity = entity(Config.config['partition']['windows']['node']) if Config.config['partition']['windows']['node'] in self.hostname else entity(Config.config['partition']['linux']['node'])
                                                 pool_user_group = guacamole_user_group(pool_entity[0][0])
-                                                update(user_entity[0][0], user_group[0][0], pool_user_group[0][0], "sync", config.partition['windows']['node'] if config.partition['windows']['node'] in self.hostname else config.partition['linux']['node'])
+                                                update(user_entity[0][0], user_group[0][0], pool_user_group[0][0], "sync", Config.config['partition']['windows']['node'] if Config.config['partition']['windows']['node'] in self.hostname else Config.config['partition']['linux']['node'])
                                                 break
                             else:
                                 print ("booking not for the current time") if MyPrintCondition.fprint else 0
@@ -100,16 +100,16 @@ class Process(multiprocessing.Process):
 def main():
     MyBrackets.what_time(MyBrackets.now, MyBrackets.local_time, MyBrackets.start_bracket, MyBrackets.end_bracket)
     if not initiate.node:
-        if config.partition['windows']['booking']['status'] or config.partition['linux']['booking']['status']:
-            if config.partition['windows']['booking']['status']:
-                for i in range (config.partition['windows']['booking']['range'][0], config.partition['windows']['booking']['range'][1]+1):
-                    node = config.partition['windows']['node'] + '0' + str(i) if i <= 9 else config.partition['windows']['node'] + str(i)
+        if Config.config['partition']['windows']['booking']['status'] or Config.config['partition']['linux']['booking']['status']:
+            if Config.config['partition']['windows']['booking']['status']:
+                for i in range (Config.config['partition']['windows']['booking']['range'][0], Config.config['partition']['windows']['booking']['range'][1]+1):
+                    node = Config.config['partition']['windows']['node'] + '0' + str(i) if i <= 9 else Config.config['partition']['windows']['node'] + str(i)
                     p = Process(i, initiate.user, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
-            if config.partition['linux']['booking']['status']:
-                for i in range (config.partition['linux']['booking']['range'][0], config.partition['linux']['booking']['range'][1]+1):
-                    node = config.partition['linux']['node'] + '0' + str(i) if i <= 9 else config.partition['linux']['node'] + str(i)
+            if Config.config['partition']['linux']['booking']['status']:
+                for i in range (Config.config['partition']['linux']['booking']['range'][0], Config.config['partition']['linux']['booking']['range'][1]+1):
+                    node = Config.config['partition']['linux']['node'] + '0' + str(i) if i <= 9 else Config.config['partition']['linux']['node'] + str(i)
                     p = Process(i, initiate.user, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
@@ -117,10 +117,10 @@ def main():
             print ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
             logger.info ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg")
     else:
-        if (config.partition['windows']['node'] in initiate.node and 
-                int(initiate.node.removeprefix(config.partition['windows']['node'])) in range(config.partition['windows']['booking']['range'][0], config.partition['windows']['booking']['range'][1]+1) or 
-                (config.partition['linux']['node'] in initiate.node and 
-                int(initiate.node.removeprefix(config.partition['linux']['node'])) in range(config.partition['linux']['booking']['range'][0], config.partition['linux']['booking']['range'][1]+1))):
+        if (Config.config['partition']['windows']['node'] in initiate.node and 
+                int(initiate.node.removeprefix(Config.config['partition']['windows']['node'])) in range(Config.config['partition']['windows']['booking']['range'][0], Config.config['partition']['windows']['booking']['range'][1]+1) or 
+                (Config.config['partition']['linux']['node'] in initiate.node and 
+                int(initiate.node.removeprefix(Config.config['partition']['linux']['node'])) in range(Config.config['partition']['linux']['booking']['range'][0], Config.config['partition']['linux']['booking']['range'][1]+1))):
             p = Process("", initiate.user, initiate.node)
             p.start()       # Create a new process and invoke the Process.run() method
             p.join()        # Process.join() to wait for task completion

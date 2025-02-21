@@ -1,7 +1,7 @@
 import os, subprocess, time, sched
 from subprocess import Popen, PIPE, CalledProcessError
 from vscheduler.log.log import CaptureLog
-from vscheduler.lib import config
+from vscheduler.lib.config import Config
 from vscheduler.modules.reports.record_log_io import record_logout
 from vscheduler.modules.guaca.revert_user import revert_back_to_pool
 
@@ -14,7 +14,7 @@ def post_log_off(user, node, table):
     closed without waiting for client's socket-based request to server to do so.
     """
     logger.info (f"post_log_ff start, user, node, table: {user}, {node}, {table}")
-    revert_back_to_pool(user, node, config.partition['linux']['general']['pool'] if config.partition['linux']['node'] in node else config.partition['windows']['general']['pool'])
+    revert_back_to_pool(user, node, Config.config['partition']['linux']['general']['pool'] if Config.config['partition']['linux']['node'] in node else Config.config['partition']['windows']['general']['pool'])
     record_logout(user, node, table, "general")
     logger.info ("post_log_ff end")
     

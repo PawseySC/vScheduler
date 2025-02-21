@@ -1,6 +1,6 @@
 import multiprocessing, click
 from vscheduler.log.log import CaptureLog
-from vscheduler.lib import config
+from vscheduler.lib.config import Config
 from vscheduler.general.timer import Brackets as MyBrackets
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition

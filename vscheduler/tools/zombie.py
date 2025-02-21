@@ -1,6 +1,6 @@
 import time, asyncio
 from vscheduler.log.log import CaptureLog
-from vscheduler.lib import config
+from vscheduler.lib.config import Config
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.modules.reports.status import status_update as update_status
 from vscheduler.modules.guaca.pool_refresh import refresh
@@ -39,7 +39,7 @@ async def wait_host_port(host, port, duration=3, delay=1):
     tmax = time.time() + duration
     while time.time() < tmax:
         try:
-            _reader, writer = await asyncio.wait_for(asyncio.open_connection(host + "." + config.email['domain'], port), timeout=5)
+            _reader, writer = await asyncio.wait_for(asyncio.open_connection(host + "." + Config.config['email']['domain'], port), timeout=5)
             writer.close()
             await writer.wait_closed()
             logger.info (f"< {host} > is reachable on port < {port} >")
@@ -70,7 +70,7 @@ async def wait_host_port(host, port, duration=3, delay=1):
 #     return False
 
 def check_zombie():
-    port = config.asyncc['port']
+    port = Config.config['asyncc']['port']
     # linux_pool_entity = entity(MyCredentials.linux_pool)
     # windows_pool_entity = entity(MyCredentials.windows_pool)    
     
@@ -100,19 +100,19 @@ def check_zombie():
     # linux_poke_result = asyncio.run(wait_host_port(linux_host, port))
     # windows_poke_result = asyncio.run(wait_host_port(windows_host, port))
     
-    linux_hosts_general = [config.partition['linux']['node'] + "0" + str(i) if i < 10 else config.partition['linux']['node'] + str(i) for i in range(config.partition['linux']['general']['range'][0], config.partition['linux']['general']['range'][1]+1)]
-    linux_hosts_booking = [config.partition['linux']['node'] + "0" + str(i) if i < 10 else config.partition['linux']['node'] + str(i) for i in range(config.partition['linux']['booking']['range'][0], config.partition['linux']['booking']['range'][1]+1)]
-    windows_hosts_general = [config.partition['windows']['node'] + "0" + str(i) if i < 10 else config.partition['windows']['node'] + str(i) for i in range(config.partition['windows']['general']['range'][0], config.partition['windows']['general']['range'][1]+1)]
-    windows_hosts_booking = [config.partition['windows']['node'] + "0" + str(i) if i < 10 else config.partition['windows']['node'] + str(i) for i in range(config.partition['windows']['booking']['range'][0], config.partition['windows']['booking']['range'][1]+1)]
+    linux_hosts_general = [Config.config['partition']['linux']['node'] + "0" + str(i) if i < 10 else Config.config['partition']['linux']['node'] + str(i) for i in range(Config.config['partition']['linux']['general']['range'][0], Config.config['partition']['linux']['general']['range'][1]+1)]
+    linux_hosts_booking = [Config.config['partition']['linux']['node'] + "0" + str(i) if i < 10 else Config.config['partition']['linux']['node'] + str(i) for i in range(Config.config['partition']['linux']['booking']['range'][0], Config.config['partition']['linux']['booking']['range'][1]+1)]
+    windows_hosts_general = [Config.config['partition']['windows']['node'] + "0" + str(i) if i < 10 else Config.config['partition']['windows']['node'] + str(i) for i in range(Config.config['partition']['windows']['general']['range'][0], Config.config['partition']['windows']['general']['range'][1]+1)]
+    windows_hosts_booking = [Config.config['partition']['windows']['node'] + "0" + str(i) if i < 10 else Config.config['partition']['windows']['node'] + str(i) for i in range(Config.config['partition']['windows']['booking']['range'][0], Config.config['partition']['windows']['booking']['range'][1]+1)]
     
-    [asyncio.run(wait_host_port(host, port)) for host in linux_hosts_general if config.partition['linux']['general']['status']]
-    [asyncio.run(wait_host_port(host, port)) for host in linux_hosts_booking if config.partition['linux']['booking']['status']]
-    [asyncio.run(wait_host_port(host, port)) for host in windows_hosts_general if config.partition['windows']['general']['status']]
-    [asyncio.run(wait_host_port(host, port)) for host in windows_hosts_booking if config.partition['windows']['booking']['status']]
-    # asyncio.run(wait_host_port(linux_hosts_general, port)) if config.partition['linux']['general']['status'] else 0
-    # asyncio.run(wait_host_port(linux_hosts_booking, port)) if config.partition['linux']['booking']['status'] else 0
-    # asyncio.run(wait_host_port(windows_hosts_general, port)) if config.partition['windows']['general']['status'] else 0
-    # asyncio.run(wait_host_port(windows_hosts_booking, port)) if config.partition['windows']['booking']['status'] else 0
+    [asyncio.run(wait_host_port(host, port)) for host in linux_hosts_general if Config.config['partition']['linux']['general']['status']]
+    [asyncio.run(wait_host_port(host, port)) for host in linux_hosts_booking if Config.config['partition']['linux']['booking']['status']]
+    [asyncio.run(wait_host_port(host, port)) for host in windows_hosts_general if Config.config['partition']['windows']['general']['status']]
+    [asyncio.run(wait_host_port(host, port)) for host in windows_hosts_booking if Config.config['partition']['windows']['booking']['status']]
+    # asyncio.run(wait_host_port(linux_hosts_general, port)) if Config.config['partition']['linux']['general']['status'] else 0
+    # asyncio.run(wait_host_port(linux_hosts_booking, port)) if Config.config['partition']['linux']['booking']['status'] else 0
+    # asyncio.run(wait_host_port(windows_hosts_general, port)) if Config.config['partition']['windows']['general']['status'] else 0
+    # asyncio.run(wait_host_port(windows_hosts_booking, port)) if Config.config['partition']['windows']['booking']['status'] else 0
     # asyncio.run(foo("w08.pawsey.org.au", port))
     
     # logger.info (f"\n< {linux_pool_entity[0][1]} > async result: {linux_poke_result}\n< {windows_pool_entity[0][1]} > async result: {windows_poke_result}")
@@ -134,5 +134,5 @@ def check_zombie():
     
         
 if __name__ == '__main__':
-    if config.asyncs['status']:
+    if Config.config['asyncs']['status']:
         check_zombie()
