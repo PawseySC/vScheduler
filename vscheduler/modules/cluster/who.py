@@ -21,7 +21,8 @@ def who(node: str) -> str:
         if node_os == 'Windows':
             stdin , stdout, stderr = my_connection.exec_command("quser")
         elif node_os == 'Linux':
-            stdin , stdout, stderr = my_connection.exec_command("who")
+            # stdin , stdout, stderr = my_connection.exec_command("who")
+            stdin , stdout, stderr = my_connection.exec_command("ps -eo user:30,pid,cmd | grep '[x]rdp' | awk '{print $1}' | sort -u")      # this is to get the users logged in via xrdp
         else:
             print (f"no os found for < {node} >") if MyPrintCondition.fprint else 0
             # logger_win.warning (f"no os found for < {node} >") if Config.config['partition']['windows']['node'] in node else logger_unix.warning (f"no os found for < {node} >")
