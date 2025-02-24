@@ -36,7 +36,7 @@ class Process(multiprocessing.Process):
             if not self.username:
                 for user in users:
                     sentence.insert(len(sentence), [user])
-                print ("\n", tabulate(sentence, headers=[self.hostname + " logged in users"])) if MyPrintCondition.fprint else 0
+                print ("\n" + tabulate(sentence, headers=[self.hostname + " logged in users"])) if MyPrintCondition.fprint else 0
                 # logger_win.info ("\n" + tabulate(sentence, headers=[self.hostname + " logged in users"])) if Config.config['partition']['windows']['node'] in self.hostname else logger_unix.info ("\n" + tabulate(sentence, headers=[self.hostname + " logged in users"]))
                 logger.info ("\n" + tabulate(sentence, headers=[self.hostname + " logged in users"]))
             
