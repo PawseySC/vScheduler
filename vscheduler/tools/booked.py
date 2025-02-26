@@ -3,7 +3,7 @@ from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Config
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
-from vscheduler.general.timer import Brackets as MyBrackets
+from vscheduler.general.timer import Brackets
 from vscheduler.modules.booked.host import host_by_name                            # retreives host identification in booked
 from vscheduler.modules.booked.resource import resource_reservations               # retreives series id of each resource
 from vscheduler.modules.booked.reservation import user_reservations_by_user_id     # retreives reservation instance id of bookings for each user
@@ -40,7 +40,7 @@ class Process(multiprocessing.Process):
         users = who(self.hostname) if not self.username else [self.username]                        # retreives node logged in users
         print (f"\nusers logged in or asked to be checked in < {self.hostname} >: {users}") if MyPrintCondition.fprint else 0
         logger.info (f"\nusers logged in or asked to be checked in < {self.hostname} >: {users}")
-        instances = reservation_instances(MyBrackets.start_bracket, MyBrackets.end_bracket)         # retreives booking records within time brackets
+        instances = reservation_instances(Brackets.start_bracket, Brackets.end_bracket)         # retreives booking records within time brackets
 
         if users:
             for user in users:
@@ -64,7 +64,7 @@ class Process(multiprocessing.Process):
                         logger.info (f"instance: {instance}")
                         print (f"instance[3]: {instance[3]}") if MyPrintCondition.fprint else 0
                         logger.info (f"instance[3]: {instance[3]}")
-                        if instance[1] <= MyBrackets.now and instance[2] >= MyBrackets.now:         # if the booking is current
+                        if instance[1] <= Brackets.utc_now and instance[2] >= Brackets.utc_now:         # if the booking is current
                             print ("booking for the current time") if MyPrintCondition.fprint else 0
                             logger.info ("booking for the current time")
                             if not any(instance[3] in x for x in series_ids):
@@ -130,7 +130,7 @@ class Process(multiprocessing.Process):
 
 
 def main():
-    MyBrackets.what_time(MyBrackets.now, MyBrackets.local_time, MyBrackets.start_bracket, MyBrackets.end_bracket)
+    Brackets.what_time(Brackets.utc_now, Brackets.local_time, Brackets.start_bracket, Brackets.end_bracket)
     if not initiate.node:
         # for i in range (MyCredentials.range[0], MyCredentials.range[1]):
         #     node = MyCredentials.node_name + '0' + str(i) if i <= 9 else MyCredentials.node_name + str(i)
