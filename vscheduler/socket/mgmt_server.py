@@ -55,9 +55,11 @@ def exception(user, os):
         # return exception_results[0][3] if len(exception_results) > 0 else Config.config['time']['general_pool_wall_time']
         return exception_results[0][3] if len(exception_results) > 0 else config.get("time.general_pool_wall_time")
     except connection.Error as e:
-        print (f"error retreiving exceptions from < {Config.config['database']['report']['table']['exception']} > table\n{e}") if PrintCondition.fprint else 0
+        # print (f"error retreiving exceptions from < {Config.config['database']['report']['table']['exception']} > table\n{e}") if PrintCondition.fprint else 0
+        print (f"error retreiving exceptions from < {config.get("database.report.table.exception")} > table\n{e}") if PrintCondition.fprint else 0
         # win_logger.error (f"error retreiving exceptions from < {MyCredentials.report_exception_table} > table\n{e}") if os == "Windows" else linux_logger.error (f"error retreiving exceptions from < {MyCredentials.report_exception_table} > table\n{e}")
-        logger.error (f"error retreiving exceptions from < {Config.config['database']['report']['table']['exception']} > table\n{e}")
+        # logger.error (f"error retreiving exceptions from < {Config.config['database']['report']['table']['exception']} > table\n{e}")
+        logger.error (f"error retreiving exceptions from < {config.get("database.report.table.exception")} > table\n{e}")
     
     
 def check_status(os):
@@ -67,7 +69,8 @@ def check_status(os):
     """
     try:
         # sentence = []
-        status_query = f"SELECT node, status, start, end FROM {Config.config['database']['report']['table']['status']} WHERE start = end"
+        # status_query = f"SELECT node, status, start, end FROM {Config.config['database']['report']['table']['status']} WHERE start = end"
+        status_query = f"SELECT node, status, start, end FROM {config.get("database.report.table.status")} WHERE start = end"
         # win_logger.info (f"status_query: {status_query}") if os == "windows" else linux_logger.info (f"status_query: {status_query}") 
         print (f"status_query: {status_query}") if PrintCondition.fprint else 0
         logger.info (f"status_query: {status_query}")
@@ -94,9 +97,11 @@ def check_status(os):
         
         return status_results if len(status_results) > 0 else 0
     except connection.Error as e:
-        print (f"error retreiving nodes status from < {Config.config['database']['report']['table']['status']} > table\n{e}") if PrintCondition.fprint else 0
+        # print (f"error retreiving nodes status from < {Config.config['database']['report']['table']['status']} > table\n{e}") if PrintCondition.fprint else 0
+        print (f"error retreiving nodes status from < {config.get("database.report.table.status")} > table\n{e}") if PrintCondition.fprint else 0
         # win_logger.error (f"error retreiving node status from < {MyCredentials.report_status_table} > table\n{e}") if os == "windows" else linux_logger.error (f"error retreiving node status from < {MyCredentials.report_status_table} > table\n{e}")
-        logger.error (f"error retreiving node status from < {Config.config['database']['report']['table']['status']} > table\n{e}")
+        # logger.error (f"error retreiving node status from < {Config.config['database']['report']['table']['status']} > table\n{e}")
+        logger.error (f"error retreiving node status from < {config.get("database.report.table.status")} > table\n{e}")
     
     
 def generate_general_partition_hosts(os, node):
@@ -111,7 +116,8 @@ def generate_general_partition_hosts(os, node):
         #         print (f"linux node < {host} > not in exception list") if PrintCondition.fprint else 0
         #         logger.info (f"linux node < {host} > not in exception list")
         #         hosts.append(host)
-        hosts = [Config.config['partition']['linux']['node'] + "0" + str(i) if i < 10 else Config.config['partition']['linux']['node'] + str(i) for i in range(Config.config['partition']['linux']['general']['range'][0], Config.config['partition']['linux']['general']['range'][1]+1)]
+        # hosts = [Config.config['partition']['linux']['node'] + "0" + str(i) if i < 10 else Config.config['partition']['linux']['node'] + str(i) for i in range(Config.config['partition']['linux']['general']['range'][0], Config.config['partition']['linux']['general']['range'][1]+1)]
+        hosts = [config.get("partition.linux.node") + "0" + str(i) if i < 10 else config.get("partition.linux.node") + str(i) for i in range(config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1)]
     elif os == "windows":
         # for i in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
         #     host = MyCredentials.windows_node_name + "0" + i if i < 10 else MyCredentials.windows_node_name + i
@@ -119,7 +125,8 @@ def generate_general_partition_hosts(os, node):
         #         print (f"windows node < {host} > not in exception list") if PrintCondition.fprint else 0
         #         logger.info (f"windows node < {host} > not in exception list")
         #         hosts.append(host)
-        hosts = [Config.config['partition']['windows']['node'] + "0" + str(i) if i < 10 else Config.config['partition']['windows']['node'] + str(i) for i in range(Config.config['partition']['windows']['general']['range'][0], Config.config['partition']['windows']['general']['range'][1]+1)]
+        # hosts = [Config.config['partition']['windows']['node'] + "0" + str(i) if i < 10 else Config.config['partition']['windows']['node'] + str(i) for i in range(Config.config['partition']['windows']['general']['range'][0], Config.config['partition']['windows']['general']['range'][1]+1)]
+        hosts = [config.get("partition.windows.node") + "0" + str(i) if i < 10 else config.get("partition.windows.node") + str(i) for i in range(config.get("partition.windows.general.range")[0], config.get("partition.windows.general.range")[1]+1)]
     status_results = check_status(os)
     hosts = [x for x in hosts if x not in np.array(status_results)[:,0]] if status_results != 0 else hosts
     # win_logger.info (f"hosts: {hosts}") if os == "windows" else linux_logger.info (f"hosts: {hosts}")
@@ -139,7 +146,8 @@ def manage_pool(msg, node, user, walltime, os):
     # 1. empty pool by removing connected node from general pool in guaca
     # win_logger.info (f"step 1/5: Empty pool by replacing < {node} > with next available node") if os == "windows" else linux_logger.info (f"step 1/5: Empty pool by replacing < {node} > with next available node")
     logger.info (f"step 1/5: Empty pool by replacing < {node} > with next available node")
-    empty_pool_connection(msg.split(",")[0], msg.split(",")[1], Config.config['partition']['linux']['general']['pool']) if os == "linux" else empty_pool_connection(msg.split(",")[0], msg.split(",")[1], Config.config['partition']['windows']['general']['pool'])
+    # empty_pool_connection(msg.split(",")[0], msg.split(",")[1], Config.config['partition']['linux']['general']['pool']) if os == "linux" else empty_pool_connection(msg.split(",")[0], msg.split(",")[1], Config.config['partition']['windows']['general']['pool'])
+    empty_pool_connection(msg.split(",")[0], msg.split(",")[1], config.get("partition.linux.general.pool")) if os == "linux" else empty_pool_connection(msg.split(",")[0], msg.split(",")[1], config.get("partition.windows.general.pool"))
 
     # 2. trigger valloc to make user member of connected node in guaca by assigning static url
     # win_logger.info (f"step 2/5: Assigning < {user} > to < {node} > through valloc") if os == "windows" else linux_logger.info (f"step 2/5: Assigning < {user} > to < {node} > through valloc")
@@ -149,17 +157,20 @@ def manage_pool(msg, node, user, walltime, os):
     # 3. record login time
     # win_logger.info (f"step 3/5: Recording < {user} > login time to < {node} >") if os == "windows" else linux_logger.info (f"step 3/5: Recording < {user} > login time to < {node} >")
     logger.info (f"step 3/5: Recording < {user} > login time to < {node} >")
-    record_login(user, node, Config.config['database']['report']['table']['linux'], "general") if os == "linux" else record_login(user, node, Config.config['database']['report']['table']['windows'], "general")
+    # record_login(user, node, Config.config['database']['report']['table']['linux'], "general") if os == "linux" else record_login(user, node, Config.config['database']['report']['table']['windows'], "general")
+    record_login(user, node, config.get("database.report.table.linux"), "general") if os == "linux" else record_login(user, node, config.get("database.report.table.windows"), "general")
     
     # 4. set `at` command to kill user's session at wall-time
     logger.info (f"step 4/5: Setting atd command for < {user} session to be killed on < {node} > in waltine: < {walltime} >")
-    at_daemon(user, node, Config.config['database']['report']['table']['linux'], walltime)
+    # at_daemon(user, node, Config.config['database']['report']['table']['linux'], walltime)
+    at_daemon(user, node, config.get("database.report.table.linux"), walltime)
     
     # 5. fill up pool by new member
     # 5.a. load balance ON -> call mgmt_client to collect usage data from vis nodes to rank those for loadbalance
     # win_logger.info ("step 5/5: load balance/pool fill up") if os == "windows" else linux_logger.info ("step 5/5: load balance/pool fill up")
     logger.info ("step 5/5: pool fill up")
-    if Config.config['load']['balance']:
+    # if Config.config['load']['balance']:
+    if config.get("load.balance"):
         # win_logger.warning ("load_balance = TRUE") if os == "windows" else linux_logger.warning ("load_balance = TRUE")
         logger.warning ("load_balance = TRUE")
         hosts = generate_general_partition_hosts(os, node)
@@ -167,8 +178,10 @@ def manage_pool(msg, node, user, walltime, os):
         # win_logger.info (f"Usage data obtained from accessible nodes: {usage_data}") if os == "windows" else linux_logger.info (f"Usage data obtained from accessible nodes: {usage_data}")
         logger.info (f"Usage data obtained from accessible nodes: {usage_data}")
         # win_logger.info (f"{os} nodes load balancing in < {MyCredentials.windows_pool} >") if os == "windows" else linux_logger.info (f"{os} nodes load balancing in < {MyCredentials.linux_pool} >")
-        logger.info (f"{os} nodes load balancing in < {Config.config['partition']['windows']['general']['pool']} >" if os == "windows" else f"{os} nodes load balancing in < {Config.config['partition']['linux']['general']['pool']} >")
-        loadbalance(usage_data, Config.config['partition']['linux']['general']['pool']) if os == "linux" else loadbalance(usage_data, Config.config['partition']['windows']['general']['pool'])
+        # logger.info (f"{os} nodes load balancing in < {Config.config['partition']['windows']['general']['pool']} >" if os == "windows" else f"{os} nodes load balancing in < {Config.config['partition']['linux']['general']['pool']} >")
+        logger.info (f"{os} nodes load balancing in < {config.get("partition.windows.general.pool")} >" if os == "windows" else f"{os} nodes load balancing in < {config.get("partition.linux.general.pool")} >")
+        # loadbalance(usage_data, Config.config['partition']['linux']['general']['pool']) if os == "linux" else loadbalance(usage_data, Config.config['partition']['windows']['general']['pool'])
+        loadbalance(usage_data, config.get("partition.linux.general.pool")) if os == "linux" else loadbalance(usage_data, config.get("partition.windows.general.pool"))
     # 5.b. load balance OFF -> fill up pool with next node in order
     else:
         # win_logger.warning ("load_balance = FALSE") if os == "windows" else linux_logger.warning ("load_balance = FALSE")
@@ -209,50 +222,64 @@ def handle_client(conn, addr):
                 
         if node_status != "dev":
             # check if the socket connection request comes from windows nodes
-            if Config.config['partition']['windows']['node'] in node: 
+            # if Config.config['partition']['windows']['node'] in node: 
+            if config.get("partition.windows.node") in node: 
                 # if windows general partition -> empty windows general pool, then, valloc and finally update windows general pool with new node
-                if int(node.removeprefix(Config.config['partition']['windows']['node'])) in range(Config.config['partition']['windows']['general']['range'][0], Config.config['partition']['windows']['general']['range'][1]+1):
+                # if int(node.removeprefix(Config.config['partition']['windows']['node'])) in range(Config.config['partition']['windows']['general']['range'][0], Config.config['partition']['windows']['general']['range'][1]+1):
+                if int(node.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.general.range")[0], config.get("partition.windows.general.range")[1]+1):
                     if "logout" in msg.split(","):
                         # win_logger.info (f"LOGOUT attempt for {user}")
                         logger.info (f"LOGOUT attempt for {user}")
-                        revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], Config.config['partition']['windows']['general']['pool'])
-                        record_logout(user, node, Config.config['database']['report']['table']['windows'], "general")
+                        # revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], Config.config['partition']['windows']['general']['pool'])
+                        revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], config.get("partition.windows.general.pool"))
+                        # record_logout(user, node, Config.config['database']['report']['table']['windows'], "general")
+                        record_logout(user, node, config.get("database.report.table.windows"), "general")
                     else:
                         manage_pool(msg, node, user, excepted_walltime, "windows")
                 
                 # if windows booking partition -> trigger vmanage at windows login to check booking validity
-                elif int(node.removeprefix(Config.config['partition']['windows']['node'])) in range(Config.config['partition']['windows']['booking']['range'][0], Config.config['partition']['windows']['booking']['range'][1]+1):
+                # elif int(node.removeprefix(Config.config['partition']['windows']['node'])) in range(Config.config['partition']['windows']['booking']['range'][0], Config.config['partition']['windows']['booking']['range'][1]+1):
+                elif int(node.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]+1):
                     if "logout" in msg.split(","):
                         # win_logger.info (f"LOGOUT attempt for {user}")
                         logger.info (f"LOGOUT attempt for {user}")
-                        record_logout(user, node, Config.config['database']['report']['table']['windows'], "booking")
+                        # record_logout(user, node, Config.config['database']['report']['table']['windows'], "booking")
+                        record_logout(user, node, config.get("database.report.table.windows"), "booking")
                     else:
-                        record_login(user, node, Config.config['database']['report']['table']['windows'], "booking")
+                        # record_login(user, node, Config.config['database']['report']['table']['windows'], "booking")
+                        record_login(user, node, config.get("database.report.table.windows"), "booking")
                         subprocess.run(['vmanage', '-n', node, '-u', user, '-v'])
                         
             
             # check if the socket connection request comes from linux nodes
-            if Config.config['partition']['linux']['node'] in node:
+            # if Config.config['partition']['linux']['node'] in node:
+            if config.get("partition.linux.node") in node:
                 # if linux general partition -> empty linux general pool, then, valloc and finally update linux general pool with new node
-                if int(node.removeprefix(Config.config['partition']['linux']['node'])) in range(Config.config['partition']['linux']['general']['range'][0], Config.config['partition']['linux']['general']['range'][1]+1): 
+                # if int(node.removeprefix(Config.config['partition']['linux']['node'])) in range(Config.config['partition']['linux']['general']['range'][0], Config.config['partition']['linux']['general']['range'][1]+1): 
+                if int(node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1): 
                     if "logout" in msg.split(","):
                         # linux_logger.info (f"LOGOUT attempt for {user}")
                         logger.info (f"LOGOUT attempt for {user}")
                         # move user back to pool by logging out of node
-                        revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], Config.config['partition']['linux']['general']['pool'])
-                        record_logout(user, node, Config.config['database']['report']['table']['linux'], "general")
+                        # revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], Config.config['partition']['linux']['general']['pool'])
+                        revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], config.get("partition.linux.general.pool"))
+                        # record_logout(user, node, Config.config['database']['report']['table']['linux'], "general")
+                        record_logout(user, node, config.get("database.report.table.linux"), "general")
                     else:
                         # if len(checkpool(node, MyCredentials.pool)):        # if user goes to static url of specific node
                         manage_pool(msg, node, user, excepted_walltime, "linux")
                 
                 # if linux booking partition -> trigger vmanage at linux login to check booking validity
-                elif int(node.removeprefix(Config.config['partition']['linux']['node'])) in range(Config.config['partition']['linux']['booking']['range'][0], Config.config['partition']['linux']['booking']['range'][1]+1):
+                # elif int(node.removeprefix(Config.config['partition']['linux']['node'])) in range(Config.config['partition']['linux']['booking']['range'][0], Config.config['partition']['linux']['booking']['range'][1]+1):
+                elif int(node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]+1):
                     if "logout" in msg.split(","):
                         # linux_logger.info (f"LOGOUT attempt for {user}")
                         logger.info (f"LOGOUT attempt for {user}")
-                        record_logout(user, node, Config.config['database']['report']['table']['linux'], "booking")
+                        # record_logout(user, node, Config.config['database']['report']['table']['linux'], "booking")
+                        record_logout(user, node, config.get("database.report.table.linux"), "booking")
                     else:
-                        record_login(user, node, Config.config['database']['report']['table']['linux'], "booking")
+                        # record_login(user, node, Config.config['database']['report']['table']['linux'], "booking")
+                        record_login(user, node, config.get("database.report.table.linux"), "booking")
                         subprocess.run(['vmanage', '-n', node, '-u', user, '-v'])
         
         conn.send((user + "," + str(excepted_walltime) + "," + node_status).encode(FORMAT))
