@@ -28,6 +28,7 @@ logger = socket_records.log_agent("socket")
 # win_logger = socket_records.log_agent("windows")
 # linux_logger = socket_records.log_agent("linux")
 connection = Database.connect_report_db()
+config = Config()
 
 def exception(user, os):
     """
@@ -36,7 +37,8 @@ def exception(user, os):
     general wall time set in config will be returned.
     """
     try:
-        exception_query = f"SELECT user, start, end, wall_time FROM {Config.config['database']['report']['table']['exception']} WHERE user = '{user}' AND start = end"
+        # exception_query = f"SELECT user, start, end, wall_time FROM {Config.config['database']['report']['table']['exception']} WHERE user = '{user}' AND start = end"
+        exception_query = f"SELECT user, start, end, wall_time FROM {config.get("database.report.table.exception")} WHERE user = '{user}' AND start = end"
         # print (f"exception_query: {exception_query}") if PrintCondition.fprint else 0
         connection.ping()  # reconnecting mysql in case of connection timed out
         with connection.cursor() as cursor:
@@ -50,7 +52,8 @@ def exception(user, os):
             # win_logger.info (f"exception_results: {exception_results}") if os == "Windows" else linux_logger.info (f"exception_results: {exception_results}")
             # win_logger.info (f"len(exception_results): {len(exception_results)}") if os == "Windows" else linux_logger.info (f"len(exception_results): {len(exception_results)}")
             
-        return exception_results[0][3] if len(exception_results) > 0 else Config.config['time']['general_pool_wall_time']
+        # return exception_results[0][3] if len(exception_results) > 0 else Config.config['time']['general_pool_wall_time']
+        return exception_results[0][3] if len(exception_results) > 0 else config.get("time.general_pool_wall_time")
     except connection.Error as e:
         print (f"error retreiving exceptions from < {Config.config['database']['report']['table']['exception']} > table\n{e}") if PrintCondition.fprint else 0
         # win_logger.error (f"error retreiving exceptions from < {MyCredentials.report_exception_table} > table\n{e}") if os == "Windows" else linux_logger.error (f"error retreiving exceptions from < {MyCredentials.report_exception_table} > table\n{e}")
