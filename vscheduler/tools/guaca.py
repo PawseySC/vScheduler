@@ -19,6 +19,7 @@ from vscheduler.modules.guaca.modify import modify
 
 guaca_records = CaptureLog("guaca", __file__)
 logger = guaca_records.log_agent("tools")
+config = Config()
 
 
 # Process class
@@ -73,9 +74,9 @@ class Process(multiprocessing.Process):
                                     elif group_check and any(user_entity[0][0] in x for x in group_check):
                                         for row_group_check in group_check:
                                             if row_group_check[1] == user_entity[0][0]:
-                                                pool_entity = entity(Config.config['partition']['windows']['node']) if Config.config['partition']['windows']['node'] in self.hostname else entity(Config.config['partition']['linux']['node'])
+                                                pool_entity = entity(config.get("partition.windows.node")) if config.get("partition.windows.node") in self.hostname else entity(config.get("partition.linux.node"))
                                                 pool_user_group = guacamole_user_group(pool_entity[0][0])
-                                                update(user_entity[0][0], user_group[0][0], pool_user_group[0][0], "sync", Config.config['partition']['windows']['node'] if Config.config['partition']['windows']['node'] in self.hostname else Config.config['partition']['linux']['node'])
+                                                update(user_entity[0][0], user_group[0][0], pool_user_group[0][0], "sync", config.get("partition.windows.node") if config.get("partition.windows.node") in self.hostname else config.get("partition.linux.node"))
                                                 break
                             else:
                                 print ("booking not for the current time") if MyPrintCondition.fprint else 0
@@ -100,16 +101,16 @@ class Process(multiprocessing.Process):
 def main():
     MyBrackets.what_time(MyBrackets.now, MyBrackets.local_time, MyBrackets.start_bracket, MyBrackets.end_bracket)
     if not initiate.node:
-        if Config.config['partition']['windows']['booking']['status'] or Config.config['partition']['linux']['booking']['status']:
-            if Config.config['partition']['windows']['booking']['status']:
-                for i in range (Config.config['partition']['windows']['booking']['range'][0], Config.config['partition']['windows']['booking']['range'][1]+1):
-                    node = Config.config['partition']['windows']['node'] + '0' + str(i) if i <= 9 else Config.config['partition']['windows']['node'] + str(i)
+        if config.get("partition.windows.booking.status") or config.get("partition.linux.booking.status"):
+            if config.get("partition.windows.booking.status"):
+                for i in range (config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]+1):
+                    node = config.get("partition.windows.node") + '0' + str(i) if i <= 9 else config.get("partition.windows.node") + str(i)
                     p = Process(i, initiate.user, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
-            if Config.config['partition']['linux']['booking']['status']:
-                for i in range (Config.config['partition']['linux']['booking']['range'][0], Config.config['partition']['linux']['booking']['range'][1]+1):
-                    node = Config.config['partition']['linux']['node'] + '0' + str(i) if i <= 9 else Config.config['partition']['linux']['node'] + str(i)
+            if config.get("partition.linux.booking.status"):
+                for i in range (config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]+1):
+                    node = config.get("partition.linux.node") + '0' + str(i) if i <= 9 else config.get("partition.linux.node") + str(i)
                     p = Process(i, initiate.user, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
@@ -117,10 +118,10 @@ def main():
             print ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
             logger.info ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg")
     else:
-        if (Config.config['partition']['windows']['node'] in initiate.node and 
-                int(initiate.node.removeprefix(Config.config['partition']['windows']['node'])) in range(Config.config['partition']['windows']['booking']['range'][0], Config.config['partition']['windows']['booking']['range'][1]+1) or 
-                (Config.config['partition']['linux']['node'] in initiate.node and 
-                int(initiate.node.removeprefix(Config.config['partition']['linux']['node'])) in range(Config.config['partition']['linux']['booking']['range'][0], Config.config['partition']['linux']['booking']['range'][1]+1))):
+        if (config.get("partition.windows.node") in initiate.node and 
+                int(initiate.node.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]+1) or 
+                (config.get("partition.linux.node") in initiate.node and 
+                int(initiate.node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]+1))):
             p = Process("", initiate.user, initiate.node)
             p.start()       # Create a new process and invoke the Process.run() method
             p.join()        # Process.join() to wait for task completion

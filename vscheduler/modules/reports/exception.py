@@ -8,6 +8,7 @@ my_connection = MyDatabase.connect_report_db()
 
 exception_records = CaptureLog("exception", __file__)
 logger = exception_records.log_agent("reports")
+config = Config()
 
 
 def exception_list(user, start, end):
@@ -17,7 +18,7 @@ def exception_list(user, start, end):
     """
     try:
         # exception_list_query = f"SELECT user, start, end, wall_time FROM {MyCredentials.report_exception_table} WHERE start = end"
-        exception_list_query = f"SELECT user, start, end, wall_time FROM {Config.config['database']['report']['table']['exception']} WHERE start = end"
+        exception_list_query = f"SELECT user, start, end, wall_time FROM {config.get("database.report.table.exception")} WHERE start = end"
         if user:
             exception_list_query = exception_list_query + f" AND user = '{user}'"
         if start:
@@ -54,13 +55,13 @@ def exception_update(user, mode, wall_time):
                 print (f"{user} is already excepted since {exceptions[0][1]} with wall time of {exceptions[0][3]} hours") if MyPrintCondition.fprint else 0
                 logger.info (f"{user} is already excepted since {exceptions[0][1]} with wall time of {exceptions[0][3]} hours")
             else:
-                exception_update_query = f"INSERT INTO {Config.config['database']['report']['table']['exception']} (user, start, end, wall_time) VALUES ('{user}', '{MyBrackets.local_time}', '{MyBrackets.local_time}', {wall_time})"
+                exception_update_query = f"INSERT INTO {config.get("database.report.table.exception")} (user, start, end, wall_time) VALUES ('{user}', '{MyBrackets.local_time}', '{MyBrackets.local_time}', {wall_time})"
         elif mode == "deactivate":
             if len(exceptions) == 0:
                 print (f"{user} is not excepted already") if MyPrintCondition.fprint else 0
                 logger.info (f"{user} is not excepted already")
             else:
-                exception_update_query = f"UPDATE {Config.config['database']['report']['table']['exception']} SET end = '{MyBrackets.local_time}' WHERE user = '{user}' AND start = end"
+                exception_update_query = f"UPDATE {config.get("database.report.table.exception")} SET end = '{MyBrackets.local_time}' WHERE user = '{user}' AND start = end"
         if exception_update_query:
             my_connection.ping()  # reconnecting mysql in case of connection timed out
             with my_connection.cursor() as my_cursor:
