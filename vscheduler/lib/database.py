@@ -7,6 +7,7 @@ from vscheduler.general.alert import mailFunction
 
 database_records = CaptureLog("database", __file__)
 logger = database_records.log_agent("lib")
+config = Config()
 
 
 class Database:
@@ -16,13 +17,13 @@ class Database:
     @staticmethod
     def connect_booked_db():
         try:
-            if Config.config['partition']['windows']['booking']['status'] or Config.config['partition']['linux']['booking']['status']:    # connect to booked db if necessary
+            if config.get("partition.windows.booking.status") or config.get("partition.linux.booking.status"):    # connect to booked db if necessary
                 db_con = pymysql.connect(
-                                host = Config.config['database']['booked']['host'],
-                                user = Config.config['database']['booked']['user'],
-                                passwd = Config.config['database']['booked']['passwd'],
-                                db = Config.config['database']['booked']['db'],
-                                port = Config.config['database']['booked']['port'],
+                                host = config.get("database.booked.host"),
+                                user = config.get("database.booked.user"),
+                                passwd = config.get("database.booked.passwd"),
+                                db = config.get("database.booked.db"),
+                                port = config.get("database.booked.port"),
                                 charset="utf8")
                 return db_con
         except pymysql.Error as e:
@@ -33,11 +34,11 @@ class Database:
     def connect_guaca_db():
         try:
             db_con = pymysql.connect(                                           # connect to guaca db
-                            host = Config.config['database']['guaca']['host'],
-                            user = Config.config['database']['guaca']['user'],
-                            passwd = Config.config['database']['guaca']['passwd'],
-                            db = Config.config['database']['guaca']['db'],
-                            port = Config.config['database']['guaca']['port'],
+                            host = config.get("database.guaca.host"),
+                            user = config.get("database.guaca.user"),
+                            passwd = config.get("database.guaca.passwd"),
+                            db = config.get("database.guaca.db"),
+                            port = config.get("database.guaca.port"),
                             charset="utf8")
             return db_con
         except pymysql.Error as e:
@@ -48,11 +49,11 @@ class Database:
     def connect_report_db():
         try:
             db_con = pymysql.connect(                                           # connect to report db
-                            host = Config.config['database']['report']['host'],
-                            user = Config.config['database']['report']['user'],
-                            passwd = Config.config['database']['report']['passwd'],
-                            db = Config.config['database']['report']['db'],
-                            port = Config.config['database']['report']['port'],
+                            host = config.get("database.report.host"),
+                            user = config.get("database.report.user"),
+                            passwd = config.get("database.report.passwd"),
+                            db = config.get("database.report.db"),
+                            port = config.get("database.report.port"),
                             charset="utf8")
             return db_con
         except pymysql.Error as e:

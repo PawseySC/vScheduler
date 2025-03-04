@@ -13,6 +13,7 @@ from vscheduler.modules.guaca.update import update
 
 allocate_records = CaptureLog("allocate", __file__)
 logger = allocate_records.log_agent("tools")
+config = Config()
 
 
 # Process class
@@ -29,15 +30,15 @@ class Process(multiprocessing.Process):
         """
         # time.sleep(1)
         print ("\n==>Process id: {}".format(self.id)) if MyPrintCondition.fprint and self.id else 0
-        # if Config.config['partition']['windows']['node'] in self.hostname:
+        # if config.get("partition.windows.node") in self.hostname:
         #     logger_win.info ("==>Process id: {}".format(self.id)) if self.id else 0
-        # elif Config.config['partition']['linux']['node'] in self.hostname:
+        # elif config.get("partition.linux.node") in self.hostname:
         #     logger_unix.info ("==>Process id: {}".format(self.id)) if self.id else 0
         logger.info ("==>Process id: {}".format(self.id)) if self.id else 0
 
         users = who(self.hostname) if not self.username else [self.username]                        # retreives users logged in to the node
         print ("users=>", users)
-        # logger_win.info (f"users=> {users}") if Config.config['partition']['windows']['node'] in self.hostname else logger_unix.info (f"users=> {users}")
+        # logger_win.info (f"users=> {users}") if config.get("partition.windows.node") in self.hostname else logger_unix.info (f"users=> {users}")
         logger.info (f"users=> {users}")
 
         node_entity = entity(self.hostname)        
@@ -52,9 +53,10 @@ class Process(multiprocessing.Process):
                 #length = session(self.hostname, user)
                 user_entity = entity(user)  
                 # if not group_check or group_check[0][0] != node_user_group[0][0]:                        # if user's connected to a node -> remove it from general poll & asigne it to that node connection group
-                pool_entity = entity(Config.config['partition']['windows']['general']['pool']) if Config.config['partition']['windows']['node'] in self.hostname else entity(Config.config['partition']['linux']['general']['pool'])
+                # pool_entity = entity(config.get("partition.windows.general.pool")) if config.get("partition.windows.node") in self.hostname else entity(config.get("partition.linux.general.pool"))
+                pool_entity = entity(config.get("partition.windows.general.pool")) if config.get("partition.windows.node") in self.hostname else entity(config.get("partition.linux.general.pool"))
                 pool_user_group = guacamole_user_group(pool_entity[0][0])
-                update(user_entity[0][0], node_user_group[0][0], pool_user_group[0][0], "alloc", Config.config['partition']['windows']['general']['pool'] if Config.config['partition']['windows']['node'] in self.hostname else Config.config['partition']['linux']['general']['pool'])                 
+                update(user_entity[0][0], node_user_group[0][0], pool_user_group[0][0], "alloc", config.get("partition.windows.general.pool") if config.get("partition.windows.node") in self.hostname else config.get("partition.linux.general.pool"))                 
                 #elif group_check and int(length) > (MyCredentials.general_pool_wall_time)*3600:    # if session's left open or longer than allowed -> kill the session & revert the user back into general pool 
                     #update(group_check[0][1], pool_group[0][0])
                     #logoff(user, self.hostname)
@@ -72,16 +74,16 @@ class Process(multiprocessing.Process):
 
 def main():
     if not initiate.node:
-        if Config.config['partition']['windows']['general']['status'] or Config.config['partition']['linux']['general']['status']:
-            if Config.config['partition']['windows']['general']['status']:
-                for i in range (Config.config['partition']['windows']['general']['range'][0], Config.config['partition']['windows']['general']['range'][1]+1):
-                    node = Config.config['partition']['windows']['node'] + '0' + str(i) if i <= 9 else Config.config['partition']['windows']['node'] + str(i)
+        if config.get("partition.windows.general.status") or config.get("partition.linux.general.status"):
+            if config.get("partition.windows.general.status"):
+                for i in range (config.get("partition.windows.general.range")[0], config.get("partition.windows.general.range")[1]+1):
+                    node = config.get("partition.windows.node") + '0' + str(i) if i <= 9 else config.get("partition.windows.node") + str(i)
                     p = Process(i, initiate.user, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
-            if Config.config['partition']['linux']['general']['status']:
-                for i in range (Config.config['partition']['linux']['general']['range'][0], Config.config['partition']['linux']['general']['range'][1]+1):
-                    node = Config.config['partition']['linux']['node'] + '0' + str(i) if i <= 9 else Config.config['partition']['linux']['node'] + str(i)
+            if config.get("partition.linux.general.status"):
+                for i in range (config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1):
+                    node = config.get("partition.linux.node") + '0' + str(i) if i <= 9 else config.get("partition.linux.node") + str(i)
                     p = Process(i, initiate.user, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
@@ -91,16 +93,16 @@ def main():
             # logger_win.info ("There is no general Windows and Linux partition; To enable it edit vscheduler confilg")
             # logger_unix.info ("There is no general Windows and Linux partition; To enable it edit vscheduler confilg")
     else:
-        if ((Config.config['partition']['windows']['node'] in initiate.node and 
-                int(initiate.node.removeprefix(Config.config['partition']['windows']['node'])) in range(Config.config['partition']['windows']['general']['range'][0], Config.config['partition']['windows']['general']['range'][1]+1)) or 
-                (Config.config['partition']['linux']['node'] in initiate.node and 
-                int(initiate.node.removeprefix(Config.config['partition']['linux']['node'])) in range(Config.config['partition']['linux']['general']['range'][0], Config.config['partition']['linux']['general']['range'][1]+1))):
+        if ((config.get("partition.windows.node") in initiate.node and 
+                int(initiate.node.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.general.range")[0], config.get("partition.windows.general.range")[1]+1)) or 
+                (config.get("partition.linux.node") in initiate.node and 
+                int(initiate.node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1))):
             p = Process("", initiate.user, initiate.node)
             p.start()       # Create a new process and invoke the Process.run() method
             p.join()        # Process.join() to wait for task completion
         else:
             print (f"< {initiate.node} > is not in general range") if MyPrintCondition.fprint else 0
-            # logger_win.info (f"< {initiate.node} > is not in general range") if Config.config['partition']['windows']['node'] in initiate.node else logger_unix.info (f"< {initiate.node} > is not in general range")
+            # logger_win.info (f"< {initiate.node} > is not in general range") if config.get("partition.windows.node") in initiate.node else logger_unix.info (f"< {initiate.node} > is not in general range")
             logger.info (f"< {initiate.node} > is not in general range")
 
     #     for i in range (MyCredentials.range[0], MyCredentials.range[1]):

@@ -1,7 +1,7 @@
 import os, logging
 import logging.handlers as handlers
 from vscheduler.lib.config import Config
-
+config = Config()
 
 class CaptureLog(object):
     """
@@ -12,7 +12,7 @@ class CaptureLog(object):
         self.flag = flag
         self.location = location
     
-    def extendable_logger(self, log_name, file_name, level = Config.config["log"]['level']):
+    def extendable_logger(self, log_name, file_name, level = config.get("log.level")):
         # handler = logging.FileHandler(file_name)                                                              # contineous logging in same file
         handler = handlers.TimedRotatingFileHandler(file_name, when="d", interval=1)    # , backupCount=30      # logs into separate files for configured time intervals
         handler.setFormatter(self.formatter) 
