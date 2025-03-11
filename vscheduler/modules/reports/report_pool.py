@@ -314,8 +314,8 @@ def pool_report_generator(hostname, username, start, end):
     my_templ = Template(html)
     # # mailFunction (f"Report for {hostname} {username} {str(start)} {str(end)}", my_templ.render(titles=sentence), directory, ['fig1.png'])
 
-    if initiate.email:
-        email_with_embeded_image(my_templ.render(titles=actual_usage_report_results3_list, file1=os.path.exists(f'{directory}/fig1.png'), file2=os.path.exists(f'{directory}/fig2.png')))
+    # if initiate.email:
+    email_with_embeded_image(my_templ.render(titles=actual_usage_report_results3_list, file1=os.path.exists(f'{directory}/fig1.png'), file2=os.path.exists(f'{directory}/fig2.png')))
         # email_with_embeded_image(actual_usage_report_results_html)
     
 
