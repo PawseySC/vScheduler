@@ -7,6 +7,7 @@ from email.mime.base import MIMEBase
 from email.utils import COMMASPACE, formatdate
 from email import encoders
 from vscheduler.lib.config import Config
+config = Config()
 
 
 def mailFunction(subject, content, url, files):
@@ -34,8 +35,8 @@ def mailFunction(subject, content, url, files):
             msg.attach(part)
 
     msg['Subject'] = subject
-    msg['From'] = Config.config['email']['from']
-    msg['To'] = Config.config['email']['to']
+    msg['From'] = config.get("email.from")
+    msg['To'] = config.get("email.to")
 
     sender = smtplib.SMTP(Config.config['email']['server'])
     sender.send_message(msg)
