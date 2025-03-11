@@ -38,6 +38,6 @@ def mailFunction(subject, content, url, files):
     msg['From'] = config.get("email.from")
     msg['To'] = config.get("email.to")
 
-    sender = smtplib.SMTP(Config.config['email']['server'])
+    sender = smtplib.SMTP(config.get("email.server"))
     sender.send_message(msg)
     sender.quit()
