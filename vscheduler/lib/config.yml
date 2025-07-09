@@ -3,7 +3,7 @@ database:
     host: IP/URL
     user: username
     passwd: password
-    db: database
+    db: database 
     port: 3306
 
   guaca:
