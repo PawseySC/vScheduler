@@ -61,7 +61,7 @@ def pool_report_generator(hostname, username, start, end):
                         query = query + f"end <= '{end}'"
                         
     # print (query)
-    actual_usage_report = f"SELECT * FROM {config.get("database.report.table.linux")}" + query
+    actual_usage_report = f"SELECT * FROM {config.get('database.report.table.linux')}" + query
     actual_usage_report_results = pd.read_sql(actual_usage_report, my_connection)
     actual_usage_report_results["email"] = ""
     actual_usage_report_results["first name"] = ""
