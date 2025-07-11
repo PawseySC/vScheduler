@@ -16,7 +16,8 @@ setup(
         'plotly', 
         'kaleido', 
         'calmap', 
-        'calplot'
+        'calplot',
+        'pyyaml'
     ],
     entry_points={
         'console_scripts': [
@@ -33,3 +34,4 @@ setup(
         ],
     },
 )
+# print (setuptools.find_packages())
