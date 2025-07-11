@@ -1,4 +1,4 @@
-import multiprocessing, click
+import multiprocessing
 from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Config
 from vscheduler.lib.database import Database as MyDatabase

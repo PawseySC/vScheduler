@@ -1,4 +1,4 @@
-import multiprocessing, click, time
+import multiprocessing, time
 from vscheduler.log.log import CaptureLog
 from tabulate import tabulate
 from vscheduler.lib.config import Config
