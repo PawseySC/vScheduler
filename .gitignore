@@ -3,3 +3,5 @@ vscheduler.egg-info/
 vs/
 *.log
 *.png
+dist
+.venv
