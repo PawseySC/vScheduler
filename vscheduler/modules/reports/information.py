@@ -22,15 +22,15 @@ pd.options.display.max_colwidth = 100
 linux_general_nodes = [config.get("partition.linux.node") + "0" + str(i) if i < 10 else config.get("partition.linux.node") + str(i) for i in range(config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1)]
 linux_general_nodes = pd.DataFrame(list(linux_general_nodes))
 linux_general_nodes.columns = ['NODE']
-linux_general_nodes.insert(0, 'SYSTEM', Config.config['partition']['linux']['general']['pool'])
+linux_general_nodes.insert(0, 'SYSTEM', config.get("partition.linux.general.pool"))
 linux_general_nodes.insert(1, 'PARTITION', "general")
-linux_general_nodes.insert(2, 'AVAIL', "up" if Config.config['partition']['linux']['general']['status'] else "down")
+linux_general_nodes.insert(2, 'AVAIL', "up" if config.get("partition.linux.general.status") else "down")
 linux_general_nodes.insert(3, 'NODES', 1)
 
 linux_reservation_nodes = [config.get("partition.linux.node") + "0" + str(i) if i < 10 else config.get("partition.linux.node") + str(i) for i in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]+1)]
 linux_reservation_nodes = pd.DataFrame(list(linux_reservation_nodes))
 linux_reservation_nodes.columns = ['NODE']
-linux_reservation_nodes.insert(0, 'SYSTEM', Config.config['partition']['linux']['general']['pool'])
+linux_reservation_nodes.insert(0, 'SYSTEM', config.get("partition.linux.general.pool"))
 linux_reservation_nodes.insert(1, 'PARTITION', "reservation")
 linux_reservation_nodes.insert(2, 'AVAIL', "up" if config.get("partition.linux.booking.status']") else "down")
 linux_reservation_nodes.insert(3, 'NODES', 1)
@@ -128,7 +128,7 @@ def print_info():
 #                 # print (f"node: {node}")
 #                 if node in np.array(query_results)[:,0]:
 #                     # print (f"{node} currently in db")
-#                     sentence.insert(len(sentence), [Config.config['partition']['linux']['general']['pool'] if config.get("partition.linux.node") in node else config.get("partition.windows.general.pool"), 
+#                     sentence.insert(len(sentence), [config.get("partition.linux.general.pool") if config.get("partition.linux.node") in node else config.get("partition.windows.general.pool"), 
 #                                                     query_results[np.where(ongoing_status == node)[0][0]][2], 
 #                                                     "up" if (config.get("partition.linux.node") in node and int(node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1)) or
 #                                                             (config.get("partition.linux.node") in node and int(node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]+1)) or
@@ -137,7 +137,7 @@ def print_info():
 #                                                             else "down",                                                    query_results[np.where(ongoing_status == node)[0][0]][1], 
 #                                                     node])
 #                 else:
-#                     sentence.insert(len(sentence), [Config.config['partition']['linux']['general']['pool'] if config.get("partition.linux.node") in node else config.get("partition.windows.general.pool"), 
+#                     sentence.insert(len(sentence), [config.get("partition.linux.general.pool") if config.get("partition.linux.node") in node else config.get("partition.windows.general.pool"), 
 #                                                     "general" if node in (linux_general_nodes or windows_general_nodes) else "reservation", 
 #                                                     "up" if (config.get("partition.linux.node") in node and int(node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1)) or
 #                                                             (config.get("partition.linux.node") in node and int(node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]+1)) or
@@ -191,8 +191,8 @@ def print_info():
 #             # print (f"hosts_copy: {host_copy}")
 #             # print (f"host_copy.count: {host_copy['NODELIST'].count()}")
 #             # tedad = f"host_copy.count: {host_copy['NODELIST'].count()}"
-#             # print (Config.config['partition']['linux']['general']['pool'] if host_copy[host_copy['STAT'] == 'maint']['NODELIST'].str.contains(config.get("partition.linux.node")).any else config.get("partition.windows.general.pool"))
-#             # whichsystem = Config.config['partition']['linux']['general']['pool'] if host_copy[host_copy['STAT'] == 'maint']['NODELIST'].str.contains(config.get("partition.linux.node")).any else config.get("partition.windows.general.pool")
+#             # print (config.get("partition.linux.general.pool") if host_copy[host_copy['STAT'] == 'maint']['NODELIST'].str.contains(config.get("partition.linux.node")).any else config.get("partition.windows.general.pool"))
+#             # whichsystem = config.get("partition.linux.general.pool") if host_copy[host_copy['STAT'] == 'maint']['NODELIST'].str.contains(config.get("partition.linux.node")).any else config.get("partition.windows.general.pool")
 #             # print ()
 #             # final_sentence=[]
 #             # final_sentence.insert (len(final_sentence), [whichsystem, host_copy[host_copy['STAT'] == 'maint']['partition']']])
@@ -211,7 +211,7 @@ def print_info():
 #                 # node_count = hosts[hosts['STAT'] == status]['STAT'].count()
 #                 # print (f"node_count: {node_count}")
 #                 # print ( f"{hosts[hosts['STATUS'] == status]['NODE'].str.contains(config.get("partition.linux.node"))}")
-#                 # print ("yes" if{Config.config['partition']['linux']['general']['pool'] if config.get("partition.linux.node") in hosts[hosts['STATUS'] == status]['NODE'].values else config.get("partition.windows.general.pool")} else "no")
+#                 # print ("yes" if{config.get("partition.linux.general.pool") if config.get("partition.linux.node") in hosts[hosts['STATUS'] == status]['NODE'].values else config.get("partition.windows.general.pool")} else "no")
 #                 # print (f"{hosts[hosts['STATUS'] == status]['POOL']}")
 #                 # print (f"{hosts[hosts['STATUS'] == status]['NODE']}")
 #                 # print (f"{config.get("partition.linux.node")}" if f"{hosts[hosts['STATUS'] == status]['NODE'].str.contains(config.get("partition.linux.node"))}" else f"{config.get("partition.windows.node")}")
@@ -219,9 +219,9 @@ def print_info():
 #                 # print (hosts[hosts["STATUS"]=='down']['NODE'].values)
 #                 # print ("Y" if "setonix" in hosts[hosts['STATUS'] == status]['NODE'].values else "N")
 #                 # print ("Y" if hosts[hosts['STATUS'] == status]['NODE'].str.contains("L") else "N")
-#                 # a = Config.config['partition']['linux']['general']['pool'] if hosts[hosts['STATUS'] == status]['NODE'].str.contains(config.get("partition.linux.node")) else config.get("partition.windows.general.pool")
+#                 # a = config.get("partition.linux.general.pool") if hosts[hosts['STATUS'] == status]['NODE'].str.contains(config.get("partition.linux.node")) else config.get("partition.windows.general.pool")
 #                 # print (f"a: {a}")
-#                 # final_list3 = {"SYSTEM": [Config.config['partition']['linux']['general']['pool'] if hosts[hosts['STATUS'] == status]['NODE'].str.contains(config.get("partition.linux.node")).any else config.get("partition.windows.general.pool")],
+#                 # final_list3 = {"SYSTEM": [config.get("partition.linux.general.pool") if hosts[hosts['STATUS'] == status]['NODE'].str.contains(config.get("partition.linux.node")).any else config.get("partition.windows.general.pool")],
 #                 #                "PARTITION": [hosts[hosts['STATUS'] == status]['POOL']],
 #                 #                "AVAIL": [""],
 #                 #                "NODES": node_count,
@@ -229,9 +229,9 @@ def print_info():
 #                 #                "NODELIST": [config.get("partition.linux.node") + str(node_numbers_int)]}
 #                 # df = pd.DataFrame(final_list3)
 #                 # print (df.to_string(index=False))
-#                 # final_list.insert(len(final_list), [Config.config['partition']['linux']['general']['pool'] if hosts[hosts['STATUS'] == status]['NODE'].str.contains(config.get("partition.linux.node")).any else config.get("partition.windows.general.pool"), hosts[hosts['STATUS'] == status]['POOL'], "", hosts[hosts['STATUS'] == status]['NODE'], status, config.get("partition.linux.node") + str(node_numbers_int)])
+#                 # final_list.insert(len(final_list), [config.get("partition.linux.general.pool") if hosts[hosts['STATUS'] == status]['NODE'].str.contains(config.get("partition.linux.node")).any else config.get("partition.windows.general.pool"), hosts[hosts['STATUS'] == status]['POOL'], "", hosts[hosts['STATUS'] == status]['NODE'], status, config.get("partition.linux.node") + str(node_numbers_int)])
 #                 # print (final_list)
-#             # "up" if Config.config['partition']['linux']['general']['status'] else "down"
+#             # "up" if config.get("partition.linux.general.status") else "down"
 #             # d = pd.DataFrame(list(final_list))
 #             # d.columns = ["SYSTEM", "PARTITION", "AVAIL", "NODE", "STAT", "NODELIST"]
 #             # pd.set_option('display.colheader_justify', 'left')
