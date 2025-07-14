@@ -54,7 +54,7 @@ class Process(multiprocessing.Process):
                         else:                                          
                             print ("\nfound a match") if MyPrintCondition.fprint else 0
                             logger.info ("\nfound a match")
-                            if instance[1] <= MyBrackets.now and instance[2] >= MyBrackets.now:         # if the booking is current
+                            if instance[1] <= MyBrackets.utc_now and instance[2] >= MyBrackets.utc_now:         # if the booking is current
                                 print ("booking for the current time") if MyPrintCondition.fprint else 0
                                 logger.info ("booking for the current time")
                                 reservations = user_reservations_by_instance_id(instance[0])            # retreives user booking records
@@ -99,7 +99,7 @@ class Process(multiprocessing.Process):
 
 
 def main():
-    MyBrackets.what_time(MyBrackets.now, MyBrackets.local_time, MyBrackets.start_bracket, MyBrackets.end_bracket)
+    MyBrackets.what_time(MyBrackets.utc_now, MyBrackets.local_time, MyBrackets.start_bracket, MyBrackets.end_bracket)
     if not initiate.node:
         if config.get("partition.windows.booking.status") or config.get("partition.linux.booking.status"):
             if config.get("partition.windows.booking.status"):
