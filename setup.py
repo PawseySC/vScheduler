@@ -6,7 +6,6 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'Click',
         'paramiko', 
         'PyMySQL', 
         'numpy', 
@@ -17,6 +16,7 @@ setup(
         'kaleido', 
         'calmap', 
         'calplot',
+        'setuptools',
         'pyyaml',
         'requests',
         'guacamole-api-wrapper'
