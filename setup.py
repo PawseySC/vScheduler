@@ -17,7 +17,9 @@ setup(
         'kaleido', 
         'calmap', 
         'calplot',
-        'pyyaml'
+        'pyyaml',
+        'requests',
+        'guacamole-api-wrapper'
     ],
     entry_points={
         'console_scripts': [
