@@ -1,0 +1,59 @@
+.TH VSCHEDULER 1 "July 2025" "Pawsey Supercomputing Centre" "User Commands"
+.SH NAME
+vscheduler \- Session Management and Reporting Platform
+.SH SYNOPSIS
+.B vscheduler
+[\fIOPTIONS\fR] <\fICOMMAND\fR> [\fISUBCOMMAND OPTIONS\fR]
+.SH DESCRIPTION
+Session Management and Reporting Platform for Pawsey Supercomputing Centre. Supports node status management and wall time exceptions.
+
+.SH COMMANDS
+.TP
+.B vset
+Set node status.
+.RS
+.IP "\-status <STATUS>"
+Required. New status for the node.
+.RE
+
+.TP
+.B vexcept
+Set wall time different to others.
+.RS
+.IP "\-mode <MODE>"
+Required. New wall time mode.
+.RE
+
+.SH OPTIONS
+.TP
+.BI \-u " USERNAME"
+Optional. No username will run across all users.
+.TP
+.BI \-n " NODE"
+Optional. No node name will run across all nodes.
+.TP
+.BI \-d " DATE"
+Date in YYYY-MM-DD format. Having only one date will search from first DB record. No date will search across all records.
+.TP
+.B --verbose
+Print detailed logs during processing.
+.TP
+.B --version
+Show program's version number and exit.
+.TP
+.B -h, --help
+Show this help message and exit.
+
+.SH EXAMPLES
+.TP
+.B vscheduler vset -status up -n node01 --verbose
+Set node01 status to "up" with verbose output.
+.TP
+.B vscheduler vexcept -mode activate -u alice -d 2025-07-01 2025-07-14
+Activate wall time exception for user alice between specified dates.
+
+.SH AUTHOR
+Pawsey Supercomputing Centre
+
+.SH SEE ALSO
+https://code.google.com/archive/p/argparse/
