@@ -5,6 +5,7 @@ from vscheduler.lib.ssh import Node as MyNode
 
 ostype_records = CaptureLog("ostype", __file__)
 logger = ostype_records.log_agent("cluster")
+config = Config()
 
 def find_os(node):
     """
@@ -12,7 +13,7 @@ def find_os(node):
     """
     my_connection = MyNode.connect_node(node)
 
-    if Config.config['partition']['windows']['node'] in node:
+    if config.get("partition.windows.node") in node:
         command = 'python -c "import platform; print (platform.uname()[0])"'
     else:
         command = 'python3 -c "import platform; print (platform.uname()[0])"'
