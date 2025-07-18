@@ -9,14 +9,14 @@ my_connection = MyDatabase.connect_report_db()
 
 maintenance_records = CaptureLog("maintenance", __file__)
 logger = maintenance_records.log_agent("cluster")
-
+config = Config()
 
 def activation(node):
     """
     Is called by except tool to activate/flag the node as maint in the db 
     """
     # exception_query = f"INSERT INTO {MyCredentials.report_maintenance_table} (node, status, start, end) VALUES '{node}', 'Y', {MyBrackets.local_time}, {MyBrackets.local_time}"
-    exception_query = f"INSERT INTO {Config.config['database']['report']['status']} (node, status, start, end) VALUES '{node}', 'Y', {MyBrackets.local_time}, {MyBrackets.local_time}"
+    exception_query = f"INSERT INTO {config.get("database.report.status")} (node, status, start, end) VALUES '{node}', 'Y', {MyBrackets.local_time}, {MyBrackets.local_time}"
     # logger_win.info (f"exception_query: {exception_query}") if Config.config['partition']['windows']['node'] in node else logger_unix.info (f"exception_query: {exception_query}")
     logger.info (f"exception_query: {exception_query}")
     my_connection.ping()  # reconnecting mysql in case of connection timed out
@@ -32,7 +32,7 @@ def deactivation(node):
     """
     Is called by except tool to deactivate/deflag the node as maint in the db 
     """
-    exception_query = f"UPDATE {Config.config['database']['report']['status']} SET status = 'N', end = {MyBrackets.local_time} WHERE node = '{node}' AND status = 'DOWN', start = end AND start < {MyBrackets.local_time}"
+    exception_query = f"UPDATE {config.get("database.report.status")} SET status = 'N', end = {MyBrackets.local_time} WHERE node = '{node}' AND status = 'DOWN', start = end AND start < {MyBrackets.local_time}"
     # logger_win.info (f"exception_query: {exception_query}") if Config.config['partition']['windows']['node'] in node else logger_unix.info (f"exception_query: {exception_query}")
     logger.info (f"exception_query: {exception_query}")
     my_connection.ping()  # reconnecting mysql in case of connection timed out
@@ -66,5 +66,5 @@ def activation_status(node, start, end):
                     query = query + f" AND end = '{end}"
 
     print (query)
-    actual_status_query = f"SELECT * FROM {Config.config['database']['report']['status']}" + query
+    actual_status_query = f"SELECT * FROM {config.get("database.report.status")}" + query
     actual_status_report_results = pd.read_sql(actual_status_query, my_connection)    

@@ -10,6 +10,7 @@ maintenance_records = CaptureLog("maintenance", __file__)
 # logger_win = records.log_agent("windows")
 # logger_unix = records.log_agent("linux")
 logger = maintenance_records.log_agent("guaca")
+config = Config()
 
 session = guacamole.session("https://dev-guacamole.pawsey.org.au", "mysql", "guacadmin", "REMOVED")
 
@@ -32,8 +33,8 @@ def change_maint_status (mode, partition):
         # logger_win.info (f"\n{partition} users: ({len(general_pool_users_df)})\n{general_pool_users_df.sort_values('USERNAME', ascending=True)}") #if partition == Config.config['partition']['windows']['general']['pool'] else 0
     except session.error as e:
         print (f"error in checking guacamole users:\n{e}") if MyPrintCondition.fprint else 0
-        logger.info (f"error in checking guacamole users:\n{e}") if partition == Config.config['partition']['linux']['general']['pool'] else 0
-        # logger_unix.info (f"error in checking guacamole users:\n{e}") if partition == Config.config['partition']['linux']['general']['pool'] else 0
+        logger.info (f"error in checking guacamole users:\n{e}") if partition == config.get("partition.linux.general.pool") else 0
+        # logger_unix.info (f"error in checking guacamole users:\n{e}") if partition == config.get("partition.linux.general.pool") else 0
         # logger_win.info (f"error in checking guacamole users:\n{e}") if partition == Config.config['partition']['windows']['general']['pool'] else 0
         
     if mode == "create":
@@ -46,25 +47,25 @@ def change_maint_status (mode, partition):
         for user in users:  # remove users from individual nodes
             user_groups = session.detail_user_groups(user)
             for user_group in user_groups:
-                if partition == Config.config['partition']['linux']['general']['pool']:
+                if partition == config.get("partition.linux.general.pool"):
                     # logger_unix.info ("linux pool == partition")
                     logger.info ("linux pool == partition")
                     # logger_unix.info (user_group)
                     logger.info (user_group)
-                    if Config.config['partition']['linux']['node'] in user_group:
+                    if config.get("partition.linux.node") in user_group:
                         # logger_unix.info (user)
                         logger.info (user)
                         individual_node_users.append(user)
                         session.update_user_group(user, user_group, "remove")
                         # logger_unix.info (f"< {user} > updated")
                         logger.info (f"< {user} > updated")
-                    # [individual_node_users.append(user) for user in users if Config.config['partition']['linux']['node'] in session.detail_user_groups(user)]
-                elif partition == Config.config['partition']['windows']['general']['pool']:
+                    # [individual_node_users.append(user) for user in users if config.get("partition.linux.node") in session.detail_user_groups(user)]
+                elif partition == config.get("partition.windows.general.pool"):
                     # logger_win.info ("windows pool == partition")
                     logger.info ("windows pool == partition")
                     # logger_win.info (user_group)
                     logger.info (user_group)
-                    if Config.config['partition']['windows']['node'] in user_group:
+                    if config.get("partition.windows.node") in user_group:
                         # logger_win.info (user)
                         logger.info (user)
                         individual_node_users.append(user)
@@ -77,14 +78,14 @@ def change_maint_status (mode, partition):
         logger.info (f"individual_node_users: {individual_node_users}")
         # [(session.update_user_group(user, group, "remove"), logger_unix.info (f"< {user} > updated")) for group in user_groups]
         print (f"Maintenance mode successfully enabled for < {partition} >\nusers access to < {partition} > was removed.") if MyPrintCondition.fprint else 0
-        # logger_unix.info (f"Maintenance mode successfully enabled for < {partition} >\nusers access to < {partition} > was removed.") #if partition == Config.config['partition']['linux']['general']['pool'] else 0
-        logger.info (f"Maintenance mode successfully enabled for < {partition} >\nusers access to < {partition} > was removed.") #if partition == Config.config['partition']['linux']['general']['pool'] else 0
+        # logger_unix.info (f"Maintenance mode successfully enabled for < {partition} >\nusers access to < {partition} > was removed.") #if partition == config.get("partition.linux.general.pool") else 0
+        logger.info (f"Maintenance mode successfully enabled for < {partition} >\nusers access to < {partition} > was removed.") #if partition == config.get("partition.linux.general.pool") else 0
         # logger_win.info (f"Maintenance mode successfully enabled for < {partition} >\nusers access to < {partition} > was removed.") #if partition == Config.config['partition']['windows']['general']['pool'] else 0
         # also, need to remove users from allocated nodes
         # ****** change the parttion availability, so vinfo shows that as down <--- For now, manual change in config till design the best solution
         
     elif mode == "delete":
-        if partition == Config.config['partition']['linux']['general']['pool']:
+        if partition == config.get("partition.linux.general.pool"):
             # ---> query ldap for only setonix_vis users
             try:
                 os.system("ldapsearch -H ldaps://ldap-pool.pawsey.org.au -b dc=pawsey,dc=org,dc=au -o ldif-wrap=no -xLLL '(memberof=cn=setonix_vis*)' uid | grep '^uid:' > temp")
@@ -101,7 +102,7 @@ def change_maint_status (mode, partition):
                 logger.error (f"error in querying ldap for setonix_vis:\n{e}")
             # [(session.update_user_group(user, partition, "add"), logger_unix.info (f"< {user} > updated")) for user in setonix_users['USERNAME'].values.tolist()]
             [(session.update_user_group(user, partition, "add"), logger.info (f"< {user} > updated")) for user in setonix_users['USERNAME'].values.tolist()]
-        elif partition == Config.config['partition']['windows']['general']['pool']:
+        elif partition == config.get("partition.windows.general.pool"):
             # ---> query ldap for only nebula users
             try:
                 os.system("ldapsearch -H ldaps://ldap-pool.pawsey.org.au -b dc=pawsey,dc=org,dc=au -o ldif-wrap=no -xLLL '(memberof=cn=nebula*)' uid | grep '^uid:' > temp")
@@ -120,8 +121,8 @@ def change_maint_status (mode, partition):
             [(session.update_user_group(user, partition, "add"), logger.info (f"< {user} > updated")) for user in nebula_users['USERNAME'].values.tolist()]
 
         print (f"Maintenance mode successfully disabled for < {partition} >\nusers access to < {partition} > was enabled.") if MyPrintCondition.fprint else 0
-        # logger_unix.info (f"Maintenance mode successfully disabled for < {partition} >\nusers access to < {partition} > was enabled.") #if partition == Config.config['partition']['linux']['general']['pool'] else 0
-        logger.info (f"Maintenance mode successfully disabled for < {partition} >\nusers access to < {partition} > was enabled.") #if partition == Config.config['partition']['linux']['general']['pool'] else 0
+        # logger_unix.info (f"Maintenance mode successfully disabled for < {partition} >\nusers access to < {partition} > was enabled.") #if partition == config.get("partition.linux.general.pool") else 0
+        logger.info (f"Maintenance mode successfully disabled for < {partition} >\nusers access to < {partition} > was enabled.") #if partition == config.get("partition.linux.general.pool") else 0
         # logger_win.info (f"Maintenance mode successfully disabled for < {partition} >\nusers access to < {partition} > was enabled.") #if partition == Config.config['partition']['windows']['general']['pool'] else 0
         # no need to put users back to their allocated nodes before maintenance
         # ****** change the parttion availability, so vinfo shows that as up <--- For now, manual change in config till design the best solution   

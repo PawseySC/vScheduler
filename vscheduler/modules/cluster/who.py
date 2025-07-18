@@ -6,7 +6,7 @@ from vscheduler.modules.cluster.os_type import find_os
 
 who_records = CaptureLog("who", __file__)
 logger = who_records.log_agent("cluster")
-
+config = Config()
 
 def who(node: str) -> str:
     """
@@ -37,7 +37,7 @@ def who(node: str) -> str:
             print (line.strip('\n')) if MyPrintCondition.fprint else 0
             # logger_win.info (line.strip('\n')) if Config.config['partition']['windows']['node'] in node else logger_unix.info (line.strip('\n'))
             logger.info (line.strip('\n'))
-            if not line.split()[0] in Config.config['ssh']['exception']:
+            if not line.split()[0] in config.get("ssh.exception"):
                 users.append(line.split()[0])
             else:
                 continue

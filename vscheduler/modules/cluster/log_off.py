@@ -8,6 +8,7 @@ from vscheduler.modules.guaca.revert_user import revert_back_to_pool
 
 logoff_records = CaptureLog("logoff", __file__)
 logger = logoff_records.log_agent("cluster")
+config = Config()
 
 
 def std_print(stdin, stdout, stderr):
@@ -39,7 +40,7 @@ def logoff(user, node):
             stdout_query_copy = std_print(stdin_query, stdout_query, stderr_query)
             # if any(user in x for x in stdout_query_copy):
             for line in stdout_query_copy:
-                if (line.split()[0] == user or line.split()[1] == user) and user not in Config.config['ssh']['exception']:
+                if (line.split()[0] == user or line.split()[1] == user) and user not in config.get("ssh.exception"):
                     if line.split()[0] == user:
                         stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command(f"logoff {line.split()[1]}")
                     elif line.split()[1] == user:
@@ -47,13 +48,13 @@ def logoff(user, node):
                     std_print(stdin_logoff, stdout_logoff, stderr_logoff)
                     print (f"session for {user} was killed on {node}") if MyPrintCondition.fprint else 0
                     logger.info (f"session for {user} was killed on {node}")
-                    if Config.config['partition']['windows']['node'] in node:
-                        if int(node.removeprefix(Config.config['partition']['windows']['node'])) in range(Config.config['partition']['windows']['general']['range'][0], Config.config['partition']['windows']['general']['range'][1]+1):
-                            record_logout(user, node, Config.config['database']['report']['table']['windows'], "general")
-                            revert_back_to_pool(user, node, Config.config['partition']['windows']['general']['pool'])
-                        elif int(node.removeprefix(Config.config['partition']['windows']['node'])) in range(Config.config['partition']['windows']['booking']['range'][0], Config.config['partition']['windows']['booking']['range'][1]+1):
-                            record_logout(user, node, Config.config['database']['report']['table']['windows'], "booking")
-                elif user in Config.config['ssh']['exception']:
+                    if config.get("partition.windows.node") in node:
+                        if int(node.removeprefix(config.get("partition.windows.node"))) in range(config("partition.windows.general.range")[0], config("partition.windows.general.range")[1]+1):
+                            record_logout(user, node, config.get("database.report.table.windows"), "general")
+                            revert_back_to_pool(user, node, config.get("partition.windows.general.pool"))
+                        elif int(node.removeprefix(config.get("partition.windows.node"))) in range(config("partition.windows.booking.range")[0], config("partition.windows.booking.range")[1]+1):
+                            record_logout(user, node, config.get("database.report.table.windows"), "booking")
+                elif user in config.get("ssh.exception"):
                     print (f"{user} is exception") if MyPrintCondition.fprint else 0
                     logger.info (f"{user} is exception")
                 else:
@@ -92,12 +93,12 @@ def logoff(user, node):
             std_print(stdin_logoff, stdout_logoff, stderr_logoff)
             print (f"session for {user} was killed on {node}") if MyPrintCondition.fprint else 0
             logger.info (f"session for {user} was killed on {node}")
-            if Config.config['partition']['linux']['node'] in node:
-                if int(node.removeprefix(Config.config['partition']['linux']['node'])) in range(Config.config['partition']['linux']['general']['range'][0], Config.config['partition']['linux']['general']['range'][1]+1): 
-                    record_logout(user, node, Config.config['database']['report']['table']['linux'], "general")
-                    revert_back_to_pool(user, node, Config.config['partition']['linux']['general']['pool'])
-                elif int(node.removeprefix(Config.config['partition']['linux']['node'])) in range(Config.config['partition']['linux']['booking']['range'][0], Config.config['partition']['linux']['booking']['range'][1]+1):
-                    record_logout(user, node, Config.config['database']['report']['table']['linux'], "booking")
+            if config.get("partition.linux.node") in node:
+                if int(node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1): 
+                    record_logout(user, node, config.get("database.report.table.linux"), "general")
+                    revert_back_to_pool(user, node, config.get("partition.linux.general.pool"))
+                elif int(node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]+1):
+                    record_logout(user, node, config.get("database.report.table.linux"), "booking")
             # else:
             #     print (f"user < {user} > is not logged in < {node}>") if MyPrintCondition.fprint else 0
             #     logger.info (f"user < {user} > is not logged in < {node}>")

@@ -7,6 +7,8 @@ from vscheduler.modules.guaca.revert_user import revert_back_to_pool
 
 atd_records = CaptureLog("atd", __file__)
 logger = atd_records.log_agent("guaca")
+config = Config()
+
 
 def post_log_off(user, node, table):
     """
@@ -14,7 +16,7 @@ def post_log_off(user, node, table):
     closed without waiting for client's socket-based request to server to do so.
     """
     logger.info (f"post_log_ff start, user, node, table: {user}, {node}, {table}")
-    revert_back_to_pool(user, node, Config.config['partition']['linux']['general']['pool'] if Config.config['partition']['linux']['node'] in node else Config.config['partition']['windows']['general']['pool'])
+    revert_back_to_pool(user, node, config.get("partition.linux.general.pool") if config.get("partition.linux.node") in node else config.get("partition.windows.general.pool"))
     record_logout(user, node, table, "general")
     logger.info ("post_log_ff end")
     
