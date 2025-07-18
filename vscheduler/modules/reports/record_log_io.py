@@ -56,7 +56,7 @@ def record_logout(user, node, table, pool):
             my_cursor_out.execute(query_out)
             my_connection.commit()
         print (f"{my_cursor_out.rowcount} record(s) updated in < {table} > for < {pool} > partition") if MyPrintCondition.fprint else 0  
-        logger.info (f"{my_cursor_out.rowcount} record(s) updated in < {table} > for < {pool} > partition") if config.get("partition.windows.node") in node else logger_unix.info (f"{my_cursor_out.rowcount} record(s) updated in < {table} > for < {pool} > partition")
+        logger.info (f"{my_cursor_out.rowcount} record(s) updated in < {table} > for < {pool} > partition") if config.get("partition.windows.node") in node else logger.info (f"{my_cursor_out.rowcount} record(s) updated in < {table} > for < {pool} > partition")
         
     except my_connection.Error as e:
         print (f"error updaing records for {user}, {node} into report database\n{e}") if MyPrintCondition.fprint else 0
