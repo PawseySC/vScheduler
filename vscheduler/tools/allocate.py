@@ -1,7 +1,8 @@
-import multiprocessing
+import multiprocessing, argparse
 from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Config
 from vscheduler.general.initiate import Initiation as initiate
+from vscheduler.lib.verbose import verbose
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.modules.cluster.who import who
 #from vscheduler.modules.cluster.session import session
@@ -29,7 +30,7 @@ class Process(multiprocessing.Process):
         Allocates connection link to specific general pool node in user's guacamole dashboard
         """
         # time.sleep(1)
-        print ("\n==>Process id: {}".format(self.id)) if MyPrintCondition.fprint and self.id else 0
+        print ("\n==>Process id: {}".format(self.id)) if verbose.mode and self.id else 0 # if MyPrintCondition.fprint and self.id else 0
         # if config.get("partition.windows.node") in self.hostname:
         #     logger_win.info ("==>Process id: {}".format(self.id)) if self.id else 0
         # elif config.get("partition.linux.node") in self.hostname:
@@ -63,7 +64,7 @@ class Process(multiprocessing.Process):
         # elif not users and group_check:                                                             # if user's not logged in -> revert it back to general pool
         #     update(group_check[0][1], pool_group[0][0])
         else:
-            print (f"skipping < {self.hostname} > as no ones logged in (or due to broken ssh) and has no member in guacamole connection group") if MyPrintCondition.fprint else 0
+            print (f"skipping < {self.hostname} > as no ones logged in (or due to broken ssh) and has no member in guacamole connection group") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_win.info (f"skipping < {self.hostname} > as no ones logged in (or due to broken ssh) and has no member in guacamole connection group") if Config.config['partition['windows']['node'] in self.hostname else logger_unix.info (f"skipping < {self.hostname} > as no ones logged in (or due to broken ssh) and has no member in guacamole connection group")
             logger.info (f"skipping < {self.hostname} > as no ones logged in (or due to broken ssh) and has no member in guacamole connection group")
             # think about this: user might have some light stuff open and e.g. waiting for mc to copy from object storage
@@ -73,37 +74,61 @@ class Process(multiprocessing.Process):
 
 
 def main():
-    if not initiate.node:
+    # import vscheduler.lib.verbose as verbose_flag
+    # print(verbose_flag.VERBOSE)
+    parser = argparse.ArgumentParser(description="Manage bookable sessions")
+    parser.add_argument("-u", metavar="", help="User")
+    parser.add_argument("-n", metavar="", help="Node")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    parser.add_argument("--version", action="version", version="vscheduler v" + config.get("version.v"))
+    args = parser.parse_args()
+    print(args.u, args.n, args.verbose)
+    if args.verbose:
+        verbose.mode = True
+        print("Verbose mode enabled") if verbose.mode else print("Verbose mode disabled")
+
+    # if not initiate.node:
+    if not args.n:
         if config.get("partition.windows.general.status") or config.get("partition.linux.general.status"):
             if config.get("partition.windows.general.status"):
                 for i in range (config.get("partition.windows.general.range")[0], config.get("partition.windows.general.range")[1]+1):
                     node = config.get("partition.windows.node") + '0' + str(i) if i <= 9 else config.get("partition.windows.node") + str(i)
-                    p = Process(i, initiate.user, node)
+                    # p = Process(i, initiate.user, node)
+                    p = Process(i, args.u, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
             if config.get("partition.linux.general.status"):
                 for i in range (config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1):
                     node = config.get("partition.linux.node") + '0' + str(i) if i <= 9 else config.get("partition.linux.node") + str(i)
-                    p = Process(i, initiate.user, node)
+                    # p = Process(i, initiate.user, node)
+                    p = Process(i, args.u, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
         else:
-            print ("There is no general Windows and Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
+            print ("There is no general Windows and Linux partition; To enable it edit vscheduler confilg") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             logger.info ("There is no general Windows and Linux partition; To enable it edit vscheduler confilg")
             # logger_win.info ("There is no general Windows and Linux partition; To enable it edit vscheduler confilg")
             # logger_unix.info ("There is no general Windows and Linux partition; To enable it edit vscheduler confilg")
     else:
-        if ((config.get("partition.windows.node") in initiate.node and 
-                int(initiate.node.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.general.range")[0], config.get("partition.windows.general.range")[1]+1)) or 
-                (config.get("partition.linux.node") in initiate.node and 
-                int(initiate.node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1))):
-            p = Process("", initiate.user, initiate.node)
+        # if ((config.get("partition.windows.node") in initiate.node and 
+        #         int(initiate.node.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.general.range")[0], config.get("partition.windows.general.range")[1]+1)) or 
+        #         (config.get("partition.linux.node") in initiate.node and 
+        #         int(initiate.node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1))):
+        if ((config.get("partition.windows.node") in args.n and 
+            int(args.n.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.general.range")[0], config.get("partition.windows.general.range")[1]+1)) or 
+            (config.get("partition.linux.node") in args.n and 
+            int(args.n.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1))):
+    
+            # p = Process("", initiate.user, initiate.node)
+            p = Process("", args.u, args.n)
             p.start()       # Create a new process and invoke the Process.run() method
             p.join()        # Process.join() to wait for task completion
         else:
-            print (f"< {initiate.node} > is not in general range") if MyPrintCondition.fprint else 0
+            # print (f"< {initiate.node} > is not in general range") if MyPrintCondition.fprint else 0
+            print (f"< {args.n} > is not in general range") if verbose.mode else 0
             # logger_win.info (f"< {initiate.node} > is not in general range") if config.get("partition.windows.node") in initiate.node else logger_unix.info (f"< {initiate.node} > is not in general range")
-            logger.info (f"< {initiate.node} > is not in general range")
+            # logger.info (f"< {initiate.node} > is not in general range")
+            logger.info (f"< {args.n} > is not in general range")
 
     #     for i in range (MyCredentials.range[0], MyCredentials.range[1]):
     #         node = MyCredentials.node_name + '0' + str(i) if i <= 9 else MyCredentials.node_name + str(i)
@@ -116,6 +141,17 @@ def main():
     #     p.join()        # Process.join() to wait for task completion
 
 
+# def register(subparsers):
+#     parser = subparsers.add_parser("vmanage", help="Manages a bookable session")
+#     parser.add_argument("user", help="User")
+#     parser.add_argument("node", help="Node")
+#     parser.add_argument("-v", type=int, required=True, help="Verbose")
+#     parser.set_defaults(func=handle)
 
+# def handle(args):
+#     # This function is only called if args are valid
+#     print(f"Checking session for {args.user} on {args.node}")
+
+    
 if __name__ == '__main__':
     main()
