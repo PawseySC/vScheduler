@@ -77,8 +77,8 @@ def main():
     # import vscheduler.lib.verbose as verbose_flag
     # print(verbose_flag.VERBOSE)
     parser = argparse.ArgumentParser(description="Allocate a node to a user in the booking pool")
-    parser.add_argument("-u", metavar="", help="User")
-    parser.add_argument("-n", metavar="", help="Node")
+    parser.add_argument("-u", metavar="User", help="username")
+    parser.add_argument("-n", metavar="Node", help="node name")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
     parser.add_argument("--version", action="version", version="vscheduler v" + config.get("version.v"))
     args = parser.parse_args()
