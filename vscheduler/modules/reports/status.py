@@ -1,6 +1,7 @@
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.config import Config
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.general.timer import Brackets as MyBrackets
 from vscheduler.modules.guaca.pool_refresh import refresh
@@ -43,7 +44,7 @@ def status_update(node, mode):
             # print (f"no starus record for < {node} > at current time") if MyPrintCondition.fprint and not pre_query_results else 0
             # logger_win.info (f"no starus record for < {node} > at current time") if config.get("partition.windows.node") in node else logger_unix.info (f"no starus record for < {node} > at current time")
         if len(pre_query_results) > 0:
-            print ("\n", tabulate(pre_query_results, headers=['node', 'status', 'pool', 'start', 'end'])) if MyPrintCondition.fprint and pre_query_results else 0
+            print ("\n", tabulate(pre_query_results, headers=['node', 'status', 'pool', 'start', 'end'])) if verbose.mode and pre_query_results else 0 # if MyPrintCondition.fprint and pre_query_results else 0
             # logger_win.info ("\n" + tabulate(pre_query_results, headers=['node', 'status', 'pool', 'start', 'end'])) if config.get("partition.windows.node") in node else logger_unix.info ("\n" + tabulate(pre_query_results, headers=['node', 'status', 'pool', 'start', 'end']))
             logger.info ("\n" + tabulate(pre_query_results, headers=['node', 'status', 'pool', 'start', 'end']))
             if mode != "up":
@@ -52,12 +53,12 @@ def status_update(node, mode):
             else:
                 post_query = [f"UPDATE {config.get('database.report.table.status')} SET end = '{MyBrackets.local_time}' WHERE node = '{node}' AND start = end"]
         else:
-            print (f"No status record for < {node} > at current time meaning it's idle") if MyPrintCondition.fprint else 0
+            print (f"No status record for < {node} > at current time meaning it's idle") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_win.info (f"No status record for < {node} > at current time meaning it's idle") if config.get("partition.windows.node") in node else logger_unix.info (f"No status record for < {node} > at current time meaning it's idle")
             logger.info (f"No status record for < {node} > at current time meaning it's idle")
             post_query = [f"INSERT INTO {config.get('database.report.table.status')} (node, status, pool, start, end) VALUES ('{node}', '{mode}', '{pool}', '{MyBrackets.local_time}', '{MyBrackets.local_time}')"] if mode != "up" else 0 #f"UPDATE {config.get("database.report.table.status")} SET end = '{MyBrackets.local_time}' WHERE node = '{node}' AND start = end"
     except my_connection.Error as e:
-        print (f"status record error for node < {node} > in pre_query = {pre_query}\n{e}") if MyPrintCondition.fprint else 0
+        print (f"status record error for node < {node} > in pre_query = {pre_query}\n{e}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         # logger_win.error (f"status record error for node < {node} > in pre_query = {pre_query}\n{e}") if config.get("partition.windows.node") in node else logger_unix.error (f"status record error for node < {node} > in pre_query = {pre_query}\n{e}")
         logger.error (f"status record error for node < {node} > in pre_query = {pre_query}\n{e}")
     # print ("yes") if mode in np.array(pre_query_results)[:,1] else print ("no")
@@ -83,7 +84,7 @@ def status_update(node, mode):
     #             '''
     # elif mode == "up":
     #     post_query = f"UPDATE {config.get("database.report.table.status")} SET end = '{MyBrackets.local_time}' WHERE node = '{node}' AND start = end"
-    print (f"post_query: {post_query}")
+    print (f"post_query: {post_query}") if verbose.mode else 0 #
     # logger_win.info (f"post_query: {post_query}") if config.get("partition.windows.node") in node else logger_unix.info (f"post_query: {post_query}")
     logger.info (f"post_query: {post_query}")
     try:
@@ -95,17 +96,17 @@ def status_update(node, mode):
                     my_connection.commit()
                 # my_cursor.execute(post_query)
                 # my_connection.commit()
-                    print (f"{my_cursor.rowcount} record(s) inserted into < {config.get('database.report.table.status')} > table") if MyPrintCondition.fprint else 0  
+                    print (f"{my_cursor.rowcount} record(s) inserted into < {config.get('database.report.table.status')} > table") if verbose.mode else 0 # if MyPrintCondition.fprint else 0  
                     # logger_win.info (f"{my_cursor.rowcount} record(s) inserted into < {config.get("database.report.table.status")} > table") if config.get("partition.windows.node") in node else logger_unix.info (f"{my_cursor.rowcount} record(s) inserted into < {config.get("database.report.table.status")} > table")
                     logger.info (f"{my_cursor.rowcount} record(s) inserted into < {config.get('database.report.table.status')} > table")
             if mode != "up":
                 refresh (node)
         else:
-            print (f"Not possible to apply same mode: < {mode} > to < {node} >") if MyPrintCondition.fprint else 0
+            print (f"Not possible to apply same mode: < {mode} > to < {node} >") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_win.info (f"Not possible to apply same < {mode} > mode to < {node} >") if config.get("partition.windows.node") in node else logger_unix.info (f"Not possible to apply same < {mode} > mode to < {node} >")
             logger.info (f"Not possible to apply same < {mode} > mode to < {node} >")
     except my_connection.Error as e:
-        print (f"status record error for node < {node} > in post_query = {post_query}\n{e}") if MyPrintCondition.fprint else 0
+        print (f"status record error for node < {node} > in post_query = {post_query}\n{e}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         # logger_win.error (f"status record error for node < {node} > in post_query = {post_query}\n{e}") if config.get("partition.windows.node") in node else logger_unix.error (f"status record error for node < {node} > in post_query = {post_query}\n{e}")
         logger.error (f"status record error for node < {node} > in post_query = {post_query}\n{e}")
             

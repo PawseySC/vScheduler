@@ -49,8 +49,10 @@ def main():
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
     parser.add_argument("--version", action="version", version="vscheduler v" + config.get("version.v"))
     args = parser.parse_args()
-    # print(args.u, args.n, args.verbose)
-    
+    if args.verbose:
+        verbose.mode = True
+        print("Verbose mode enabled") if verbose.mode else print("Verbose mode disabled")
+
     if args.operation != "set":
         if args.p:
             change_maint_status(args.mode, args.p)
