@@ -1,6 +1,7 @@
-import multiprocessing
+import multiprocessing, argparse
 from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Config
+from vscheduler.lib.verbose import verbose
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.modules.booked.group import group_id
@@ -35,7 +36,7 @@ class Process(multiprocessing.Process):
         quotas_query = []
         resource_id = groups_id = ""
         # time.sleep(1)
-        print("\n==>Process id: {}\n".format(self.id)) if MyPrintCondition.fprint and self.id else 0
+        print("\n==>Process id: {}\n".format(self.id)) if verbose.mode and self.id else 0 # if MyPrintCondition.fprint and self.id else 0
         # if config.get("partition.windows.node") in self.hostname:
         #     logger_win.info ("==>Process id: {}".format(self.id)) if self.id else 0
         # elif config.get("partition.linux.node") in self.hostname:
@@ -45,7 +46,7 @@ class Process(multiprocessing.Process):
         groups_ids = group_id(user_id) if user_id else ""
         resource_id = host_by_name(self.hostname)[0][0] if self.hostname and host_by_name(self.hostname) else ""
         if not resource_id:
-            print (f"no resource record for < {self.hostname} > in booked - skipping") if MyPrintCondition.fprint else 0
+            print (f"no resource record for < {self.hostname} > in booked - skipping") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_win.info (f"no resource record for < {self.hostname} > in booked - skipping") if config.get("partition.windows.node") in self.hostname else logger_unix.info (f"no resource record for < {self.hostname} > in booked - skipping")
             logger.info (f"no resource record for < {self.hostname} > in booked - skipping")
             quit()
@@ -96,7 +97,7 @@ class Process(multiprocessing.Process):
                         table.add_row(group_name(group__id)[0][1] ,str(quota_limit) + " " + str(unit), duration, self.hostname, str(member_username)) if self.hostname else table.add_row(group_name(group__id)[0][1] ,str(quota_limit) + " " + str(unit), duration, host_by_id(resource_id), str(member_username))
                         
                         if self.hostname:
-                            if MyPrintCondition.fprint:
+                            if verbose.mode: # if MyPrintCondition.fprint:
                                 print (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} \n") if enforced_days and enforced_time_start else print (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on <  {self.hostname} > inequally shared between {member_username} \n")
                             # if config.get("partition.windows.node") in self.hostname:
                             #     logger_win.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} \n") if enforced_days and enforced_time_start else logger_win.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on <  {self.hostname} > inequally shared between {member_username} \n")
@@ -104,7 +105,7 @@ class Process(multiprocessing.Process):
                             #     logger_unix.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} \n") if enforced_days and enforced_time_start else logger_unix.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on <  {self.hostname} > inequally shared between {member_username} \n")
                             logger.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} \n") if enforced_days and enforced_time_start else logger.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on <  {self.hostname} > inequally shared between {member_username} \n")
                         else:
-                            if MyPrintCondition.fprint:
+                            if verbose.mode: # if MyPrintCondition.fprint:
                                 print (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {host_by_id(resource_id)} > inequally shared between {member_username} \n") if enforced_days and enforced_time_start else print (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {host_by_id(resource_id)} > inequally shared between {member_username} \n")
                             # if config.get("partition.windows.node") in self.hostname:
                             #     logger_win.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {host_by_id(resource_id)} > inequally shared between {member_username} \n") if enforced_days and enforced_time_start else logger_win.info (f"\ngroup/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {host_by_id(resource_id)} > inequally shared between {member_username} \n")
@@ -115,7 +116,7 @@ class Process(multiprocessing.Process):
                         table.add_row(self.username, group_name(group__id)[0][1] ,str(quota_limit) + " " + str(unit), duration, self.hostname, str(member_username)) if self.hostname else table.add_row(self.username, group_name(group__id)[0][1] ,str(quota_limit) + " " + str(unit), duration, host_by_id(resource_id), str(member_username))
                         
                         if self.hostname:
-                            if MyPrintCondition.fprint:
+                            if verbose.mode: # if MyPrintCondition.fprint:
                                 print (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} >\n") if enforced_days and enforced_time_start else print (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {self.hostname} > inequally shared between {member_username} >\n")
                             # if config.get("partition.windows.node") in self.hostname:
                             #     logger_win.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} >\n") if enforced_days and enforced_time_start else logger_win.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {self.hostname} > inequally shared between {member_username} >\n")
@@ -123,7 +124,7 @@ class Process(multiprocessing.Process):
                             #     logger_win.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} >\n") if enforced_days and enforced_time_start else logger_unix.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {self.hostname} > inequally shared between {member_username} >\n")
                             logger.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {self.hostname} > inequally shared between {member_username} >\n") if enforced_days and enforced_time_start else logger.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {self.hostname} > inequally shared between {member_username} >\n")
                         else:
-                            if MyPrintCondition.fprint:
+                            if verbose.mode: #if MyPrintCondition.fprint:
                                 print (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {host_by_id(resource_id)} > inequally shared between {member_username} >\n") if enforced_days and enforced_time_start else print (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {host_by_id(resource_id)} > inequally shared between {member_username} >\n")
                             # if config.get("partition.windows.node") in self.hostname:
                             #     logger_win.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced {enforced_days} starting {enforced_time_start} till {enforced_time_end} on < {host_by_id(resource_id)} > inequally shared between {member_username} >\n") if enforced_days and enforced_time_start else logger_win.info (f"\nuser < {self.username} > as a member of group/project < {group_name(group__id)[0][1]} > has quota of < {quota_limit}, {unit} > each < {duration} > enforced EveryDay AllDays on < {host_by_id(resource_id)} > inequally shared between {member_username} >\n")
@@ -134,7 +135,7 @@ class Process(multiprocessing.Process):
             # logger_win.info (console.print(table)) if config.get("partition.windows.node") in self.hostname else logger_unix.info (console.print(table))
             logger.info (console.print(table))
         else:
-            print (f"no quota found for < {self.username} > on < {self.hostname} >") if {self.username} else print (f"no quota found on < {self.hostname} >") if MyPrintCondition.fprint else 0
+            print (f"no quota found for < {self.username} > on < {self.hostname} >") if {self.username} else print (f"no quota found on < {self.hostname} >") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # if config.get("partition.windows.node") in self.hostname:
             #     logger_win.info (f"no quota found for < {self.username} > on < {self.hostname} >") if {self.username} else logger_win.info (f"no quota found on < {self.hostname} >")
             # elif config.get("partition.linux.node") in self.hostname:
@@ -143,37 +144,59 @@ class Process(multiprocessing.Process):
                 
                 
 def main():
-    if not initiate.node and not initiate.user:
+    parser = argparse.ArgumentParser(
+        description="Syncs guacamole with booked for bookable partition",
+        usage="vsync [-u User] [-n Node] [--verbose] [--version]")
+    parser.add_argument("-u", metavar="User", help="username")
+    parser.add_argument("-n", metavar="Node", help="node name")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    parser.add_argument("--version", action="version", version="vscheduler v" + config.get("version.v"))
+    args = parser.parse_args()
+    if args.verbose:
+        verbose.mode = True
+        print("Verbose mode enabled") if verbose.mode else print("Verbose mode disabled")
+
+    # if not initiate.node and not initiate.user:
+    if not args.n and not args.u:
         if config.get("partition.windows.booking.status") or config.get("partition.linux.booking.status"):
             if config.get("partition.windows.booking.status"):
                 for i in range (config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]+1):
                     node = config.get("partition.windows.node") + '0' + str(i) if i <= 9 else config.get("partition.windows.node") + str(i)
-                    p = Process(i, initiate.user, node)
+                    # p = Process(i, initiate.user, node)
+                    p = Process(i, args.u, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
             if config.get("partition.linux.booking.status"):
                 for i in range (config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]+1):
                     node = config.get("partition.linux.node") + '0' + str(i) if i <= 9 else config.get("partition.linux.node") + str(i)
-                    p = Process(i, initiate.user, node)
+                    # p = Process(i, initiate.user, node)
+                    p = Process(i, args.u, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
         else:
-            print ("There is no bookable Windows and Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
+            print ("There is no bookable Windows and Linux partition; To enable it edit vscheduler confilg") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_win.info ("There is no bookable Windows and Linux partition; To enable it edit vscheduler confilg")
             # logger_unix.info ("There is no bookable Windows and Linux partition; To enable it edit vscheduler confilg")
             logger.info ("There is no bookable Windows and Linux partition; To enable it edit vscheduler confilg")
     else:
-        if (config.get("partition.windows.node") in initiate.node and 
-                int(initiate.node.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]) or 
-                (config.get("partition.linux.node") in initiate.node and 
-                int(initiate.node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]))):
-            p = Process("", initiate.user, initiate.node)
+        if (config.get("partition.windows.node") in args.n and 
+                int(args.n.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]) or 
+                (config.get("partition.linux.node") in args.n and 
+                int(args.n.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]))):
+        # if (config.get("partition.windows.node") in initiate.node and 
+        #         int(initiate.node.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]) or 
+        #         (config.get("partition.linux.node") in initiate.node and 
+        #         int(initiate.node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]))):
+            # p = Process("", initiate.user, initiate.node)
+            p = Process("", args.u, args.n)
             p.start()       # Create a new process and invoke the Process.run() method
             p.join()        # Process.join() to wait for task completion
         else:
-            print (f"< {initiate.node} > is not in bookable range") if MyPrintCondition.fprint else 0
+            # print (f"< {initiate.node} > is not in bookable range") if MyPrintCondition.fprint else 0
+            print (f"< {args.n} > is not in bookable range") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_win.info (f"< {initiate.node} > is not in bookable range") if config.get("partition.windows.node") in initiate.node else logger_unix.info (f"< {initiate.node} > is not in bookable range")
-            logger.info (f"< {initiate.node} > is not in bookable range")
+            # logger.info (f"< {initiate.node} > is not in bookable range")
+            logger.info (f"< {args.n} > is not in bookable range")
             
 
 if __name__ == '__main__':
