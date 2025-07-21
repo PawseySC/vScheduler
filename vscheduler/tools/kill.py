@@ -1,7 +1,8 @@
-import multiprocessing, time
+import multiprocessing, time, argparse
 from vscheduler.log.log import CaptureLog
 from tabulate import tabulate
 from vscheduler.lib.config import Config
+from vscheduler.lib.verbose import verbose
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.modules.cluster.log_off import logoff
@@ -26,7 +27,7 @@ class Process(multiprocessing.Process):
         Sesssion killing script logging out users
         """
         # time.sleep(1)
-        print ("\n==>> Process id: {}".format(self.id)) if MyPrintCondition.fprint and self.id else 0
+        print ("\n==>> Process id: {}".format(self.id)) if verbose.mode and self.id else 0 # if MyPrintCondition.fprint and self.id else 0
         # if config.get("partition.windows.node") in self.hostname:
         #     logger_win.info ("==>Process id: {}".format(self.id)) if self.id else 0
         # elif config.get("partition.linux.node") in self.hostname:
@@ -38,7 +39,7 @@ class Process(multiprocessing.Process):
             if not self.username:
                 for user in users:
                     sentence.insert(len(sentence), [user])
-                print ("\n" + tabulate(sentence, headers=[self.hostname + " logged in users"])) if MyPrintCondition.fprint else 0
+                print ("\n" + tabulate(sentence, headers=[self.hostname + " logged in users"])) if verbose.mode else 0 # if MyPrintCondition.fprint else 0
                 # logger_win.info ("\n" + tabulate(sentence, headers=[self.hostname + " logged in users"])) if config.get("partition.windows.node") in self.hostname else logger_unix.info ("\n" + tabulate(sentence, headers=[self.hostname + " logged in users"]))
                 logger.info ("\n" + tabulate(sentence, headers=[self.hostname + " logged in users"]))
             
@@ -50,49 +51,67 @@ class Process(multiprocessing.Process):
             # else:
                 # print ("skipped", self.hostname, "sessions")
         else:
-            print (f"no one is logged in < {self.hostname} > , skipping") if MyPrintCondition.fprint else 0
+            print (f"no one is logged in < {self.hostname} > , skipping") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_win.info (f"no one is logged in < {self.hostname} > , skipping") if config.get("partition.windows.node") in self.hostname else logger_unix.info (f"no one is logged in < {self.hostname} > , skipping")
             logger.info (f"no one is logged in < {self.hostname} > , skipping")
 
 
 def main():
-    if not initiate.node:
+    parser = argparse.ArgumentParser(
+        description="Syncs guacamole with booked for bookable partition",
+        usage="vsync [-u User] [-n Node] [--verbose] [--version]")
+    parser.add_argument("-u", metavar="User", help="username")
+    parser.add_argument("-n", metavar="Node", help="node name")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    parser.add_argument("--version", action="version", version="vscheduler v" + config.get("version.v"))
+    args = parser.parse_args()
+    if args.verbose:
+        verbose.mode = True
+        print("Verbose mode enabled") if verbose.mode else print("Verbose mode disabled")
+
+    # if not initiate.node:
+    if not args.n:
         if config.get("partition.windows.booking.status") or config.get("partition.windows.general.status"):
             if config.get("partition.windows.booking.status"):
                 for i in range (config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]+1):
                     node = config.get("partition.windows.node") + '0' + str(i) if i <= 9 else config.get("partition.windows.node") + str(i)
-                    p = Process(i, initiate.user, node)
+                    # p = Process(i, initiate.user, node)
+                    p = Process(i, args.u, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
             if config.get("partition.windows.general.status"):
                 for i in range (config.get("partition.windows.general.range")[0], config.get("partition.windows.general.range")[1]+1):
                     node = config.get("partition.windows.node") + '0' + str(i) if i <= 9 else config.get("partition.windows.node") + str(i)
-                    p = Process(i, initiate.user, node)
+                    # p = Process(i, initiate.user, node)
+                    p = Process(i, args.u, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
         else:
-            print ("There is no Windows partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
+            print ("There is no Windows partition; To enable it edit vscheduler confilg") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_win.info ("There is no Windows partition; To enable it edit vscheduler confilg")
             logger.info ("There is no Windows partition; To enable it edit vscheduler confilg")
         if config.get("partition.linux.booking.status") or config.get("partition.linux.general.status"):
             if config.get("partition.linux.booking.status"):
                 for i in range (config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]+1):
                     node = config.get("partition.linux.node") + '0' + str(i) if i <= 9 else config.get("partition.linux.node") + str(i)
-                    p = Process(i, initiate.user, node)
+                    # p = Process(i, initiate.user, node)
+                    p = Process(i, args.u, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
             if config.get("partition.linux.general.status"):
                 for i in range (config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1):
                     node = config.get("partition.linux.node") + '0' + str(i) if i <= 9 else config.get("partition.linux.node") + str(i)
-                    p = Process(i, initiate.user, node)
+                    # p = Process(i, initiate.user, node)
+                    p = Process(i, args.u, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
         else:
-            print ("There is no Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
+            print ("There is no Linux partition; To enable it edit vscheduler confilg") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_unix.info ("There is no Linux partition; To enable it edit vscheduler confilg")
             logger.info ("There is no Linux partition; To enable it edit vscheduler confilg")
     else:
-        p = Process("", initiate.user, initiate.node)
+        # p = Process("", initiate.user, initiate.node)
+        p = Process("", args.u, args.n)
         p.start()       # Create a new process and invoke the Process.run() method
         p.join()        # Process.join() to wait for task completion
 
