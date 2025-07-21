@@ -1,16 +1,19 @@
-import multiprocessing
+import multiprocessing, argparse
 from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Config
 from vscheduler.general.timer import Brackets as MyBrackets
 from vscheduler.general.initiate import Initiation as initiate
+from vscheduler.lib.verbose import verbose
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 # from vscheduler.modules.cluster.maintenance import activation as activate
 # from vscheduler.modules.cluster.maintenance import deactivation as deactivate
 # from vscheduler.modules.cluster.maintenance import activation_status as status_activation
 from vscheduler.modules.guaca.maintenance import change_maint_status
+from vscheduler.modules.reports.status import status_update as update_status
 
 control_records = CaptureLog("control", __file__)
 logger = control_records.log_agent("tools")
+config = Config()
 
 # Process class
 # class Process(multiprocessing.Process):
@@ -36,9 +39,37 @@ def main():
     """
     Makes a node exception not to be called in allocation process, or gives exception status of all/specific node(s)
     """
-    if not initiate.node:
-        print (initiate.mode, initiate.partition)
-        change_maint_status (initiate.mode, initiate.partition)
+    parser = argparse.ArgumentParser(
+        description="Apply mode to a partition or node: training, maintenance, up, down",
+        usage="vcontrol operation mode [-n Node] [-p Partition] [--verbose] [--version]")
+    parser.add_argument("operation", help="create, delete, set")
+    parser.add_argument("mode", help="training, maintenance, up, down")
+    parser.add_argument("-n", metavar="Node", help="node name")
+    parser.add_argument("-p", metavar="Partition", help="partition name")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    parser.add_argument("--version", action="version", version="vscheduler v" + config.get("version.v"))
+    args = parser.parse_args()
+    # print(args.u, args.n, args.verbose)
+    
+    if args.operation != "set":
+        if args.p:
+            change_maint_status(args.mode, args.p)
+        elif args.n:
+            print (f"vscontrol create/delete only works with parttiton. For node use vcontrol set -n {args.n} to modify the mode")    
+    else:
+        if not args.n:
+            print ("Node name is required for vcontrol set operation. Use -n <node> to specify the node.")
+            return
+        else:
+            if args.mode != "training":
+                update_status (args.n, args.mode)
+            else:
+                print ("Training mode is not supported for nodes. Use vcontrol create/delete -p <partitione> to set training mode for a partition.")
+
+    # if not initiate.node:
+        # # print (initiate.mode, initiate.partition)
+        # change_maint_status (initiate.mode, initiate.partition)
+
         # for i in range (MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
         #     node = MyCredentials.windows_node_name + '0' + str(i) if i <= 9 else MyCredentials.windows_node_name + str(i)
         #     if initiate.status == 'activate':
@@ -79,7 +110,7 @@ def main():
         #         p = Process(i, "status", node)
         #     p.start()       # Create a new process and invoke the Process.run() method
         #     p.join()        # Process.join() to wait for task completion
-    else:
+    # else:
         # if initiate.add:
         #     p = Process("", "add", initiate.node)
         # elif initiate.remove:
@@ -88,7 +119,7 @@ def main():
         #     p = Process("", "status", initiate.node)
         # p.start()       # Create a new process and invoke the Process.run() method
         # p.join()        # Process.join() to wait for task completion
-        print ("Maintenance mode will be applied for all nodes; To exclude specific node, use vexcept")
+        # print ("Maintenance mode will be applied for all nodes; To exclude specific node, use vexcept")
     # p = Process("", initiate.status, initiate.node)
     # p.start()       # Create a new process and invoke the Process.run() method
     # p.join()        # Process.join() to wait for task completion
