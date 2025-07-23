@@ -7,6 +7,7 @@ from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.modules.cluster.log_off import logoff
 from vscheduler.modules.cluster.who import who
+from vscheduler.lib.ranger import parse_node_range
 
 kill_records = CaptureLog("kill", __file__)
 logger = kill_records.log_agent("tools")
@@ -46,10 +47,13 @@ class Process(multiprocessing.Process):
             # answer = input("Do you want above sessions to be killed? (Y/N)") if not self.username else input("Do you want to kill <", self.username,"> sessions on < ", self.hostname,"> ? (Y/N)")
             # print ("answer", answer)
             # if answer == "Y" or "y":
-            for user in users:
+            # for user in users:
                 logoff(user, self.hostname)
-            # else:
+            else:
                 # print ("skipped", self.hostname, "sessions")
+                for user in users:
+                    if user == self.username:
+                        logoff(user, self.hostname) 
         else:
             print (f"no one is logged in < {self.hostname} > , skipping") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_win.info (f"no one is logged in < {self.hostname} > , skipping") if config.get("partition.windows.node") in self.hostname else logger_unix.info (f"no one is logged in < {self.hostname} > , skipping")
@@ -110,10 +114,17 @@ def main():
             # logger_unix.info ("There is no Linux partition; To enable it edit vscheduler confilg")
             logger.info ("There is no Linux partition; To enable it edit vscheduler confilg")
     else:
+        nodes = parse_node_range(args.n)
+        node_numbers = len(nodes)
+        for i in node_numbers:
+            # node = config.get("partition.windows.node") + '0' + str(i) if i <= 9 else config.get("partition.windows.node") + str(i)
+            p = Process(i, args.u, nodes[i])
+            p.start()
+            p.join()
         # p = Process("", initiate.user, initiate.node)
-        p = Process("", args.u, args.n)
-        p.start()       # Create a new process and invoke the Process.run() method
-        p.join()        # Process.join() to wait for task completion
+        # p = Process("", args.u, args.n)
+        # p.start()       # Create a new process and invoke the Process.run() method
+        # p.join()        # Process.join() to wait for task completion
 
 
 if __name__ == '__main__':
