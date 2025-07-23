@@ -1,5 +1,6 @@
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.config import Config
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.general.timer import Brackets as MyBrackets
@@ -75,7 +76,7 @@ def print_info():
             my_cursor.execute(query)
             query_results = my_cursor.fetchall()
     except my_connection.Error as e:
-            print (f"status query hit error\n{e}") if MyPrintCondition.fprint else 0
+            print (f"status query hit error\n{e}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             logger.error (f"status query hit error\n{e}")
 
     if len(query_results) > 0:
@@ -273,7 +274,7 @@ def session (node):
     # print (query, query_results)
     # a = dict(query_results)
     if query_results and (node in linux_general_nodes or node in windows_general_nodes):
-        print (f"\nLogged-in Users in < {node} >, {cluster} cluster\n", tabulate(query_results, headers=['node', 'user', 'pool', 'start', 'end'], tablefmt='psql')) if MyPrintCondition.fprint and query_results else 0
+        print (f"\nLogged-in Users in < {node} >, {cluster} cluster\n", tabulate(query_results, headers=['node', 'user', 'pool', 'start', 'end'], tablefmt='psql')) if verbose.mode and query_results else 0 # if MyPrintCondition.fprint and query_results else 0
         logger.info (f"\nLogged-in Users in < {node} >, {cluster} cluster\n" + tabulate(query_results, headers=['node', 'user', 'pool', 'start', 'end'], tablefmt='psql'))
     else:
         print (f"No one's logged in to < {node} >")
