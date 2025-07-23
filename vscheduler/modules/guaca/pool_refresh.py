@@ -1,6 +1,7 @@
 from tabulate import tabulate
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.config import Config
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.modules.guaca.entity import entity
@@ -13,6 +14,7 @@ my_connection = MyDatabase.connect_guaca_db()
 
 poolrefresh_records = CaptureLog("poolrefresh", __file__)
 logger = poolrefresh_records.log_agent("guaca")
+config = Config()
 
 
 def refresh (node):
@@ -22,10 +24,10 @@ def refresh (node):
     member to remove and replace it with another node depending on node 
     balance being ON or OFF in the config.
     '''
-    os = "windows" if Config.config['partition']['windows']['node'] in node else "linux"
+    os = "windows" if config.get("partition.windows.node") in node else "linux"
     print (f"osososos = {os}")
     # find the current pool member identity in guacamole db
-    pool_entity = entity(Config.config['partition']['windows']['general']['pool']) if Config.config['partition']['windows']['node'] in node else entity(Config.config['partition']['linux']['general']['pool'])
+    pool_entity = entity(config.get("partition.windows.general.pool")) if config.get("partition.windows.node") in node else entity(config.get("partition.linux.general.pool"))
     
     # find the node identity in guacamole db
     connection = f"SELECT connection_id, connection_name FROM guacamole_connection WHERE connection_name = '{node}'"
@@ -49,21 +51,21 @@ def refresh (node):
 
         # logger_win.info ("load balance/pool fill up") if os == "windows" else logger_unix.info ("load balance/pool fill up")
         logger.info ("load balance/pool fill up")
-        if Config.config['load']['balance']:
+        if config.get("load.balance"):
             # logger_win.warning ("load_balance = TRUE") if os == "windows" else logger_unix.warning ("load_balance = TRUE")
             logger.warning ("load_balance = TRUE")
             usage_data = data_agent(hosts, os)
             # logger_win.info (f"Usage data obtained from accessible nodes: {usage_data}") if os == "windows" else logger_unix.info (f"Usage data obtained from accessible nodes: {usage_data}")
             logger.info (f"Usage data obtained from accessible nodes: {usage_data}")
             # logger_win.info (f"{os} nodes load balancing in < {Config.config['partition']['windows']['general']['pool']} >") if os == "windows" else logger_unix.info (f"{os} nodes load balancing in < {Config.config['partition']['linux']['general']['pool']} >")
-            logger.info (f"{os} nodes load balancing in < {Config.config['partition']['windows']['general']['pool']} >") if os == "windows" else logger.info (f"{os} nodes load balancing in < {Config.config['partition']['linux']['general']['pool']} >")
-            loadbalance(usage_data, Config.config['partition']['linux']['general']['pool']) if os == "linux" else loadbalance(usage_data, Config.config['partition']['windows']['general']['pool'])
+            logger.info (f"{os} nodes load balancing in < {config.get("partition.windows.general.pool")} >") if os == "windows" else logger.info (f"{os} nodes load balancing in < {config.get("partition.linux.general.pool")} >")
+            loadbalance(usage_data, config.get("partition.linux.general.pool")) if os == "linux" else loadbalance(usage_data, config.get("partition.windows.general.pool"))
         # load balance OFF -> fill up pool with next node in order
         else:
             # logger_win.warning ("load_balance = FALSE") if os == "windows" else logger_unix.warning ("load_balance = FALSE")
             logger.warning ("load_balance = FALSE")
             fill_up(node, hosts)
     else:
-        print (f"< {node} > was not in the pool, so no change in pool happened") if MyPrintCondition.fprint else 0
+        print (f"< {node} > was not in the pool, so no change in pool happened") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         # logger_win.info (f"< {node} > was not in the pool, so no change in pool happened") if os == "windows" else logger_unix.info (f"< {node} > was not in the pool, so no change in pool happened")    
         logger.info (f"< {node} > was not in the pool, so no change in pool happened")

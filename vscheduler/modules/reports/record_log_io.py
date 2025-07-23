@@ -1,6 +1,7 @@
 from datetime import datetime
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.config import Config
 from vscheduler.lib.database import Database as MyDatabase
 
@@ -28,12 +29,12 @@ def record_login(user, node, table, pool):
         with my_connection.cursor() as my_cursor_in:
             my_cursor_in.execute(query_in)
             my_connection.commit()
-        print (f"{my_cursor_in.rowcount} record(s) inserted into < {table} > for < {pool} > partition") if MyPrintCondition.fprint else 0  
+        print (f"{my_cursor_in.rowcount} record(s) inserted into < {table} > for < {pool} > partition") if verbose.mode else 0 # if MyPrintCondition.fprint else 0  
         # logger.info (f"{my_cursor_in.rowcount} record(s) inserted into < {table} > for < {pool} > partition") if config.get("partition.windows.node") in node else logger_unix.info (f"{my_cursor_in.rowcount} record(s) inserted into < {table} > for < {pool} > partition")
         logger.info (f"{my_cursor_in.rowcount} record(s) inserted into < {table} > for < {pool} > partition")
         
     except my_connection.Error as e:
-        print (f"error inserting records for < {user} >, < {node} > into report database\n{e}") if MyPrintCondition.fprint else 0
+        print (f"error inserting records for < {user} >, < {node} > into report database\n{e}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         # logger_win.error(f"error inserting records for < {user} >, < {node} > into report database\n{e}") if config.get("partition.windows.node") in node else logger_unix.error(f"error inserting records for < {user} >, < {node} > into report database\n{e}")
         logger.error(f"error inserting records for < {user} >, < {node} > into report database\n{e}")
 
@@ -55,10 +56,10 @@ def record_logout(user, node, table, pool):
         with my_connection.cursor() as my_cursor_out:
             my_cursor_out.execute(query_out)
             my_connection.commit()
-        print (f"{my_cursor_out.rowcount} record(s) updated in < {table} > for < {pool} > partition") if MyPrintCondition.fprint else 0  
-        logger.info (f"{my_cursor_out.rowcount} record(s) updated in < {table} > for < {pool} > partition") if config.get("partition.windows.node") in node else logger_unix.info (f"{my_cursor_out.rowcount} record(s) updated in < {table} > for < {pool} > partition")
+        print (f"{my_cursor_out.rowcount} record(s) updated in < {table} > for < {pool} > partition") if verbose.mode else 0 # if MyPrintCondition.fprint else 0  
+        logger.info (f"{my_cursor_out.rowcount} record(s) updated in < {table} > for < {pool} > partition") if config.get("partition.windows.node") in node else logger.info (f"{my_cursor_out.rowcount} record(s) updated in < {table} > for < {pool} > partition")
         
     except my_connection.Error as e:
-        print (f"error updaing records for {user}, {node} into report database\n{e}") if MyPrintCondition.fprint else 0
+        print (f"error updaing records for {user}, {node} into report database\n{e}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         # logger_win.error(f"error updating records for {user}, {node} into report database\n{e}") if config.get("partition.windows.node") in node else logger_unix.error(f"error updating records for {user}, {node} into report database\n{e}")
         logger.error(f"error updating records for {user}, {node} into report database\n{e}")

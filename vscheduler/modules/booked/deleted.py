@@ -1,6 +1,7 @@
 from tabulate import tabulate
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.database import Database as MyDatabase
 
 my_connection = MyDatabase.connect_booked_db()
@@ -25,11 +26,11 @@ def deleted(reserved_series):
             reservation_series_id = row_reservation_series[0]
             reservation_series_status_id = row_reservation_series[1]
             sentence.insert(len(sentence), [reservation_series_id , reservation_series_status_id])
-        print (f"\n{tabulate(sentence, headers=['reservation_series_id', 'reservation_series_status_id'])}") if MyPrintCondition.fprint else 0
+        print (f"\n{tabulate(sentence, headers=['reservation_series_id', 'reservation_series_status_id'])}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger.info (f"\n{tabulate(sentence, headers=['reservation_series_id', 'reservation_series_status_id'])}")
         return reservation_series_results
     except:
-        print (f"error retreiving resevation series for < {reserved_series} >") if MyPrintCondition.fprint else 0
+        print (f"error retreiving resevation series for < {reserved_series} >") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger.error (f"error retreiving resevation series for < {reserved_series} >")
 
 
@@ -48,9 +49,9 @@ def deleted_records():
             reservation_series_id = row_reservation_series[0]
             reservation_series_status_id = row_reservation_series[1]
             sentence.insert(len(sentence), [reservation_series_id , reservation_series_status_id])
-        print (f"\n{tabulate(sentence, headers=['reservation_series_id', 'reservation_series_status_id'])}") if MyPrintCondition.fprint else 0
+        print (f"\n{tabulate(sentence, headers=['reservation_series_id', 'reservation_series_status_id'])}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger.info (f"\n{tabulate(sentence, headers=['reservation_series_id', 'reservation_series_status_id'])}")
         return reservation_series_results
     except:
-        print ("error retreiving resevation series") if MyPrintCondition.fprint else 0
+        print ("error retreiving resevation series") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger.error ("error retreiving resevation series")

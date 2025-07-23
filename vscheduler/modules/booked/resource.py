@@ -1,6 +1,7 @@
 from tabulate import tabulate
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.database import Database as MyDatabase
 
 my_connection = MyDatabase.connect_booked_db()
@@ -24,9 +25,9 @@ def resource_reservations(resource_id):
             series_id = row_reservation_resources[0]
             resources_id = row_reservation_resources[1]
             sentence.insert(len(sentence), [resources_id, series_id])
-        print (f"\n{tabulate(sentence, headers=['resources_id', 'series_id'])}") if MyPrintCondition.fprint else 0
+        print (f"\n{tabulate(sentence, headers=['resources_id', 'series_id'])}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger_win.info (f"\n{tabulate(sentence, headers=['resources_id', 'series_id'])}")
         return reservation_resources_results
     except:
-        print (f"error: resource with id < {resource_id} > not found") if MyPrintCondition.fprint else 0
+        print (f"error: resource with id < {resource_id} > not found") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger_win.error (f"error: resource with id < {resource_id} > not found")

@@ -1,6 +1,7 @@
-import multiprocessing
+import multiprocessing, argparse
 from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Config
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
@@ -23,6 +24,8 @@ from tabulate import tabulate
 
 report_records = CaptureLog("report", __file__)
 logger = report_records.log_agent("tools")
+config = Config()
+
 
 # sendMail = True
 # counter = 0
@@ -66,7 +69,7 @@ class Process(multiprocessing.Process):
         Report script
         """
         # time.sleep(1)
-        print ("\n==>> Process id: {}".format(self.id)) if MyPrintCondition.fprint and self.id else 0
+        print ("\n==>> Process id: {}".format(self.id)) if verbose.mode and self.id else 0 # if MyPrintCondition.fprint and self.id else 0
         # if Config.config['partition']['windows']['node'] in self.hostname:
         #     logger_win.info ("==>Process id: {}".format(self.id)) if self.id else 0
         # elif Config.config['partition']['linux']['node'] in self.hostname:
@@ -122,6 +125,18 @@ class Process(multiprocessing.Process):
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Syncs guacamole with booked for bookable partition",
+        usage="vsync [-u User] [-n Node] [--verbose] [--version]")
+    parser.add_argument("-u", metavar="User", help="username")
+    parser.add_argument("-n", metavar="Node", help="node name")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    parser.add_argument("--version", action="version", version="vscheduler v" + config.get("version.v"))
+    args = parser.parse_args()
+    if args.verbose:
+        verbose.mode = True
+        print("Verbose mode enabled") if verbose.mode else print("Verbose mode disabled")
+
     # if not initiate.node:
     #     for i in range (MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
     #         node = Config.config['partition']['windows']['node'] + '0' + str(i) if i <= 9 else Config.config['partition']['windows']['node'] + str(i)
@@ -152,7 +167,8 @@ def main():
     #     p = Process("", initiate.user, initiate.node)
     #     p.start()       # Create a new process and invoke the Process.run() method
     #     p.join()        # Process.join() to wait for task completion
-    p = Process("", initiate.user, initiate.node)
+    # p = Process("", initiate.user, initiate.node)
+    p = Process("", args.u, args.n)
     p.start()       # Create a new process and invoke the Process.run() method
     p.join()        # Process.join() to wait for task completion
 
