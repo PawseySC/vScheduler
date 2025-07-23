@@ -1,6 +1,7 @@
 from tabulate import tabulate
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.database import Database as MyDatabase
 
 my_connection = MyDatabase.connect_booked_db()
@@ -24,11 +25,11 @@ def group_id(user_id):
             users_id = row_group[0]
             groups_id = row_group[1]
             sentence.insert(len(sentence), [users_id , groups_id])
-        print (f"\n{tabulate(sentence, headers=['users_id', 'groups_id'])}") if MyPrintCondition.fprint else 0
+        print (f"\n{tabulate(sentence, headers=['users_id', 'groups_id'])}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger.info (f"\n{tabulate(sentence, headers=['users_id', 'groups_id'])}")
         return group_results
     except:
-        print (f"group error; user id < {user_id} > is not available in booked\n") if MyPrintCondition.fprint else 0
+        print (f"group error; user id < {user_id} > is not available in booked\n") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger.error (f"group error; user id < {user_id} > is not available in booked")
 
 
@@ -47,11 +48,11 @@ def group_name(group_id):
             group_id = row_group[0]
             name = row_group[1]
             sentence.insert(len(sentence), [group_id , name])
-        print (f"\n{tabulate(sentence, headers=['group_id', 'name'])}") if MyPrintCondition.fprint else 0
+        print (f"\n{tabulate(sentence, headers=['group_id', 'name'])}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger.info (f"\n{tabulate(sentence, headers=['group_id', 'name'])}")
         return group_results
     except:
-        print (f"group error; group id < {group_id} > is not available in booked to extract its name\n") if MyPrintCondition.fprint else 0
+        print (f"group error; group id < {group_id} > is not available in booked to extract its name\n") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger.error (f"group error; group id < {group_id} > is not available in booked to extract its name")
 
 
@@ -72,9 +73,9 @@ def group_members(group_id):
             groups_id = row_members[1]
             sentence.insert(len(sentence), [users_id , groups_id])
             id.append(users_id)
-        print (f"\n{tabulate(sentence, headers=['users_id', 'groups_id'])}") if MyPrintCondition.fprint else 0
+        print (f"\n{tabulate(sentence, headers=['users_id', 'groups_id'])}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger.info (f"\n{tabulate(sentence, headers=['users_id', 'groups_id'])}")
         return id
     except:
-        print (f"member error; group id < {group_id} > is not available in booked to extract its members\n") if MyPrintCondition.fprint else 0
+        print (f"member error; group id < {group_id} > is not available in booked to extract its members\n") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger.error (f"member error; group id < {group_id} > is not available in booked to extract its members")

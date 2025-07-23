@@ -1,6 +1,7 @@
 from tabulate import tabulate
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.config import Config
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.modules.guaca.entity import entity
@@ -65,6 +66,6 @@ def refresh (node):
             logger.warning ("load_balance = FALSE")
             fill_up(node, hosts)
     else:
-        print (f"< {node} > was not in the pool, so no change in pool happened") if MyPrintCondition.fprint else 0
+        print (f"< {node} > was not in the pool, so no change in pool happened") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         # logger_win.info (f"< {node} > was not in the pool, so no change in pool happened") if os == "windows" else logger_unix.info (f"< {node} > was not in the pool, so no change in pool happened")    
         logger.info (f"< {node} > was not in the pool, so no change in pool happened")

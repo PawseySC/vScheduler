@@ -1,5 +1,6 @@
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.config import Config
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.general.timer import Brackets as MyBrackets
@@ -23,7 +24,7 @@ def activation(node):
     with my_connection.cursor() as my_cursor:
         my_cursor.execute(exception_query)
         my_connection.commit()
-    print (f"{my_cursor.rowcount} record(s) inserted") if MyPrintCondition.fprint else 0  
+    print (f"{my_cursor.rowcount} record(s) inserted") if verbose.mode else 0 # if MyPrintCondition.fprint else 0  
     # logger_win.info (f"{my_cursor.rowcount} record(s) inserted") if Config.config['partition']['windows']['node'] in node else logger_unix.info (f"{my_cursor.rowcount} record(s) inserted")
     logger.info (f"{my_cursor.rowcount} record(s) inserted")
     # NOTIFY USERS ??? <<<<<<<<
@@ -39,7 +40,7 @@ def deactivation(node):
     with my_connection.cursor() as my_cursor:
         my_cursor.execute(exception_query)
         my_connection.commit()
-    print (f"{my_cursor.rowcount} record(s) updated") if MyPrintCondition.fprint else 0  
+    print (f"{my_cursor.rowcount} record(s) updated") if verbose.mode else 0 # if MyPrintCondition.fprint else 0  
     # logger_win.info (f"{my_cursor.rowcount} record(s) updated") if Config.config['partition']['windows']['node'] in node else logger_unix.info (f"{my_cursor.rowcount} record(s) updated")
     logger.info (f"{my_cursor.rowcount} record(s) updated")
     # NOTIFY USERS ??? <<<<<<<<

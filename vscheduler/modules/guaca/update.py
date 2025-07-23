@@ -1,5 +1,6 @@
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.config import Config
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.modules.guaca.entity import entity
@@ -17,7 +18,7 @@ def update (x,y,z, caller, cluster):
     Updates user group records in guacamole making changes to connection links in user's guacamole dashboard
     """
     try:
-        print (f"x(member_entity_id): {x}, y(node_user_group_id): {y},  z(pool_user_group_id): {z}, caller:{caller}, cluster:{cluster}") if MyPrintCondition.fprint else 0
+        print (f"x(member_entity_id): {x}, y(node_user_group_id): {y},  z(pool_user_group_id): {z}, caller:{caller}, cluster:{cluster}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger.info (f"x(member_entity_id): {x}, y(node_user_group_id): {y}, z(pool_user_group_id): {z}, caller:{caller}, cluster:{cluster}")
         windows_pool_entity = entity(config.get("partition.windows.general.pool"))
         linux_pool_entity = entity(config.get("partition.linux.general.pool"))
@@ -36,9 +37,9 @@ def update (x,y,z, caller, cluster):
         with my_connection.cursor() as cursor:
             cursor.execute(allocation)
             my_connection.commit()
-            print (f"{cursor.rowcount} record(s) affected by updating allocation") if MyPrintCondition.fprint else 0
+            print (f"{cursor.rowcount} record(s) affected by updating allocation") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             logger.info (f"{cursor.rowcount} record(s) affected by updating allocation")
         
     except my_connection.Error as e:
-        print (f"error updating the record for member_entity_id < {x} > and user_group_id < {y} >\n{e}") if MyPrintCondition.fprint else 0
+        print (f"error updating the record for member_entity_id < {x} > and user_group_id < {y} >\n{e}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger.error (f"error updating the record for member_entity_id < {x} > and user_group_id < {y} >\n{e}")

@@ -1,6 +1,7 @@
 from tabulate import tabulate
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.guaca.conn_permission import guacamole_connection
@@ -23,19 +24,19 @@ def checkpool(node, pool):
         with my_connection.cursor() as cursor:
             cursor.execute(query)
             query_results = cursor.fetchall()
-        if MyPrintCondition.fprint:
+        if verbose.mode: #if MyPrintCondition.fprint:
             for row_query in query_results:
                 connection_id = row_query[0]
                 entity_id = row_query[1]
                 sentence.insert(len(sentence), [connection_id , entity_id])
-        print ("=>EMPTY") if MyPrintCondition.fprint and not query_results else 0 
+        print ("=>EMPTY") if verbose.mode and not query_results else 0 # if MyPrintCondition.fprint and not query_results else 0 
         logger.info ("=>EMPTY")
-        print ("\n", tabulate(sentence, headers=['connection_id', 'entity_id'])) if MyPrintCondition.fprint and query_results else 0
+        print ("\n", tabulate(sentence, headers=['connection_id', 'entity_id'])) if verbose.mode and query_results else 0 # if MyPrintCondition.fprint and query_results else 0
         logger.info ("\n" + tabulate(sentence, headers=['connection_id', 'entity_id']))
         print (f"query_results: {query_results}")
         logger.info (f"query_results: {query_results}")
 
         return query_results if query_results else ""
     except:
-        print (f"error fetching pool info for node < {node} > and pool < {pool} >") if MyPrintCondition.fprint else 0
+        print (f"error fetching pool info for node < {node} > and pool < {pool} >") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger.error (f"error fetching pool info for node < {node} > and pool < {pool} >")

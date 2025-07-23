@@ -1,6 +1,7 @@
 from tabulate import tabulate
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.config import Config
 from vscheduler.lib.database import Database as MyDatabase
 
@@ -25,18 +26,18 @@ def guacamole_connection(node):
             connection_id = row_connection[0]
             connection_name = row_connection[1]
             sentence.insert(len(sentence), [connection_id , connection_name])
-        print ("EMPTY guacamole_connection") if MyPrintCondition.fprint and not connection_results else 0 
+        print ("EMPTY guacamole_connection") if verbose.mode and connection_results else 0 # if MyPrintCondition.fprint and not connection_results else 0 
         # if Config.config['partition']['windows']['node'] in node:
         #     logger_win.info ("EMPTY guacamole_connection") if not connection_results else 0
         # elif Config.config['partition']['linux']['node'] in node:
         #     logger_unix.info ("EMPTY guacamole_connection") if not connection_results else 0
         logger.info ("EMPTY guacamole_connection") if not connection_results else 0
-        print ("\n", tabulate(sentence, headers=['connection_id', 'connection_name'])) if MyPrintCondition.fprint and connection_results else 0
+        print ("\n", tabulate(sentence, headers=['connection_id', 'connection_name'])) if verbose.mode and connection_results else 0 # if MyPrintCondition.fprint and connection_results else 0
         # logger_win.info ("\n" + tabulate(sentence, headers=['connection_id', 'connection_name'])) if Config.config['partition']['windows']['node'] in node else logger_unix.info ("\n" + tabulate(sentence, headers=['connection_id', 'connection_name']))
         logger.info ("\n" + tabulate(sentence, headers=['connection_id', 'connection_name']))
         return connection_results if connection_results else ""
     except:
-        print (f"error fetching connection identification records for < {node} >") if MyPrintCondition.fprint else 0
+        print (f"error fetching connection identification records for < {node} >") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         # logger_win.error (f"error fetching connection identification records for < {node} >") if Config.config['partition']['windows']['node'] in node else logger_unix.error (f"error fetching connection identification records for < {node} >")
         logger.error (f"error fetching connection identification records for < {node} >")
     
@@ -57,7 +58,7 @@ def connection_permission(conn, pool):
             with my_connection.cursor() as cursor:
                 cursor.execute(assign)
                 my_connection.commit()
-            print (f"{cursor.rowcount} record(s) inserted into guacamole_connection_permission") if MyPrintCondition.fprint else 0 
+            print (f"{cursor.rowcount} record(s) inserted into guacamole_connection_permission") if verbose.mode else 0 # if MyPrintCondition.fprint else 0 
             # logger_win.info (f"{cursor.rowcount} record(s) inserted into guacamole_connection_permission") if Config.config['partition']['windows']['node'] in conn else logger_unix.info (f"{cursor.rowcount} record(s) inserted into guacamole_connection_permission")
             logger.info (f"{cursor.rowcount} record(s) inserted into guacamole_connection_permission")
         else:
@@ -65,11 +66,11 @@ def connection_permission(conn, pool):
             with my_connection.cursor() as cursor:
                 cursor.execute(allocation)
                 my_connection.commit()
-            print (f"{cursor.rowcount} record(s) affected by updating pool connection permission") if MyPrintCondition.fprint else 0
+            print (f"{cursor.rowcount} record(s) affected by updating pool connection permission") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_win.info (f"{cursor.rowcount} record(s) affected by updating pool connection permission") if Config.config['partition']['windows']['node'] in conn else logger_unix.info (f"{cursor.rowcount} record(s) affected by updating pool connection permission")
             logger.info (f"{cursor.rowcount} record(s) affected by updating pool connection permission")
     except:
-        print (f"error updating the record for entity_id < {conn_name} > and guacamole_connection_permission < {pool} >") if MyPrintCondition.fprint else 0
+        print (f"error updating the record for entity_id < {conn_name} > and guacamole_connection_permission < {pool} >") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         # logger_win.error (f"error updating the record for entity_id < {conn_name} > and guacamole_connection_permission < {pool} >") if Config.config['partition']['windows']['node'] in conn else logger_unix.error (f"error updating the record for entity_id < {conn_name} > and guacamole_connection_permission < {pool} >")
         logger.error (f"error updating the record for entity_id < {conn_name} > and guacamole_connection_permission < {pool} >")
 
@@ -93,14 +94,14 @@ def del_connection(conn, pool):
             with my_connection.cursor() as cursor:
                 cursor.execute(empty)
                 my_connection.commit()
-            print (f"{cursor.rowcount} record(s) affected by emptying pool connection permission") if MyPrintCondition.fprint else 0
+            print (f"{cursor.rowcount} record(s) affected by emptying pool connection permission") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_win.info (f"{cursor.rowcount} record(s) affected by emptying pool connection permission") if Config.config['partition']['windows']['node'] in conn else logger_unix.info (f"{cursor.rowcount} record(s) affected by emptying pool connection permission")
             logger.info (f"{cursor.rowcount} record(s) affected by emptying pool connection permission")
         else:
-            print (f"guacamole general pool < {pool} > has no connection") if MyPrintCondition.fprint else 0
+            print (f"guacamole general pool < {pool} > has no connection") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_win.info (f"guacamole general pool < {pool} > has no connection") if Config.config['partition']['windows']['node'] in conn else logger_unix.info (f"guacamole general pool < {pool} > has no connection")
             logger.info (f"guacamole general pool < {pool} > has no connection")
     except:
-        print (f"error emptying the pool < {pool} > from connection id/name < {conn_name} >") if MyPrintCondition.fprint else 0
+        print (f"error emptying the pool < {pool} > from connection id/name < {conn_name} >") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         # logger_win.error (f"error emptying the pool < {pool} > from connecion id/name < {conn_name} >") if Config.config['partition']['windows']['node'] in conn else logger_unix.error (f"error emptying the pool < {pool} > from connecion id/name < {conn_name} >")
         logger.error (f"error emptying the pool < {pool} > from connecion id/name < {conn_name} >")
