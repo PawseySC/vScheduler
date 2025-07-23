@@ -2,6 +2,7 @@
 import warnings, sys, os, paramiko
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.config import Config
 
 ssh_records = CaptureLog("ssh", __file__)
@@ -33,6 +34,6 @@ class Node:
                             timeout=5)
             return node_conn
         except paramiko.SSHException as e:
-            print (f"couldn't connect < {computer} > via ssh\n{e}") if PrintCondition.fprint else 0
+            print (f"couldn't connect < {computer} > via ssh\n{e}") if verbose.mode else 0 # if PrintCondition.fprint else 0
             logger.critical (f"couldn't connect < {computer} > via ssh\n{e}")
             pass

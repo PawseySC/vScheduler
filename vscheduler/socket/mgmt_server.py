@@ -4,6 +4,7 @@ from tabulate import tabulate
 import numpy as np
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.config import Config
 from vscheduler.lib.database import Database
 from vscheduler.modules.cluster.load_balance import loadbalance
@@ -44,7 +45,7 @@ def exception(user, os):
         with connection.cursor() as cursor:
             cursor.execute(exception_query)
             exception_results = cursor.fetchall()
-            print (f"\nlen(exception_results): {len(exception_results)}\n{tabulate(exception_results, headers=['user', 'start', 'end', 'wall_time'])}") if PrintCondition.fprint else 0
+            print (f"\nlen(exception_results): {len(exception_results)}\n{tabulate(exception_results, headers=['user', 'start', 'end', 'wall_time'])}") if verbose.mode else 0 # if PrintCondition.fprint else 0
             # win_logger.info (f"\n{tabulate(exception_results, headers=['user', 'start', 'end', 'wall_time'])}") if os == "Windows" else linux_logger.info (f"\n{tabulate(exception_results, headers=['user', 'start', 'end', 'wall_time'])}")
             logger.info (f"\nlen(exception_results): {len(exception_results)}\n{tabulate(exception_results, headers=['user', 'start', 'end', 'wall_time'])}")
             # print (f"exception_results: {exception_results}") if PrintCondition.fprint else 0
@@ -56,7 +57,7 @@ def exception(user, os):
         return exception_results[0][3] if len(exception_results) > 0 else config.get("time.general_pool_wall_time")
     except connection.Error as e:
         # print (f"error retreiving exceptions from < {Config.config['database']['report']['table']['exception']} > table\n{e}") if PrintCondition.fprint else 0
-        print (f"error retreiving exceptions from < {config.get("database.report.table.exception")} > table\n{e}") if PrintCondition.fprint else 0
+        print (f"error retreiving exceptions from < {config.get("database.report.table.exception")} > table\n{e}") if verbose.mode else 0 # if PrintCondition.fprint else 0
         # win_logger.error (f"error retreiving exceptions from < {MyCredentials.report_exception_table} > table\n{e}") if os == "Windows" else linux_logger.error (f"error retreiving exceptions from < {MyCredentials.report_exception_table} > table\n{e}")
         # logger.error (f"error retreiving exceptions from < {Config.config['database']['report']['table']['exception']} > table\n{e}")
         logger.error (f"error retreiving exceptions from < {config.get("database.report.table.exception")} > table\n{e}")
@@ -72,7 +73,7 @@ def check_status(os):
         # status_query = f"SELECT node, status, start, end FROM {Config.config['database']['report']['table']['status']} WHERE start = end"
         status_query = f"SELECT node, status, start, end FROM {config.get("database.report.table.status")} WHERE start = end"
         # win_logger.info (f"status_query: {status_query}") if os == "windows" else linux_logger.info (f"status_query: {status_query}") 
-        print (f"status_query: {status_query}") if PrintCondition.fprint else 0
+        print (f"status_query: {status_query}") if verbose.mode else 0 # if PrintCondition.fprint else 0
         logger.info (f"status_query: {status_query}")
         connection.ping()       # reconnecting mysql in case of connection timed out
         connection.commit()     # This commit accepts the inserts by the other session
@@ -87,10 +88,10 @@ def check_status(os):
         #     sentence.insert(len(sentence), [node_name , node_status, status_start, status_end])
         # print ("\n", tabulate(sentence, headers=['node', 'status', 'start', 'end'])) if PrintCondition.fprint else 0
         # win_logger.info ("\n" + tabulate(sentence, headers=['node', 'status', 'start', 'end'])) if os == "windows" else linux_logger.info ("\n" + tabulate(sentence, headers=['node', 'status', 'start', 'end']))
-        print (f"\n{tabulate(status_results, headers=['node', 'status', 'start', 'end'])}") if PrintCondition.fprint else 0
+        print (f"\n{tabulate(status_results, headers=['node', 'status', 'start', 'end'])}") if verbose.mode else 0 # if PrintCondition.fprint else 0
         # win_logger.info (f"\n{tabulate(status_results, headers=['node', 'status', 'start', 'end'])}") if os == "windows" else linux_logger.info (f"\n{tabulate(status_results, headers=['node', 'status', 'start', 'end'])}")
         logger.info (f"\n{tabulate(status_results, headers=['node', 'status', 'start', 'end'])}")
-        print (f"len(status_results): {len(status_results)}\nstatus nodes: {status_results}") if PrintCondition.fprint else 0
+        print (f"len(status_results): {len(status_results)}\nstatus nodes: {status_results}") if verbose.mode else 0 # if PrintCondition.fprint else 0
         # win_logger.info (f"status nodes: {status_results}") if os == "windows" else linux_logger.info (f"status nodes: {status_results}")
         logger.info (f"len(status_results): {len(status_results)}\nstatus nodes: {status_results}")
         # win_logger.info (f"len(status_results): {len(status_results)}") if os == "windows" else linux_logger.info (f"len(status_results): {len(status_results)}")
@@ -98,7 +99,7 @@ def check_status(os):
         return status_results if len(status_results) > 0 else 0
     except connection.Error as e:
         # print (f"error retreiving nodes status from < {Config.config['database']['report']['table']['status']} > table\n{e}") if PrintCondition.fprint else 0
-        print (f"error retreiving nodes status from < {config.get("database.report.table.status")} > table\n{e}") if PrintCondition.fprint else 0
+        print (f"error retreiving nodes status from < {config.get("database.report.table.status")} > table\n{e}") if verbose.mode else 0 # if PrintCondition.fprint else 0
         # win_logger.error (f"error retreiving node status from < {MyCredentials.report_status_table} > table\n{e}") if os == "windows" else linux_logger.error (f"error retreiving node status from < {MyCredentials.report_status_table} > table\n{e}")
         # logger.error (f"error retreiving node status from < {Config.config['database']['report']['table']['status']} > table\n{e}")
         logger.error (f"error retreiving node status from < {config.get("database.report.table.status")} > table\n{e}")

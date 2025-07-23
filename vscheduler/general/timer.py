@@ -2,6 +2,7 @@
 import datetime
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.config import Config
 
 time_records = CaptureLog("timer", __file__)
@@ -27,7 +28,7 @@ class Brackets:
                 start Bracket in UTC: {start_bracket}
                 end Bracket in UTC: {end_bracket} 
                 Difference: {end_bracket-start_bracket}\n"""
-            ) if PrintCondition.fprint else 0
+            )  if verbose.mode else 0 #if PrintCondition.fprint else 0
         logger.info (
                 f"""\nnow in system local timezome ({local_timezone}): {local_time}
                 now in UTC: {utc_now}, 

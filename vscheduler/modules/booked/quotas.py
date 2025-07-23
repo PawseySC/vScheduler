@@ -1,5 +1,6 @@
 from tabulate import tabulate
 from vscheduler.log.log import CaptureLog
+from vscheduler.lib.verbose import verbose
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.database import Database as MyDatabase
 
@@ -38,11 +39,13 @@ def quotas(resources_id, groups_id):
             enforced_time_start = row_quota[8]
             enforced_time_end = row_quota[9]
             sentence.insert(len(sentence), [quota_id , quota_limit, unit, duration, resource_id, group_id, schedule_id, enforced_days, enforced_time_start, enforced_time_end])
-        print ("EMPTY quota_results") if MyPrintCondition.fprint and not quota_results else 0
+        # print ("EMPTY quota_results") if MyPrintCondition.fprint and not quota_results else 0
+        print ("EMPTY quota_results") if verbose.mode and not quota_results else 0
         logger_win.info ("EMPTY quota_results")
-        print (f"\n{tabulate(sentence, headers=['quota_id', 'quota_limit', 'unit', 'duration', 'resource_id', 'group_id', 'schedule_id', 'enforced_days', 'enforced_time_start', 'enforced_time_end'])}") if MyPrintCondition.fprint and quota_results else 0
+        # print (f"\n{tabulate(sentence, headers=['quota_id', 'quota_limit', 'unit', 'duration', 'resource_id', 'group_id', 'schedule_id', 'enforced_days', 'enforced_time_start', 'enforced_time_end'])}") if MyPrintCondition.fprint and quota_results else 0
+        print (f"\n{tabulate(sentence, headers=['quota_id', 'quota_limit', 'unit', 'duration', 'resource_id', 'group_id', 'schedule_id', 'enforced_days', 'enforced_time_start', 'enforced_time_end'])}") if verbose.mode and quota_results else 0
         logger_win.info (f"\n{tabulate(sentence, headers=['quota_id', 'quota_limit', 'unit', 'duration', 'resource_id', 'group_id', 'schedule_id', 'enforced_days', 'enforced_time_start', 'enforced_time_end'])}")
         return quota_results if quota_results else ""
     except:
-        print (f"quota error; resource id < {resources_id} > or group id < {groups_id} > was not found in booked\n") if MyPrintCondition.fprint else 0
+        print (f"quota error; resource id < {resources_id} > or group id < {groups_id} > was not found in booked\n") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger_win.error (f"quota error; resource id < {resources_id} > or group id < {groups_id} > was not found in booked")

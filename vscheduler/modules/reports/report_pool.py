@@ -11,6 +11,7 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.lib.config import Config
 from vscheduler.lib.database import Database as MyDatabase
@@ -109,7 +110,7 @@ def pool_report_generator(hostname, username, start, end):
             sentence.insert(len(sentence), [node, date_from, date_to, duration, user, '', '', '', ''])
         
 
-    print(tabulate(sentence, headers=['node', 'start', 'end', 'duration', 'user', 'email', 'first name', 'last name', 'institute'], tablefmt='psql')) if MyPrintCondition.fprint else 0
+    print(tabulate(sentence, headers=['node', 'start', 'end', 'duration', 'user', 'email', 'first name', 'last name', 'institute'], tablefmt='psql')) if verbose.mode else 0 # if MyPrintCondition.fprint else 0
     # logger.info ("\n" + tabulate(sentence, headers=['node', 'start', 'end', 'duration', 'user', 'email', 'first name', 'last name'], tablefmt='psql'))
     print (f"in total: {accumulation}")
 

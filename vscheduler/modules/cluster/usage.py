@@ -1,5 +1,6 @@
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.config import Config
 from vscheduler.lib.ssh import Node as MyNode
 from vscheduler.modules.cluster.os_type import find_os
@@ -15,11 +16,11 @@ def std_print(stdin, stdout, stderr, remove, node):
     """
     stdout_copy = []
     if stderr:
-        print (f"Errors: {stderr.read()}") if MyPrintCondition.fprint else 0
+        print (f"Errors: {stderr.read()}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         # logger_win.error (f"Errors: {stderr.read()}") if Config.config['partition']['windows']['node'] in node else logger_unix.error (f"Errors: {stderr.read()}")
         logger.error (f"Errors: {stderr.read()}")
     for line in stdout:
-        print (line.strip('\n')) if MyPrintCondition.fprint else 0
+        print (line.strip('\n')) if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         # logger_win.info (line.strip('\n')) if Config.config['partition']['windows']['node'] in node else logger_unix.info (line.strip('\n'))
         logger.info (line.strip('\n'))
         stdout_copy = str(line.strip('\n')).replace("Available Physical Memory: ",'') if remove == "avail" else str(line.strip('\n')).replace("Total Physical Memory:     ",'')
@@ -49,18 +50,18 @@ def mem(node):
         elif node_os == 'Linux':
             stdin_query , stdout_query, stderr_query = connection.exec_command("free -h")        
             stdout_query_copy = std_print(stdin_query, stdout_query, stderr_query)
-            print (f"stdout_query_copy[1][3], stdout_query_copy[1][1]: {stdout_query_copy[1][3]}, {stdout_query_copy[1][1]}") if MyPrintCondition.fprint else 0
+            print (f"stdout_query_copy[1][3], stdout_query_copy[1][1]: {stdout_query_copy[1][3]}, {stdout_query_copy[1][1]}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_win.info (f"stdout_query_copy[1][3], stdout_query_copy[1][1]: {stdout_query_copy[1][3]}, {stdout_query_copy[1][1]}") if Config.config['partition']['windows']['node'] in node else logger_unix.info (f"stdout_query_copy[1][3], stdout_query_copy[1][1]: {stdout_query_copy[1][3]}, {stdout_query_copy[1][1]}")
             logger.info (f"stdout_query_copy[1][3], stdout_query_copy[1][1]: {stdout_query_copy[1][3]}, {stdout_query_copy[1][1]}")
             return (stdout_query_copy[1][3], stdout_query_copy[1][1])
         else:
-            print (f"no os found for < {node} >") if MyPrintCondition.fprint else 0
+            print (f"no os found for < {node} >") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_win.warning (f"no os found for < {node} >") if Config.config['partition']['windows']['node'] in node else logger_unix.warning (f"no os found for < {node} >")
             logger.warning (f"no os found for < {node} >")
             exit
         connection.close()
     except:
-        print (f"Could not connect to ndoe < {node} > to query memory usage") if MyPrintCondition.fprint else 0
+        print (f"Could not connect to ndoe < {node} > to query memory usage") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         # logger_win.error (f"Could not connect to ndoe < {node} > to query memory usage") if Config.config['partition']['windows']['node'] in node else logger_unix.error (f"Could not connect to ndoe < {node} > to query memory usage")
         logger.error (f"Could not connect to ndoe < {node} > to query memory usage")
 
@@ -98,7 +99,7 @@ def cpu(node):
             exit
         connection.close()
     except:
-        print (f"Could not connect to ndoe < {node} > to query cpu usage") if MyPrintCondition.fprint else 0
+        print (f"Could not connect to ndoe < {node} > to query cpu usage") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         # logger_win.error (f"Could not connect to ndoe < {node} > to query cpu usage") if Config.config['partition']['windows']['node'] in node else logger_unix.error (f"Could not connect to ndoe < {node} > to query cpu usage")
         logger.error (f"Could not connect to ndoe < {node} > to query cpu usage")
 
@@ -130,12 +131,12 @@ def gpu(node):
             stdin_query , stdout_query, stderr_query = connection.exec_command('lshw -C display')        
             return stdout_query[1][3]   # this needs to be like above
         else:
-            print (f"no os found for < {node} >") if MyPrintCondition.fprint else 0
+            print (f"no os found for < {node} >") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             # logger_win.warning (f"no os found for < {node} >") if Config.config['partition']['windows']['node'] in node else logger_unix.warning (f"no os found for < {node} >")
             logger.warning (f"no os found for < {node} >")
             exit
         connection.close()
     except:
-        print (f"Could not connect to ndoe < {node} > to query cpu usage") if MyPrintCondition.fprint else 0
+        print (f"Could not connect to ndoe < {node} > to query cpu usage") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         # logger_win.error (f"Could not connect to ndoe < {node} > to query cpu usage") if Config.config['partition']['windows']['node'] in node else logger_unix.error (f"Could not connect to ndoe < {node} > to query cpu usage")
         logger.error (f"Could not connect to ndoe < {node} > to query cpu usage")

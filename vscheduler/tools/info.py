@@ -1,7 +1,8 @@
-import multiprocessing, time
+import multiprocessing, time, argparse
 from vscheduler.log.log import CaptureLog
 from tabulate import tabulate
 from vscheduler.lib.config import Config
+from vscheduler.lib.verbose import verbose
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.modules.reports.information import print_info
@@ -26,6 +27,19 @@ def main():
     """
     vinfo script giving overview of all nodes' status
     """
+    parser = argparse.ArgumentParser(
+        description="Syncs guacamole with booked for bookable partition",
+        usage="vsync [-u User] [-n Node] [--verbose] [--version]")
+    parser.add_argument("-u", metavar="User", help="username")
+    parser.add_argument("-n", metavar="Node", help="node name")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    parser.add_argument("--version", action="version", version="vscheduler v" + config.get("version.v"))
+    args = parser.parse_args()
+    if args.verbose:
+        verbose.mode = True
+        print("Verbose mode enabled") if verbose.mode else print("Verbose mode disabled")
+
+
     # if initiate.session:
     #     print (initiate.session)
     # if not initiate.node:
@@ -61,8 +75,10 @@ def main():
     #     else:
     #         print ("There is no Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
     #         logger.info ("There is no Linux partition; To enable it edit vscheduler confilg")    
-    if initiate.node:
-        p = Process("", initiate.node)
+    # if initiate.node:
+    if args.n:
+        # p = Process("", initiate.node)
+        p = Process("", args.n)
         p.start()       # Create a new process and invoke the Process.run() method
         p.join()        # Process.join() to wait for task completion
     else:

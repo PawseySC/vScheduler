@@ -1,0 +1,145 @@
+.TH VSCHEDULER 1 "July 2025" "Pawsey Supercomputing Centre" "User Commands"
+.SH NAME
+.B vscheduler 
+\- Session Management and Reporting Platform
+
+.SH SYNOPSIS
+.B COMMAND
+<\fISUBCOMMAND\fR> [\fIOPTIONS\fR] [\fISUBCOMMAND OPTIONS\fR]
+.br
+.BI vmanage
+[-n NODE] [-u USER] [-h --help] [--verbose] [--version]
+.br
+.B valloc
+[-n NODE] [-u USER] [-h --help] [--verbose] [--version]
+.br
+.B vsync
+[-n NODE] [-u USER] [-h --help] [--verbose] [--version]
+.br
+.B vcontrol
+[-n NODE] [-p PARTITION] [-h --help] [--verbose] [--version]
+.br
+.B vexcept
+<operation> [-u USER] [-t TIME] [-d start and end date] [-h --help] [--verbose] [--version]
+.br
+.B vquota
+[-n NODE] [-u USER] [-h --help] [--verbose] [--version]
+.br
+.B vreport
+[-n NODE] [-u USER] [-h --help] [--verbose] [--version]
+.SH DESCRIPTION
+Session Management and Reporting Platform for Pawsey Supercomputing Centre. Supports node status management and wall time exceptions.
+.br
+.B vmanage: 
+Manages allocated sessions to users.
+.br
+.B valloc: 
+Allocates a session to a user by populating session link into user profile.
+.br
+.B vsync: 
+Syncs user profile in guacamole with booking platform.
+.br
+.B vcontrol: 
+Manages nodes and partition status.
+.br
+.B vexcept: 
+Assigns custom walltime to user.
+.br
+.B vquota: 
+Shows users quota.
+.br
+.B vreport: 
+Provides usage insight within web based interactive single page reports. 
+
+.SH COMMANDS
+.TP
+.B vmanage
+Manages an established remote session for a user on a node.
+.RS
+.IP "\-u <USER>"
+.IP "\-n <NODE>"
+Optional, run over all nodes for all users if no options.
+.RE
+.TP
+.B valloc
+Allocates a node to a user.
+.RS
+.IP "\-u <USER>"
+.IP "\-n <NODE>"
+Optional, run over all nodes for all users if no options.
+.RE
+.TP
+.B vsync
+Syncs user dashboard in guacamole with booking system by populating remote link to a node shown in user dashboard.
+.RS
+.IP "\-u <USER>"
+.IP "\-n <NODE>"
+Optional, run over all nodes for all users if no options.
+.RE
+.TP
+.B vcontrol
+Allocates a node to a user.
+.RS
+.IP "\-u <USER>"
+.IP "\-n <NODE>"
+Optional, run over all nodes for all users if no options.
+.RE
+.TP
+.B vexcept
+Specifies non-default wall time for a user.
+.RS
+.IP "<operation> <list/status/activate/deactivate>"
+.IP "\-u <USER>" 
+.IP "\-t <TIME>"
+.IP "\-d <start and end date>"  
+Optional if subcommand is list, otherwise required.
+.RE
+.TP
+.B vquota
+Shows remaining user quota based on booking system.
+.RS
+.IP "\-u <USER>"
+Optional, run over all users if no options.
+.RE
+.TP
+.B vreport
+Shows web based interactive single page report.
+.RS
+.IP "\-u <USER>"
+.IP "\-n <NODE>"
+Optional, run over all nodes for all users if no options.
+.RE
+
+.SH OPTIONS
+.TP
+.BI \-u " USERNAME"
+Optional. No username will run across all users.
+.TP
+.BI \-n " NODE"
+Optional. No node name will run across all nodes.
+.TP
+.BI \-d " DATE"
+Date in YYYY-MM-DD format. Having only one date will search from first DB record. No date will search across all records.
+.TP
+.B --verbose
+Print detailed logs during processing.
+.TP
+.B --version
+Show program's version number and exit.
+.TP
+.B -h, --help
+Show this help message and exit.
+
+.SH EXAMPLES
+.TP
+.B vscheduler vset -status up -n node01 --verbose
+Set node01 status to "up" with verbose output.
+.TP
+.B vscheduler vexcept -mode activate -u alice -d 2025-07-01 2025-07-14
+Activate wall time exception for user alice between specified dates.
+
+.SH AUTHOR
+Ali Zamani - Pawsey Supercomputing Centre
+
+.SH SEE ALSO
+https://pawsey.org.au/

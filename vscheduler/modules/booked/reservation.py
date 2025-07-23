@@ -1,6 +1,7 @@
 from tabulate import tabulate
 from vscheduler.log.log import CaptureLog
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
+from vscheduler.lib.verbose import verbose
 from vscheduler.lib.database import Database as MyDatabase
 
 my_connection = MyDatabase.connect_booked_db()
@@ -24,11 +25,11 @@ def user_reservations_by_user_id(id):
             reservation_instance_id = row_reservation_users[0]
             user_id = row_reservation_users[1]
             sentence.insert(len(sentence), [reservation_instance_id , user_id])
-        print (f"\n{tabulate(sentence, headers=['reservation_instance_id', 'user_id'])}") if MyPrintCondition.fprint else 0
+        print (f"\n{tabulate(sentence, headers=['reservation_instance_id', 'user_id'])}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger_win.info (f"\n{tabulate(sentence, headers=['reservation_instance_id', 'user_id'])}")
         return reservation_users_results
     except:
-        print (f"error in retreiving reservation for user with user id < {id} >") if MyPrintCondition.fprint else 0
+        print (f"error in retreiving reservation for user with user id < {id} >") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger_win.error (f"error in retreiving reservation for user with user id < {id} >")
 
 
@@ -47,11 +48,11 @@ def user_reservations_by_instance_id(id):
             reservation_instance_id = row_reservation_users[0]
             user_id = row_reservation_users[1]
             sentence.insert(len(sentence), [reservation_instance_id , user_id])
-        print (f"\n{tabulate(sentence, headers=['reservation_instance_id', 'user_id'])}") if MyPrintCondition.fprint else 0
+        print (f"\n{tabulate(sentence, headers=['reservation_instance_id', 'user_id'])}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger_win.info (f"\n{tabulate(sentence, headers=['reservation_instance_id', 'user_id'])}")
         return reservation_users_results
     except:
-        print (f"error in retreiving reservation for user with reservation instance id < {id} >") if MyPrintCondition.fprint else 0
+        print (f"error in retreiving reservation for user with reservation instance id < {id} >") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger_win.error (f"error in retreiving reservation for user with reservation instance id < {id} >")
 
 
@@ -70,9 +71,9 @@ def user_reservations():
             reservation_instance_id = row_reservation_users[0]
             user_id = row_reservation_users[1]
             sentence.insert(len(sentence), [reservation_instance_id , user_id])
-        print (f"\n{tabulate(sentence, headers=['reservation_instance_id', 'user_id'])}") if MyPrintCondition.fprint else 0
+        print (f"\n{tabulate(sentence, headers=['reservation_instance_id', 'user_id'])}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger_win.info (f"\n{tabulate(sentence, headers=['reservation_instance_id', 'user_id'])}")
         return reservation_users_results
     except:
-        print ("error in retreiving reservations") if MyPrintCondition.fprint else 0
+        print ("error in retreiving reservations") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger_win.error ("error in retreiving reservations")

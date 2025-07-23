@@ -1,6 +1,7 @@
-import multiprocessing
+import multiprocessing, argparse
 from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Config
+from vscheduler.lib.verbose import verbose
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.general.timer import Brackets as MyBrackets
@@ -36,7 +37,7 @@ class Process(multiprocessing.Process):
         Sync script for bookable partition
         """
         # time.sleep(1)
-        print("\n==>Process id: {}".format(self.id)) if MyPrintCondition.fprint and self.id else 0
+        print("\n==>Process id: {}".format(self.id)) if verbose.mode and self.id else 0 # if MyPrintCondition.fprint and self.id else 0
         logger.info ("==>Process id: {}".format(self.id)) if self.id else 0
         instances = reservation_instances(MyBrackets.start_bracket, MyBrackets.end_bracket)     # retreives booking records within time brackets
         resource_id = host_by_name(self.hostname)                                               # retreives node resource id
@@ -46,16 +47,16 @@ class Process(multiprocessing.Process):
             if series_ids:
                 if instances:
                     for instance in instances:
-                        print (f"instance: {instance}") if MyPrintCondition.fprint else 0
+                        print (f"instance: {instance}") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
                         logger.info (f"instance: {instance}")
                         if not any(instance[3] in x for x in series_ids):
-                            print (f"booking does not belong to < {self.hostname} > - skipping") if MyPrintCondition.fprint else 0
+                            print (f"booking does not belong to < {self.hostname} > - skipping") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
                             logger.info (f"booking does not belong to < {self.hostname} > - skipping")
                         else:                                          
-                            print ("\nfound a match") if MyPrintCondition.fprint else 0
+                            print ("\nfound a match") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
                             logger.info ("\nfound a match")
                             if instance[1] <= MyBrackets.utc_now and instance[2] >= MyBrackets.utc_now:         # if the booking is current
-                                print ("booking for the current time") if MyPrintCondition.fprint else 0
+                                print ("booking for the current time") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
                                 logger.info ("booking for the current time")
                                 reservations = user_reservations_by_instance_id(instance[0])            # retreives user booking records
                                 node_user = user_details_by_user_id(reservations[0][1])                 # retreives user identification
@@ -64,7 +65,7 @@ class Process(multiprocessing.Process):
                                 user_group = guacamole_user_group(group_entity[0][0])
                                 group_check = check_group (user_group[0][0])
                                 if deleted(instance[3])[0][1] == 2:                                     # checks if booking is deleted
-                                    print ("deleted booking") if MyPrintCondition.fprint else 0
+                                    print ("deleted booking") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
                                     logger.info ("deleted booking")
                                     modify(user_entity[0][0], user_group[0][0])
                                 else:
@@ -79,18 +80,18 @@ class Process(multiprocessing.Process):
                                                 update(user_entity[0][0], user_group[0][0], pool_user_group[0][0], "sync", config.get("partition.windows.node") if config.get("partition.windows.node") in self.hostname else config.get("partition.linux.node"))
                                                 break
                             else:
-                                print ("booking not for the current time") if MyPrintCondition.fprint else 0
+                                print ("booking not for the current time") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
                                 logger.info ("booking not for the current time")
                 else:
-                    print (f"no current booking for < {self.hostname} > in the time bracket set in the config - skipping") if MyPrintCondition.fprint else 0
+                    print (f"no current booking for < {self.hostname} > in the time bracket set in the config - skipping") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
                     logger.info (f"no current booking for < {self.hostname} > in the time bracket set in the config - skipping")
                     quit()
             else:
-                print (f"no booking for < {self.hostname} > - skipping") if MyPrintCondition.fprint else 0
+                print (f"no booking for < {self.hostname} > - skipping") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
                 logger.info (f"no booking for < {self.hostname} > - skipping")
                 quit()
         else:
-            print (f"no resource in booked with name < {self.hostname} > - skipping") if MyPrintCondition.fprint else 0
+            print (f"no resource in booked with name < {self.hostname} > - skipping") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             logger.info (f"no resource in booked with name < {self.hostname} > - skipping")
             quit()
         
@@ -99,35 +100,58 @@ class Process(multiprocessing.Process):
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Syncs guacamole with booked for bookable partition",
+        usage="vsync [-u User] [-n Node] [--verbose] [--version]")
+    parser.add_argument("-u", metavar="User", help="username")
+    parser.add_argument("-n", metavar="Node", help="node name")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    parser.add_argument("--version", action="version", version="vscheduler v" + config.get("version.v"))
+    args = parser.parse_args()
+    if args.verbose:
+        verbose.mode = True
+        print("Verbose mode enabled") if verbose.mode else print("Verbose mode disabled")
+
     MyBrackets.what_time(MyBrackets.utc_now, MyBrackets.local_time, MyBrackets.start_bracket, MyBrackets.end_bracket)
-    if not initiate.node:
+    # if not initiate.node:
+    if not args.n:
         if config.get("partition.windows.booking.status") or config.get("partition.linux.booking.status"):
             if config.get("partition.windows.booking.status"):
                 for i in range (config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]+1):
                     node = config.get("partition.windows.node") + '0' + str(i) if i <= 9 else config.get("partition.windows.node") + str(i)
-                    p = Process(i, initiate.user, node)
+                    # p = Process(i, initiate.user, node)
+                    p = Process(i, args.u, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
             if config.get("partition.linux.booking.status"):
                 for i in range (config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]+1):
                     node = config.get("partition.linux.node") + '0' + str(i) if i <= 9 else config.get("partition.linux.node") + str(i)
-                    p = Process(i, initiate.user, node)
+                    # p = Process(i, initiate.user, node)
+                    p = Process(i, args.u, node)
                     p.start()       # Create a new process and invoke the Process.run() method
                     p.join()        # Process.join() to wait for task completion
         else:
-            print ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg") if MyPrintCondition.fprint else 0
+            print ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
             logger.info ("There is no bookable Windows or Linux partition; To enable it edit vscheduler confilg")
     else:
-        if (config.get("partition.windows.node") in initiate.node and 
-                int(initiate.node.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]+1) or 
-                (config.get("partition.linux.node") in initiate.node and 
-                int(initiate.node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]+1))):
-            p = Process("", initiate.user, initiate.node)
+        # if (config.get("partition.windows.node") in initiate.node and 
+        #         int(initiate.node.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]+1) or 
+        #         (config.get("partition.linux.node") in initiate.node and 
+        #         int(initiate.node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]+1))):
+        if (config.get("partition.windows.node") in args.n and 
+                int(args.n.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]+1) or 
+                (config.get("partition.linux.node") in args.n and 
+                int(args.n.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]+1))):
+    
+            # p = Process("", initiate.user, initiate.node)
+            p = Process("", args.u, args.n)
             p.start()       # Create a new process and invoke the Process.run() method
             p.join()        # Process.join() to wait for task completion
         else:
-            print (f"< {initiate.node} > is not in bookable range") if MyPrintCondition.fprint else 0
-            logger.info (f"< {initiate.node} > is not in bookable range")
+            # print (f"< {initiate.node} > is not in bookable range") if MyPrintCondition.fprint else 0
+            print (f"< {args.n} > is not in bookable range") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
+            # logger.info (f"< {initiate.node} > is not in bookable range")
+            logger.info (f"< {args.n} > is not in bookable range")
 
 
 if __name__ == '__main__':
