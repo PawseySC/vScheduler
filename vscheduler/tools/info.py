@@ -29,7 +29,7 @@ def main():
     """
     parser = argparse.ArgumentParser(
         description="Syncs guacamole with booked for bookable partition",
-        usage="vsync [-u User] [-n Node] [--verbose] [--version]")
+        usage="vinfo [-u User] [-n Node] [--verbose] [--version]")
     parser.add_argument("-u", metavar="User", help="username")
     parser.add_argument("-n", metavar="Node", help="node name")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
