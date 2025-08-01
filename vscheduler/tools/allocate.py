@@ -11,6 +11,7 @@ from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.guaca.guaca_user_group import guacamole_user_group
 from vscheduler.modules.guaca.check_group import check_group
 from vscheduler.modules.guaca.update import update
+from vscheduler.lib.ranger import parse_node_range
 
 allocate_records = CaptureLog("allocate", __file__)
 logger = allocate_records.log_agent("tools")
@@ -76,7 +77,9 @@ class Process(multiprocessing.Process):
 def main():
     # import vscheduler.lib.verbose as verbose_flag
     # print(verbose_flag.VERBOSE)
-    parser = argparse.ArgumentParser(description="Allocate a node to a user in the booking pool")
+    parser = argparse.ArgumentParser(
+        description="Allocate a node to a user in the booking pool",
+        usage="valloc [-u User] [-n Node] [--verbose] [--version]")
     parser.add_argument("-u", metavar="User", help="username")
     parser.add_argument("-n", metavar="Node", help="node name")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
@@ -110,25 +113,34 @@ def main():
             # logger_win.info ("There is no general Windows and Linux partition; To enable it edit vscheduler confilg")
             # logger_unix.info ("There is no general Windows and Linux partition; To enable it edit vscheduler confilg")
     else:
-        # if ((config.get("partition.windows.node") in initiate.node and 
-        #         int(initiate.node.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.general.range")[0], config.get("partition.windows.general.range")[1]+1)) or 
-        #         (config.get("partition.linux.node") in initiate.node and 
-        #         int(initiate.node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1))):
-        if ((config.get("partition.windows.node") in args.n and 
-            int(args.n.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.general.range")[0], config.get("partition.windows.general.range")[1]+1)) or 
-            (config.get("partition.linux.node") in args.n and 
-            int(args.n.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1))):
-    
-            # p = Process("", initiate.user, initiate.node)
-            p = Process("", args.u, args.n)
-            p.start()       # Create a new process and invoke the Process.run() method
-            p.join()        # Process.join() to wait for task completion
-        else:
-            # print (f"< {initiate.node} > is not in general range") if MyPrintCondition.fprint else 0
-            print (f"< {args.n} > is not in general range") if verbose.mode else 0
-            # logger_win.info (f"< {initiate.node} > is not in general range") if config.get("partition.windows.node") in initiate.node else logger_unix.info (f"< {initiate.node} > is not in general range")
-            # logger.info (f"< {initiate.node} > is not in general range")
-            logger.info (f"< {args.n} > is not in general range")
+        nodes = parse_node_range(args.n)
+        node_numbers = len(nodes)
+        for i in node_numbers:
+            # if ((config.get("partition.windows.node") in initiate.node and 
+            #         int(initiate.node.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.general.range")[0], config.get("partition.windows.general.range")[1]+1)) or 
+            #         (config.get("partition.linux.node") in initiate.node and 
+            #         int(initiate.node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1))):
+            # if ((config.get("partition.windows.node") in args.n and 
+            #     int(args.n.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.general.range")[0], config.get("partition.windows.general.range")[1]+1)) or 
+            #     (config.get("partition.linux.node") in args.n and 
+            #     int(args.n.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1))):
+            if ((config.get("partition.windows.node") in nodes[i] and 
+                int(nodes[i].removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.general.range")[0], config.get("partition.windows.general.range")[1]+1)) or 
+                (config.get("partition.linux.node") in nodes[i] and 
+                int(nodes[i].removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.general.range")[0], config.get("partition.linux.general.range")[1]+1))):
+                # p = Process("", initiate.user, initiate.node)
+                # p = Process("", args.u, args.n)
+                p = Process(i, args.u, nodes[i])
+                p.start()       # Create a new process and invoke the Process.run() method
+                p.join()        # Process.join() to wait for task completion
+            else:
+                # print (f"< {initiate.node} > is not in general range") if MyPrintCondition.fprint else 0
+                # print (f"< {args.n} > is not in general range") if verbose.mode else 0
+                print (f"< {nodes[i]} > is not in general range") if verbose.mode else 0
+                # logger_win.info (f"< {initiate.node} > is not in general range") if config.get("partition.windows.node") in initiate.node else logger_unix.info (f"< {initiate.node} > is not in general range")
+                # logger.info (f"< {initiate.node} > is not in general range")
+                # logger.info (f"< {args.n} > is not in general range")
+                logger.info (f"< {nodes[i]} > is not in general range")
 
     #     for i in range (MyCredentials.range[0], MyCredentials.range[1]):
     #         node = MyCredentials.node_name + '0' + str(i) if i <= 9 else MyCredentials.node_name + str(i)

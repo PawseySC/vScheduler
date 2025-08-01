@@ -10,30 +10,32 @@ from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 # from vscheduler.modules.cluster.maintenance import activation_status as status_activation
 from vscheduler.modules.guaca.maintenance import change_maint_status
 from vscheduler.modules.reports.status import status_update as update_status
+from vscheduler.lib.ranger import parse_node_range
 
 control_records = CaptureLog("control", __file__)
 logger = control_records.log_agent("tools")
 config = Config()
 
 # Process class
-# class Process(multiprocessing.Process):
-#     def __init__(self, id, status, node):
-#         super(Process, self).__init__()
-#         self.id = id
-#         self.hostname = node
-#         self.status = status
-    
-#     def run(self):
-#         if self.status == "activate":
-#             activate (self.hostname)
-#         elif self.status == "deactivate":    
-#             deactivate (self.hostname)
-#         elif self.status == "status":
-#             start = '2000-01-01' if not initiate.start else initiate.start
-#             end = MyBrackets.local_time if not initiate.end else initiate.end
-#             print (f"start: {start}")
-#             print (f"end: {end}")
-#             status_activation (self.hostname, start, end)
+class Process(multiprocessing.Process):
+    def __init__(self, id, mode, node):
+        super(Process, self).__init__()
+        self.id = id
+        self.hostname = node
+        self.mode = mode
+        
+    def run(self):
+        update_status (self.node, self.mode)
+        # if self.status == "activate":
+        #     activate (self.hostname)
+        # elif self.status == "deactivate":    
+        #     deactivate (self.hostname)
+        # elif self.status == "status":
+        #     start = '2000-01-01' if not initiate.start else initiate.start
+        #     end = MyBrackets.local_time if not initiate.end else initiate.end
+        #     print (f"start: {start}")
+        #     print (f"end: {end}")
+        #     status_activation (self.hostname, start, end)
 
 def main():
     """
@@ -63,10 +65,16 @@ def main():
             print ("Node name is required for vcontrol set operation. Use -n <node> to specify the node.")
             return
         else:
-            if args.mode != "training":
-                update_status (args.n, args.mode)
-            else:
-                print ("Training mode is not supported for nodes. Use vcontrol create/delete -p <partitione> to set training mode for a partition.")
+            nodes = parse_node_range(args.n)
+            node_numbers = len(nodes)
+            for i in node_numbers:
+                if args.mode != "training":
+                    p = Process(i, args.mode, nodes[i])
+                    p.start()       # Create a new process and invoke the Process.run() method
+                    p.join()        # Process.join() to wait for task completion
+                    # update_status (nodes[i], args.mode)
+                else:
+                    print (f"Training mode is not supported for nodes, <{nodes[i]}>. Use vcontrol create/delete -p <partitione> to set training mode for a partition.")
 
     # if not initiate.node:
         # # print (initiate.mode, initiate.partition)
