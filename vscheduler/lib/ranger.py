@@ -32,6 +32,8 @@
 #     return nodes
 
 import re
+from itertools import groupby
+from vscheduler.lib.verbose import verbose
 
 def parse_node_range(node_range_str):
     match = re.match(r"([^\[]+)\[(.+)\]", node_range_str)
@@ -51,16 +53,17 @@ def parse_node_range(node_range_str):
 
 
 def nodes_to_range(node_list):
-    import re
-    from itertools import groupby
-
     # Extract prefix and numbers
     nodes_by_prefix = {}
     for node in node_list:
-        m = re.match(r"([a-zA-Z0-9\-]+)(\d+)", node)
+        # m = re.match(r"([a-zA-Z0-9_\-]+)(\d+)", node)
+        m = re.match(r"([a-zA-Z_\-]+)(\d+)", node)
+        # print ("m:", m)
         if m:
             prefix, num = m.group(1), int(m.group(2))
+            # print(f"Prefix: {prefix}, Num: {num}") if verbose.mode else 0
             nodes_by_prefix.setdefault(prefix, []).append(num)
+            # print(f"Nodes by prefix: {nodes_by_prefix}") if verbose.mode else 0
 
     result = []
     for prefix, nums in nodes_by_prefix.items():

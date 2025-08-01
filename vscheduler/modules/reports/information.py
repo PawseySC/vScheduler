@@ -75,8 +75,9 @@ def print_info():
         with my_connection.cursor() as my_cursor:
             my_cursor.execute(query)
             query_results = my_cursor.fetchall()
+            # print (f"{query_results}") if verbose.mode else 0
     except my_connection.Error as e:
-        print (f"status query hit error\n{e}") if verbose.mode else 0
+        # print (f"status query hit error\n{e}") if verbose.mode else 0
         logger.error (f"status query hit error\n{e}")
 
     if len(query_results) > 0:
@@ -91,11 +92,36 @@ def print_info():
 
         # Group by SYSTEM, PARTITION, AVAIL, STAT and aggregate NODELIST
         grouped = all_nodes_df.groupby(["SYSTEM", "PARTITION", "AVAIL", "STAT"])["NODELIST"].apply(list).reset_index()
-
+        print (f"Grouped DataFrame:\n{grouped}") if verbose.mode else 0
+        
+        all_nodes_df_categorised = all_nodes_df.groupby(["SYSTEM", "PARTITION", "AVAIL", "STAT"]).sum()
+        node_range_str_all = []
         # Print in compact range format
         for _, row in grouped.iterrows():
+            # print ('(row["NODELIST"]):', row["NODELIST"])
             node_range_str = nodes_to_range(row["NODELIST"])
-            print(f"{row['SYSTEM']} {row['PARTITION']} {row['AVAIL']} {row['STAT']}: {node_range_str}")
+            # print ("*node_range_str:", node_range_str) if verbose.mode else 0
+            print(f"{row['SYSTEM']} {row['PARTITION']} {row['AVAIL']} {row['STAT']}: {node_range_str}") if verbose.mode else 0
+            node_range_str_all.append(node_range_str)
+        print (f"node_range_str_all: {node_range_str_all}") if verbose.mode else 0
+        
+        grouped["NODELIST"] = grouped["NODELIST"].apply(nodes_to_range)
+        print (f"Grouped DataFrame with NODELIST:\n{grouped.groupby(["SYSTEM", "PARTITION", "AVAIL", "STAT"]).sum()}") 
+        # all_nodes_df_categorised = (
+        #     all_nodes_df
+        #     .groupby(["SYSTEM", "PARTITION", "AVAIL", "STAT"])
+        #     .agg({
+        #         "NODELIST": lambda x: node_range_str_all[list(x)],  # format node list
+        #         # "CORES": "sum",  # example numeric aggregation
+        #         # "MEMORY": "sum"  # add others as needed
+        #     })
+        #     .reset_index()
+        # )
+        # # all_nodes_df_categorised['NODELIST'] = all_nodes_df_categorised['NODELIST'].str.replace('\D+', node_range_str, regex=True) #('\D+', ' ', regex=True)   # .str.extract('(\d+)', expand=False for extracting numbers only. '\D+' means non-numeric characters.
+        # print (f"all_nodes_df_categorised:\n{all_nodes_df_categorised}") if verbose.mode else 0
+
+        
+
     else:
         print ("No data in database")
 
