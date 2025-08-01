@@ -1,0 +1,48 @@
+graph TD
+    %% Tools (CLI entry points)
+    T1[vcontrol (tools/control.py)]
+    T2[vmanage (tools/booked.py)]
+    T3[vkill (tools/kill.py)]
+
+    %% Libs
+    L1[config.py (lib/config.py)]
+    L2[verbose.py (lib/verbose.py)]
+    L3[ranger.py (lib/ranger.py)]
+
+    %% General
+    G1[initiate.py (general/initiate.py)]
+
+    %% Logging
+    LG1[log.py (log/log.py)]
+
+    %% Cluster modules
+    C1[log_off.py (modules/cluster/log_off.py)]
+    C2[who.py (modules/cluster/who.py)]
+
+    %% Socket
+    S1[mgmt_client.py (socket/mgmt_client.py)]
+
+    %% Dependencies
+    T1 --> L1
+    T1 --> L2
+    T1 --> G1
+    T1 --> LG1
+
+    T2 --> L1
+    T2 --> L2
+    T2 --> G1
+    T2 --> LG1
+
+    T3 --> L1
+    T3 --> L2
+    T3 --> L3
+    T3 --> G1
+    T3 --> LG1
+    T3 --> C1
+    T3 --> C2
+
+    S1 --> L2
+    S1 --> LG1
+
+    C1 --> L1
+    C2 --> L1
