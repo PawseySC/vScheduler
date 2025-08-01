@@ -22,7 +22,7 @@ def main():
         except socket.error as e:
             print (f"Caught exception socket.error: {e}")
             mailFunction(f"socket error - {host}", f"error connecting managment socket server ({ADDR[0]}:{ADDR[1]}) from {host} at LOGIN attempt for {user}\n{str(e)}")
-            os.system(f'pkill -KILL -u {user}')
+            os.system(f'pkill -KILL -u {user}') if platform.uname()[0] == 'Linux' else os.system('logoff')
 
         print(f"[CONNECTED] VIS CLIENT TO MGMT SERVER AT {ADDR[0]}:{ADDR[1]}")
         
@@ -36,7 +36,7 @@ def main():
                 os.system(f'echo "pkill -9 -u $USER" | at now +{msg[1] + 1} minute')
             connected = False
         client.close()
-        if msg[2] != "dev":
+        if msg.split(",")[2] != "dev":
             break
         
         
