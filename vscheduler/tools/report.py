@@ -6,6 +6,7 @@ from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.general.timer import Brackets as MyBrackets
+from vscheduler.lib.ranger import parse_node_range
 # from vscheduler.general.alert import mailFunction
 # from vscheduler.modules.booked.reservation import user_reservations
 # from vscheduler.modules.booked.deleted import deleted_records
@@ -168,9 +169,16 @@ def main():
     #     p.start()       # Create a new process and invoke the Process.run() method
     #     p.join()        # Process.join() to wait for task completion
     # p = Process("", initiate.user, initiate.node)
-    p = Process("", args.u, args.n)
-    p.start()       # Create a new process and invoke the Process.run() method
-    p.join()        # Process.join() to wait for task completion
+    nodes = parse_node_range(args.n)
+    node_numbers = len(nodes)
+    for i in node_numbers:      
+        p = Process(i, args.u, nodes[i])
+        p.start()       # Create a new process and invoke the Process.run() method
+        p.join()        # Process.join() to wait for task completion
+   
+    # p = Process("", args.u, args.n)
+    # p.start()       # Create a new process and invoke the Process.run() method
+    # p.join()        # Process.join() to wait for task completion
 
 if __name__ == '__main__':
     main()

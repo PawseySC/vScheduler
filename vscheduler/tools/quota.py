@@ -12,6 +12,7 @@ from vscheduler.modules.booked.host import host_by_name
 from vscheduler.modules.booked.host import host_by_id
 from vscheduler.modules.booked.quotas import quotas
 from vscheduler.modules.booked.user import user_details_by_user_id
+from vscheduler.lib.ranger import parse_node_range
 from rich.console import Console
 from rich.table import Table
 
@@ -179,24 +180,34 @@ def main():
             # logger_unix.info ("There is no bookable Windows and Linux partition; To enable it edit vscheduler confilg")
             logger.info ("There is no bookable Windows and Linux partition; To enable it edit vscheduler confilg")
     else:
-        if (config.get("partition.windows.node") in args.n and 
-                int(args.n.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]) or 
-                (config.get("partition.linux.node") in args.n and 
-                int(args.n.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]))):
-        # if (config.get("partition.windows.node") in initiate.node and 
-        #         int(initiate.node.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]) or 
-        #         (config.get("partition.linux.node") in initiate.node and 
-        #         int(initiate.node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]))):
-            # p = Process("", initiate.user, initiate.node)
-            p = Process("", args.u, args.n)
-            p.start()       # Create a new process and invoke the Process.run() method
-            p.join()        # Process.join() to wait for task completion
-        else:
-            # print (f"< {initiate.node} > is not in bookable range") if MyPrintCondition.fprint else 0
-            print (f"< {args.n} > is not in bookable range") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
-            # logger_win.info (f"< {initiate.node} > is not in bookable range") if config.get("partition.windows.node") in initiate.node else logger_unix.info (f"< {initiate.node} > is not in bookable range")
-            # logger.info (f"< {initiate.node} > is not in bookable range")
-            logger.info (f"< {args.n} > is not in bookable range")
+        nodes = parse_node_range(args.n)
+        node_numbers = len(nodes)
+        for i in node_numbers:
+            if (config.get("partition.windows.node") in nodes[i] and 
+                    int(nodes[i].removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]) or 
+                    (config.get("partition.linux.node") in nodes[i] and 
+                    int(nodes[i].removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]))):
+            # if (config.get("partition.windows.node") in args.n and 
+            #         int(args.n.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]) or 
+            #         (config.get("partition.linux.node") in args.n and 
+            #         int(args.n.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]))):
+            # if (config.get("partition.windows.node") in initiate.node and 
+            #         int(initiate.node.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]) or 
+            #         (config.get("partition.linux.node") in initiate.node and 
+            #         int(initiate.node.removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]))):
+                # p = Process("", initiate.user, initiate.node)
+                # p = Process("", args.u, args.n)
+                p = Process(i, args.u, nodes[i])
+                p.start()       # Create a new process and invoke the Process.run() method
+                p.join()        # Process.join() to wait for task completion
+            else:
+                # print (f"< {initiate.node} > is not in bookable range") if MyPrintCondition.fprint else 0
+                # print (f"< {args.n} > is not in bookable range") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
+                print (f"< {nodes[i]} > is not in bookable range") if verbose.mode else 0 # if MyPrintCondition.fprint else 0
+                # logger_win.info (f"< {initiate.node} > is not in bookable range") if config.get("partition.windows.node") in initiate.node else logger_unix.info (f"< {initiate.node} > is not in bookable range")
+                # logger.info (f"< {initiate.node} > is not in bookable range")
+                # logger.info (f"< {args.n} > is not in bookable range")
+                logger.info (f"< {nodes[i]} > is not in bookable range")
             
 
 if __name__ == '__main__':
