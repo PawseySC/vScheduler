@@ -3,6 +3,7 @@ from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Config
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.lib.verbose import verbose
+from vscheduler import __version__
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.general.timer import Brackets
 from vscheduler.modules.booked.host import host_by_name                            # retreives host identification in booked
@@ -141,7 +142,7 @@ def main():
     parser.add_argument("-u", metavar="User", help="username")
     parser.add_argument("-n", metavar="Node", help="node name")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
-    parser.add_argument("--version", action="version", version="vscheduler v" + config.get("version.v"))
+    parser.add_argument("--version", action="version", version="vscheduler v" + __version__)
     args = parser.parse_args()
     print(args.u, args.n, args.verbose)
     if args.verbose:
