@@ -1,11 +1,12 @@
 from setuptools import setup, find_packages
+from vscheduler import __version__
 
 setup(
     name='vscheduler',
-    version='2.1.0',
-    packages=find_packages(),
-    include_package_data=True,
-    install_requires=[
+    version = __version__,
+    packages = find_packages(),
+    include_package_data = True,
+    install_requires = [
         'paramiko', 
         'PyMySQL', 
         'numpy', 
@@ -21,7 +22,7 @@ setup(
         'requests',
         'guacamole-api-wrapper'
     ],
-    entry_points={
+    entry_points = {
         'console_scripts': [
             'vkill = vscheduler.tools.kill:main',
             'vsync = vscheduler.tools.guaca:main',

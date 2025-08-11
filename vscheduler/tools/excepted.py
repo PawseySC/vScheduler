@@ -3,6 +3,7 @@ from vscheduler.log.log import CaptureLog
 from vscheduler.lib.config import Config
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.lib.verbose import verbose
+from vscheduler import __version__
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.modules.reports.exception import exception_update, exception_list
 
@@ -42,7 +43,7 @@ def main():
     parser.add_argument("-d1", metavar="Start date", help="YYYY-MM-DD format")
     parser.add_argument("-d2", metavar="End date", help="YYYY-MM-DD format")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
-    parser.add_argument("--version", action="version", version="vscheduler v" + config.get("version.v"))
+    parser.add_argument("--version", action="version", version="vscheduler v" + __version__)
     args = parser.parse_args()
     if args.verbose:
         verbose.mode = True

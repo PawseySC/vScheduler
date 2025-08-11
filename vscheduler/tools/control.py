@@ -4,6 +4,7 @@ from vscheduler.lib.config import Config
 from vscheduler.general.timer import Brackets as MyBrackets
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.lib.verbose import verbose
+from vscheduler import __version__
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 # from vscheduler.modules.cluster.maintenance import activation as activate
 # from vscheduler.modules.cluster.maintenance import deactivation as deactivate
@@ -49,7 +50,7 @@ def main():
     parser.add_argument("-n", metavar="Node", help="node name")
     parser.add_argument("-p", metavar="Partition", help="partition name")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
-    parser.add_argument("--version", action="version", version="vscheduler v" + config.get("version.v"))
+    parser.add_argument("--version", action="version", version="vscheduler v" + __version__)
     args = parser.parse_args()
     if args.verbose:
         verbose.mode = True

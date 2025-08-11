@@ -72,6 +72,3 @@ load:
 asyncs:
   status: True
   port: 3389
-
-version:
-  v: 2.1.1
