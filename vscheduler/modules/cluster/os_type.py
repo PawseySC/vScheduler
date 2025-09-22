@@ -39,6 +39,8 @@ def find_os(node):
             logger.info (line.strip('\n'))
             if "Windows" in line.split():
                 operating_system = "Windows"
+            elif "Linux" in line.split():
+                operating_system = "Linux"
             else:
                 continue
         
