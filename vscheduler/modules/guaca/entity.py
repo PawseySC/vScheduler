@@ -29,6 +29,9 @@ def entity(feed):   # os should be sent over for logging into 1 file only
             name = row_entity_id[1]
             sentence.insert(len(sentence), [entity_id , name])
             logger.info (f"sentence: {sentence}")
+        if not entity_id_results:
+            logger.error(f"No entity found for < {feed} >")
+            raise Exception("No entity found")
         print("\n", tabulate(sentence, headers=['entity_id', 'name'])) if verbose.mode else 0 # if MyPrintCondition.fprint else 0
         logger.info ("\n" + tabulate(sentence, headers=['entity_id', 'name']))
         
