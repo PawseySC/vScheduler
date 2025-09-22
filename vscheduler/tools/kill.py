@@ -117,7 +117,7 @@ def main():
     else:
         nodes = parse_node_range(args.n)
         node_numbers = len(nodes)
-        for i in node_numbers:
+        for i in range(node_numbers):
             # node = config.get("partition.windows.node") + '0' + str(i) if i <= 9 else config.get("partition.windows.node") + str(i)
             p = Process(i, args.u, nodes[i])
             p.start()

@@ -183,11 +183,11 @@ def main():
     else:
         nodes = parse_node_range(args.n)
         node_numbers = len(nodes)
-        for i in node_numbers:
+        for i in range(node_numbers):
             if (config.get("partition.windows.node") in nodes[i] and 
-                    int(nodes[i].removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]) or 
+                    int(nodes[i].removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]+1) or 
                     (config.get("partition.linux.node") in nodes[i] and 
-                    int(nodes[i].removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]))):
+                    int(nodes[i].removeprefix(config.get("partition.linux.node"))) in range(config.get("partition.linux.booking.range")[0], config.get("partition.linux.booking.range")[1]+1))):
             # if (config.get("partition.windows.node") in args.n and 
             #         int(args.n.removeprefix(config.get("partition.windows.node"))) in range(config.get("partition.windows.booking.range")[0], config.get("partition.windows.booking.range")[1]) or 
             #         (config.get("partition.linux.node") in args.n and 
