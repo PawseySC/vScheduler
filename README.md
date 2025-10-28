@@ -1,4 +1,6 @@
-# **Visualisation Scheduler**
+<img src="vs.png" alt="vScheduler" width="400">
+
+# **vScheduler** 
 ## **Pawsey Supercomputing Centre**
 
 > [!NOTE] 
@@ -11,7 +13,6 @@
 * **Client** - Remote visualisation nodes
 * **Socket Server** - Socket server running on Management Instance or Clients
 * **Socket Client** - Socket clients running on Management Instance or Clients
-
 
 ## A. Management Instance Setup
 
@@ -196,8 +197,10 @@
     systemctl start vis_socket.service
     ```
 
-
 ## C. RUN
 
 Enjoy the code! By having virtual environment activated, you can run `vmanage`, `vsync`, `vquota`, `valloc`, `vinfo`, `vset`, `vreport`, `vcontrol`, `vkill` commands. For more info, run any of these commands with `-h`.
 > **NOTE**: Separate log files will be created in `vscheduler/log` with the same name set in `vscheduler/lib/config/py` for `windows_node_name` and `linux_node_name`.
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
