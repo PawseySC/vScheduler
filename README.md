@@ -16,9 +16,11 @@
 
 ## A. Management Instance Setup
 
-1. Clone the vis scheduler repo
+1. Make sure `atd` is installed in `/usr/bin`.
 
-2. Setup virtual environemt on Management Instance
+2. Clone the vis scheduler repo
+
+3. Setup virtual environemt on Management Instance
 
     To have the script running environment clean and isolated, install all packages in a virtual environment avoiding confliction or version incompatibility issues with other tools/packages.
 
@@ -69,7 +71,7 @@
     }
     ```
 
-3. Setup MySQL database for report:
+4. Setup MySQL database for report:
     ```
     sudo apt install mysql-server
     sudo mysql
@@ -121,9 +123,9 @@
     sudo systemctl restart mysql
     ```
 
-4. Set all parameters in `vscheduler/lib/config.py`
+5. Set all parameters in `vscheduler/lib/config.py`
 
-5. Create new service in `/etc/systemd/system/mgmt_socket.service` as below:
+6. Create new service in `/etc/systemd/system/mgmt_socket.service` as below:
     ```
     [Unit]
     Description=mgmt_socket
