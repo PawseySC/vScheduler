@@ -24,7 +24,8 @@ Notes:
     Specifying only one date considers current date for end.
     '''
     # usage = '%s [-h --help] [-v --verbose] [-l --license] [-u user] [-n node] [-d YYYY-MM-DD YYYY-MM-DD]\n %s' % (sys.argv[0], help_text)
-    usage = '%prog [-h --help] [-v --verbose] [-l --license] [-u user] [-n node] [-d YYYY-MM-DD YYYY-MM-DD]\n' + help_text
+    # usage = '%prog [-h --help] [-v --verbose] [-l --license] [-u user] [-n node] [-d YYYY-MM-DD YYYY-MM-DD] [--status status] [--session]\n' + help_text
+    usage = '%prog [-h --help] [-l --license] [-v verbose] [-u user] [-n node] [-d YYYY-MM-DD YYYY-MM-DD] [-t H]\n' + help_text
     parser = OptionParser(version=version, usage=usage)
 
     def license(title, prog, version):
@@ -52,7 +53,11 @@ Notes:
     parser.add_option('-u', dest='<user>', help='check the script against particular user')
     parser.add_option('-n', dest='<node>', help='check the script against particular node')
     parser.add_option('-d', dest='<date>', help='date bracket used only for report')
-    parser.add_option('-v', '--verbose', action='store_true', help='verbose/debug mode')
+    parser.add_option('-t', dest='<time>', help='wall time in hour only for exception')
+    # parser.add_option('--status', dest='<status>', help='set status for the node')
+    # parser.add_option('--session', help='retreives user(s) logged into the node(s)')
+    # parser.add_option('-v', '--verbose', action='store_true', help='verbose/debug mode')
+    parser.add_option('-v', action='store_true', help='verbose/debug mode')
     parser.add_option('-l', '--license', action='store_true', help='license')
 
     (options, args) = parser.parse_args()

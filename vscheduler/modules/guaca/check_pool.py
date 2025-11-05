@@ -6,17 +6,16 @@ from vscheduler.lib.database import Database as MyDatabase
 from vscheduler.modules.guaca.entity import entity
 from vscheduler.modules.guaca.conn_permission import guacamole_connection
 my_connection = MyDatabase.connect_guaca_db()
-my_cursor = my_connection.cursor()
 
 pool_records = Capture_log("pool", __file__)
-logger = pool_records.log_agent()
+logger = pool_records.log_agent("linux")    # **** logger_win needs to be added; win flag should be sent when calling the function ****
 
 def checkpool(node, pool):
     pool_entity = entity(pool)
     connection_id = guacamole_connection(node)
     try:
         sentence = []
-        query = "SELECT connection_id, entity_id FROM guacamole_connection_permission WHERE connection_id = '%s' and entity_id = '%s'" %(connection_id[0][0], pool_entity[0][0])
+        query = f"SELECT connection_id, entity_id FROM guacamole_connection_permission WHERE connection_id = '{connection_id[0][0]}' and entity_id = '{pool_entity[0][0]}'"
         my_connection.ping()  # reconnecting mysql in case of connection timed out
         with my_connection.cursor() as cursor:
             cursor.execute(query)
@@ -32,8 +31,7 @@ def checkpool(node, pool):
         logger.info ("\n" + tabulate(sentence, headers=['connection_id', 'entity_id']))
         print (f"query_results: {query_results}")
         logger.info (f"query_results: {query_results}")
-        
-        my_connection.close()
+
         return query_results if query_results else ""
     except:
         print (f"error fetching pool info for node < {node} > and pool < {pool} >") if MyPrintCondition.fprint else 0

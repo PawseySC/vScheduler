@@ -5,7 +5,7 @@ from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.config import Credentials as MyCredentials
 
 module_records = Capture_log("ssh", __file__)
-logger_module = module_records.log_agent()
+logger_module = module_records.log_agent(f"{MyCredentials.report_windows_table}")
 try:
     import paramiko
     from paramiko import SSHClient, AutoAddPolicy
@@ -35,7 +35,7 @@ class Node:
     @staticmethod
     def connect_node(computer):
         ssh_records = Capture_log("ssh", __file__)
-        logger_ssh = ssh_records.log_agent()
+        logger_ssh = ssh_records.log_agent(f"{MyCredentials.report_windows_table}")
         try:
             node_name = computer + '.' + MyCredentials.domain
             node_con = paramiko.SSHClient()
