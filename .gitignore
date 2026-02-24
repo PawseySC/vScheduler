@@ -6,3 +6,5 @@ vs/
 *.log
 *.png
 >>>>>>> SQL
+.DS_Store
+*.swp

@@ -19,11 +19,11 @@ from vscheduler.general.alert2 import email_with_embeded_image
 from jinja2 import Template
 import datetime
 
-
 my_connection = MyDatabase.connect_report_db()
 
 records = Capture_log("pool", __file__)
-logger = records.log_agent()
+logger_win = records.log_agent("windows")
+logger_unix = records.log_agent("linux")
 
 
 def pool_report_generator(hostname, username, start, end):
@@ -84,7 +84,7 @@ def pool_report_generator(hostname, username, start, end):
     print (actual_usage_report_results_list)
     print (tabulate(actual_usage_report_results, headers='keys', tablefmt='psql'))
     print ("sum: ", actual_usage_report_results['duration'].sum())
-    logger.info ("\n" + tabulate(actual_usage_report_results, headers='keys', tablefmt='psql'))
+    logger_win.info ("\n" + tabulate(actual_usage_report_results, headers='keys', tablefmt='psql')) if MyCredentials.windows_node_name in hostname else logger_unix.info ("\n" + tabulate(actual_usage_report_results, headers='keys', tablefmt='psql'))
     with my_connection.cursor() as my_cursor:
         my_cursor.execute(actual_usage_report)
         actual_usage_report_results = my_cursor.fetchall()

@@ -6,7 +6,9 @@ from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.modules.cluster.os_type import find_os
 
 booking_records = Capture_log("booking", __file__)
-logger = booking_records.log_agent()
+logger_win = booking_records.log_agent("windows")
+logger_unix = booking_records.log_agent("linux")
+
 
 def who(node: str) -> str:
     my_connection = MyNode.connect_node(node)
@@ -21,15 +23,15 @@ def who(node: str) -> str:
             stdin , stdout, stderr = my_connection.exec_command("who")
         else:
             print (f"no os found for < {node} >") if MyPrintCondition.fprint else 0
-            logger.warning (f"no os found for < {node} >")
+            logger_win.warning (f"no os found for < {node} >") if MyCredentials.windows_node_name in node else logger_unix.warning (f"no os found for < {node} >")
             exit
 
         if stderr:
             print (f"Errors: {stderr.read()}") if MyPrintCondition.fprint else 0
-            logger.error (f"Errors: {stderr.read()}")
+            logger_win.error (f"Errors: {stderr.read()}") if MyCredentials.windows_node_name in node else logger_unix.error (f"Errors: {stderr.read()}")
         for line in stdout:
             print (line.strip('\n')) if MyPrintCondition.fprint else 0
-            logger.info (line.strip('\n'))
+            logger_win.info (line.strip('\n')) if MyCredentials.windows_node_name in node else logger_unix.info (line.strip('\n'))
             if not line.split()[0] in MyCredentials.exception:
                 users.append(line.split()[0])
             else:
@@ -39,4 +41,4 @@ def who(node: str) -> str:
 
     except:
         print (f"could not connect to < {node} > to query user") if MyPrintCondition.fprint else 0
-        logger.error (f"could not connect to < {node} > to query user")
+        logger_win.error (f"could not connect to < {node} > to query user") if MyCredentials.windows_node_name in node else logger_unix.error (f"could not connect to < {node} > to query user")

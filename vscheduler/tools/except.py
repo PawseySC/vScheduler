@@ -1,94 +1,69 @@
-# makes a node exception not to be called in allocation process, or gives exception status of all/specific node(s)
-import multiprocessing, click
+# allocates connection link to specific node of general pool in user's guacamole dashboard
+import multiprocessing
 from vscheduler.log.log import Capture_log
-from vscheduler.lib.config import Credentials as MyCredentials
-from vscheduler.general.timer import Brackets as MyBrackets
 from vscheduler.general.initiate import Initiation as initiate
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
-from vscheduler.modules.reports.exception import exception_add as add_exception
-from vscheduler.modules.reports.exception import exception_remove as remove_exception
-from vscheduler.modules.reports.exception import exception_status as status_exception
+from vscheduler.modules.reports.exception import exception_update, exception_list
+
 
 records = Capture_log("exception", __file__)
-logger = records.log_agent()
+logger_exception = records.log_agent("exception")
+
 
 # Process class
 class Process(multiprocessing.Process):
-    def __init__(self, id, status, node):
+    def __init__(self, username, mode, time, start, end):
         super(Process, self).__init__()
-        self.id = id
-        self.hostname = node
-        self.status = status
+        self.username = username
+        self.mode = mode
+        self.start_date = start
+        self.end_date = end
+        self.time = time
     
     def run(self):
-        if self.status == "add":
-            add_exception (self.hostname)
-        elif self.status == "remove":    
-            remove_exception (self.hostname)
-        elif self.status == "status":
-            start = '2000-01-01' if not initiate.start else initiate.start
-            end = MyBrackets.local_time if not initiate.end else initiate.end
-            print (f"start: {start}")
-            print (f"end: {end}")
-            status_exception(self.hostname, start, end)
+        # time.sleep(1)
+        # print (f"user: {self.username}") if MyPrintCondition.fprint else 0
+        if self.mode == "list" or self.mode == "status":
+            exception_list (self.username, self.start_date, self.end_date)
+        elif self.mode == "activate" or self.mode == "deactivate":
+            exception_update (self.username, self.mode, self.time)
 
 def main():
-    # if not initiate.node:
-    #     for i in range (MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
-    #         node = MyCredentials.windows_node_name + '0' + str(i) if i <= 9 else MyCredentials.windows_node_name + str(i)
-    #         if initiate.add:
-    #             p = Process(i, "add", node)
-    #         elif initiate.remove:
-    #             p = Process(i, "remove", node)
-    #         elif initiate.status:
-    #             p = Process(i, "status", node)
-    #         p.start()       # Create a new process and invoke the Process.run() method
-    #         p.join()        # Process.join() to wait for task completion
-    #     for i in range (MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
-    #         node = MyCredentials.windows_node_name + '0' + str(i) if i <= 9 else MyCredentials.windows_node_name + str(i)
-    #         if initiate.add:
-    #             p = Process(i, "add", node)
-    #         elif initiate.remove:
-    #             p = Process(i, "remove", node)
-    #         elif initiate.status:
-    #             p = Process(i, "status", node)
-    #         p.start()       # Create a new process and invoke the Process.run() method
-    #         p.join()        # Process.join() to wait for task completion
-    #     for i in range (MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
-    #         node = MyCredentials.linux_node_name + '0' + str(i) if i <= 9 else MyCredentials.linux_node_name + str(i)
-    #         if initiate.add:
-    #             p = Process(i, "add", node)
-    #         elif initiate.remove:
-    #             p = Process(i, "remove", node)
-    #         elif initiate.status:
-    #             p = Process(i, "status", node)
-    #         p.start()       # Create a new process and invoke the Process.run() method
-    #         p.join()        # Process.join() to wait for task completion
-    #     for i in range (MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
-    #         node = MyCredentials.linux_node_name + '0' + str(i) if i <= 9 else MyCredentials.linux_node_name + str(i)
-    #         if initiate.add:
-    #             p = Process(i, "add", node)
-    #         elif initiate.remove:
-    #             p = Process(i, "remove", node)
-    #         elif initiate.status:
-    #             p = Process(i, "status", node)
-    #         p.start()       # Create a new process and invoke the Process.run() method
-    #         p.join()        # Process.join() to wait for task completion
-    # else:
-    #     if initiate.add:
-    #         p = Process("", "add", initiate.node)
-    #     elif initiate.remove:
-    #         p = Process("", "remove", initiate.node)
-    #     elif initiate.status:
-    #         p = Process("", "status", initiate.node)
-    #     p.start()       # Create a new process and invoke the Process.run() method
-    #     p.join()        # Process.join() to wait for task completion
-    if initiate.node:
-        p = Process("", initiate.status, initiate.node)
-        p.start()       # Create a new process and invoke the Process.run() method
-        p.join()        # Process.join() to wait for task completion
+    if not initiate.node:
+        if initiate.mode == 'list':
+            if initiate.user:
+                print ("no username is needed when listing exceptions\nplease see help")
+            else:
+                p = Process("", "list", "", initiate.start, initiate.end)
+                p.start()
+                p.join()
+        elif initiate.mode == 'status':
+            if not initiate.user:
+                print ("username is needed when querying exception status\nplease see help")
+            else:
+                p = Process(initiate.user, "status", "", initiate.start, initiate.end)
+                p.start()
+                p.join()
+        elif initiate.mode == 'activate':
+            if not initiate.user or not initiate.time:
+                print ("vexcept activate requires username and time\nplease see help")
+            else:
+                p = Process(initiate.user, "activate", initiate.time, "", "")
+                p.start()
+                p.join()
+                # [(Process(users, "activate"), Process(users, "activate").start(), Process(users, "activate").join()) for users in initiate.user]
+        elif initiate.mode == 'deactivate':
+            if not initiate.user:
+                print ("vexcept deactivate requires username\nplease see help")
+            else:
+                p = Process(initiate.user, "deactivate", "", "", "")
+                p.start()
+                p.join()
+                # [(Process(users, "deactivate"), Process(users, "deactivate").start(), Process(users, "deactivate").join()) for users in initiate.user]
     else:
-        print ("Exception mode will be applied for specific node; To exclude all nodes from service, use vmaintenance")
-    
+        print ("vexcept doesn't require node\nplease see help")
+        
+
+
 if __name__ == '__main__':
     main()
