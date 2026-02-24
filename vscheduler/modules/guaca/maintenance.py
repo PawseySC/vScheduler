@@ -11,7 +11,7 @@ records = Capture_log("maintenance", __file__)
 logger_win = records.log_agent("windows")
 logger_unix = records.log_agent("linux")
 
-session = guacamole.session("https://dev-guacamole.pawsey.org.au", "mysql", "guacadmin", "pckuW4q4eL9hB2jjZX8R")
+session = guacamole.session(MyCredentials.guaca_host, MyCredentials.guaca_db, MyCredentials.guaca_user, MyCredentials.guaca_passwd) # MyCredentials.guaca_db is the db type being mysql, postgresql, sqlserver
 
 def change_maint_status (mode, partition):
     logger_unix.info (f"mode1: {mode}")
