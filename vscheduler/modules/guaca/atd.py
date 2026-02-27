@@ -18,7 +18,11 @@ def post_log_off(user, node, table):
 def at_daemon(user, node, table, walltime):
     logger_unix.info (f"at daemon start, user, node, table, walltime: {user}, {node}, {table}, {walltime}")
     # os.system(f'echo "vkill -u {user} -n {node} -v" | at now + {walltime} hour')
-    command = f'echo "vkill -u {user} -n {node} -v" | /usr/bin/at now + {walltime} hour'
+    # command = f'echo "vkill -u {user} -n {node} -v" | /usr/bin/at now + {walltime} hour'
+    # command = f'MAILTO={MyCredentials.email_to} echo "vkill -u {user} -n {node} -v" | /usr/bin/at now + {walltime} hour'
+    command = f"""/usr/bin/at now + {walltime} hour <<'EOF'
+    vkill -u {user} -n {node} -v 2>&1 | mailx -s "atd command failed" {MyCredentials.email_to}                      
+    EOF"""
     subprocess.call(f"{command}", shell=True)
     # os.system(command)
     # result = os.popen(command).read()
