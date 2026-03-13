@@ -42,7 +42,7 @@ class Node:
             node_con.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             node_con.connect(
                             hostname = node_name, 
-                            username = MyCredentials.ssh_username, 
+                            username = MyCredentials.ssh_username_linux if MyCredentials.linux_node_name in computer else MyCredentials.ssh_username_windows, 
                             pkey = key, 
                             timeout=5)
             return node_con

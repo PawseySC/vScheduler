@@ -30,7 +30,8 @@ class Credentials:
 
     # local pub key location for ssh into Nebula nodes
     home = str(Path.home()) 
-    ssh_username = 'admin'              # destination node admin
+    ssh_username_linux = 'admin'              # destination node admin
+    ssh_username_windows = 'admin'              # destination node admin
     key = 'id_rsa'                      # management instance private ssh key associated with public key authorized in destination nodes
     ssh_key = f'{home}/.ssh/{key}'
 
