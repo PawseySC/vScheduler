@@ -13,8 +13,10 @@ from vscheduler.modules.reports.record_log_io import record_login
 from vscheduler.modules.reports.record_log_io import record_logout
 from vscheduler.modules.guaca.revert_user import revert_back_to_pool
 from vscheduler.modules.guaca.empty_pool import empty_pool_connection
+from vscheduler.modules.cluster.atd_canceller import cancel_atd
 from vscheduler.socket.mgmt_client import client_statistics as data_agent
 from vscheduler.modules.guaca.atd import at_daemon
+from vscheduler.modules.guaca.atd import atd_cancelation
 
 my_connection = MyDatabase.connect_report_db()
 
@@ -169,7 +171,13 @@ def handle_client(conn, addr):
                 if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
                     if "logout" in msg.split(","):
                         logger_win.info (f"LOGOUT attempt for {user}")
+                        try:
+                            cancelled_jobs = cancel_atd(user, node)
+                            logger_win.info (f"Cancelled atd jobs for {user} on {node}: {cancelled_jobs}")
+                        except (OSError, subprocess.CalledProcessError) as error:
+                            logger_win.error (f"Could not cancel atd jobs for {user} on {node}: {error}")
                         revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], MyCredentials.windows_pool)
+                        atd_cancelation(user, node)
                         record_logout(user, node, MyCredentials.report_windows_table, "general")
                     else:
                         manage_pool(msg, node, user, excepted_walltime, "windows")
@@ -190,8 +198,14 @@ def handle_client(conn, addr):
                 if int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1): 
                     if "logout" in msg.split(","):
                         logger_unix.info (f"LOGOUT attempt for {user}")
+                        try:
+                            cancelled_jobs = cancel_atd(user, node)
+                            logger_unix.info (f"Cancelled atd jobs for {user} on {node}: {cancelled_jobs}")
+                        except (OSError, subprocess.CalledProcessError) as error:
+                            logger_unix.error (f"Could not cancel atd jobs for {user} on {node}: {error}")
                         # move user back to pool by logging out of node
                         revert_back_to_pool(msg.split(",")[1], msg.split(",")[0], MyCredentials.linux_pool)
+                        atd_cancelation(user, node)
                         record_logout(user, node, MyCredentials.report_linux_table, "general")
                     else:
                         # if len(checkpool(node, MyCredentials.pool)):        # if user goes to static url of specific node
