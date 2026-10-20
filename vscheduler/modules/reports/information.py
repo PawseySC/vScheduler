@@ -99,6 +99,9 @@ def print_info():
             )
         )
     )
+    grouped["SYSTEM"] = grouped["SYSTEM"].mask(
+        grouped["SYSTEM"].eq(grouped["SYSTEM"].shift()), ""
+    )
     print(tabulate(grouped, headers="keys", tablefmt="plain", showindex=False))
 
 
