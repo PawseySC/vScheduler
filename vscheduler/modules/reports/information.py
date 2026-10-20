@@ -7,8 +7,6 @@ from vscheduler.general.timer import Brackets as MyBrackets
 from tabulate import tabulate
 from functools import reduce
 import pandas as pd
-import numpy as np
-import pandas as pd
 import re
 
 my_connection = MyDatabase.connect_report_db()
@@ -65,38 +63,81 @@ all_nodes_merged = pd.concat(all_nodes, axis=0)
 
 
 def print_info():
-    # print (f"all nodes merged:\n {all_nodes_merged}")
+    """
+    Called by vinfo tool generating nodes status information
+    """
     try:
         query = f"SELECT node, status, pool from status WHERE start = end"
         with my_connection.cursor() as my_cursor:
             my_cursor.execute(query)
             query_results = my_cursor.fetchall()
+            # print (f"{query_results}") if verbose.mode else 0
     except my_connection.Error as e:
-            print (f"status query hit error\n{e}") if MyPrintCondition.fprint else 0
-            logger.error (f"status query hit error\n{e}")
+        logger.error (f"status query hit error\n{e}")
+        return
 
-    if len(query_results) > 0:
-        query_results_df = pd.DataFrame(list(np.array(query_results)))
-        query_results_df.columns = ['NODE', 'STATUS', 'POOL']
-        # print (query_results_df)
+    query_results_df = pd.DataFrame(query_results, columns=['NODE', 'STATUS', 'POOL'])
+    all_nodes_df = all_nodes_merged.merge(query_results_df, on='NODE', how='outer').fillna('idle')
+    if not query_results:
+        all_nodes_df['STATUS'] = 'up'
+    all_nodes_df = all_nodes_df.drop(['POOL'], axis=1)
+    all_nodes_df = all_nodes_df.rename(columns={'STATUS':'STAT'})
+    all_nodes_df = all_nodes_df.rename(columns={'NODE':'NODELIST'})
+    first_column = all_nodes_df.pop('STAT')
+    all_nodes_df.insert(4, 'STAT', first_column)
+
+    group_columns = ["SYSTEM", "PARTITION", "AVAIL", "STAT"]
+    grouped = (
+        all_nodes_df.groupby(group_columns, as_index=False)
+        .agg(
+            NODES=("NODELIST", "size"),
+            NODELIST=(
+                "NODELIST",
+                lambda nodes: " ".join(
+                    re.sub(r"\D+", "", node) for node in nodes
+                ),
+            )
+        )
+    )
+    grouped["SYSTEM"] = grouped["SYSTEM"].mask(
+        grouped["SYSTEM"].eq(grouped["SYSTEM"].shift()), ""
+    )
+    print(tabulate(grouped, headers="keys", tablefmt="plain", showindex=False))
+
+
+# def print_info():
+#     # print (f"all nodes merged:\n {all_nodes_merged}")
+#     try:
+#         query = f"SELECT node, status, pool from status WHERE start = end"
+#         with my_connection.cursor() as my_cursor:
+#             my_cursor.execute(query)
+#             query_results = my_cursor.fetchall()
+#     except my_connection.Error as e:
+#             print (f"status query hit error\n{e}") if MyPrintCondition.fprint else 0
+#             logger.error (f"status query hit error\n{e}")
+
+#     if len(query_results) > 0:
+#         query_results_df = pd.DataFrame(list(np.array(query_results)))
+#         query_results_df.columns = ['NODE', 'STATUS', 'POOL']
+#         # print (query_results_df)
                         
-        all_nodes_df = all_nodes_merged.merge(query_results_df, on='NODE', how='outer').fillna('idle')
-        all_nodes_df = all_nodes_df.drop(['POOL'], axis=1)
-        all_nodes_df = all_nodes_df.rename(columns={'STATUS':'STAT'})
-        all_nodes_df = all_nodes_df.rename(columns={'NODE':'NODELIST'})
-        # shift column 'Name' to first position 
-        first_column = all_nodes_df.pop('STAT') 
-        # insert column using insert(position, column_name, first_column) function 
-        all_nodes_df.insert(4, 'STAT', first_column) 
-        # all_nodes_df = all_nodes_df.insert(0, all_nodes_df.STAT, all_nodes_df.pop('STAT'))
-        # print (f"all_nodes_df:\n {all_nodes_df.to_string(index=False)}")
+#         all_nodes_df = all_nodes_merged.merge(query_results_df, on='NODE', how='outer').fillna('idle')
+#         all_nodes_df = all_nodes_df.drop(['POOL'], axis=1)
+#         all_nodes_df = all_nodes_df.rename(columns={'STATUS':'STAT'})
+#         all_nodes_df = all_nodes_df.rename(columns={'NODE':'NODELIST'})
+#         # shift column 'Name' to first position 
+#         first_column = all_nodes_df.pop('STAT') 
+#         # insert column using insert(position, column_name, first_column) function 
+#         all_nodes_df.insert(4, 'STAT', first_column) 
+#         # all_nodes_df = all_nodes_df.insert(0, all_nodes_df.STAT, all_nodes_df.pop('STAT'))
+#         # print (f"all_nodes_df:\n {all_nodes_df.to_string(index=False)}")
 
-        all_nodes_df_categorised = all_nodes_df.groupby(["SYSTEM", "PARTITION", "AVAIL", "STAT"]).sum()
-        all_nodes_df_categorised['NODELIST'] = all_nodes_df_categorised['NODELIST'].str.replace('\D+', ' ', regex=True)   # .str.extract('(\d+)', expand=False for extracting numbers only. '\D+' means non-numeric characters.
-        # print (f"all_nodes_df_categorised:\n {all_nodes_df_categorised}")
-        print (all_nodes_df_categorised)
-    else:
-        print ("No data in database")
+#         all_nodes_df_categorised = all_nodes_df.groupby(["SYSTEM", "PARTITION", "AVAIL", "STAT"]).sum()
+#         all_nodes_df_categorised['NODELIST'] = all_nodes_df_categorised['NODELIST'].str.replace('\D+', ' ', regex=True)   # .str.extract('(\d+)', expand=False for extracting numbers only. '\D+' means non-numeric characters.
+#         # print (f"all_nodes_df_categorised:\n {all_nodes_df_categorised}")
+#         print (all_nodes_df_categorised)
+#     else:
+#         print ("No data in database")
 
     
 # def print_info():
