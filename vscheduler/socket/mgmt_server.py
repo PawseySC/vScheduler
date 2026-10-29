@@ -159,12 +159,13 @@ def handle_client(conn, addr):
         if node_status_lists:
             if len(node_status_lists) != 0:
                 for node_status_list in node_status_lists:
-                    if node in node_status_list:
+                    if node == node_status_list[0]:
                         node_status = node_status_list[1]
                 
         # print (f"user, excepted_walltime, node_status ::: {user}, {excepted_walltime}, {node_status}")
                 
-        if node_status != "dev":
+        is_logout = "logout" in msg.split(",")
+        if node_status != "dev" and (node_status != "maint" or is_logout):
             # check if the socket connection request comes from windows nodes
             if MyCredentials.windows_node_name in node: 
                 # if windows general partition -> empty windows general pool, then, valloc and finally update windows general pool with new node

@@ -16,14 +16,20 @@ logger_win = records.log_agent("windows")
 logger_unix = records.log_agent("linux")
 
 
-def status_update(node, mode):
+def status_update(node, mode) -> bool:
     try:
         pool = post_query = ""
         sentence = []
         if MyCredentials.windows_node_name in node:
-            pool = "general" if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1) else "reservation"
+            node_number = int(node.removeprefix(MyCredentials.windows_node_name))
+            pool = "general" if node_number in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1) else "reservation"
+            if node_number in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
+                pool = "reservation"
         elif MyCredentials.linux_node_name in node:
-            pool = "general" if int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1) else "reservation"
+            node_number = int(node.removeprefix(MyCredentials.linux_node_name))
+            pool = "general" if node_number in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1) else "reservation"
+            if node_number in range(MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
+                pool = "reservation"
         
         pre_query = f"SELECT node, status, pool, start, end FROM status WHERE node = '{node}' AND start = end"
         my_connection.ping()  # reconnecting mysql in case of connection timed out
@@ -55,6 +61,7 @@ def status_update(node, mode):
     except my_connection.Error as e:
         print (f"status record error for node < {node} > in pre_query = {pre_query}\n{e}") if MyPrintCondition.fprint else 0
         logger_win.error (f"status record error for node < {node} > in pre_query = {pre_query}\n{e}") if MyCredentials.windows_node_name in node else logger_unix.error (f"status record error for node < {node} > in pre_query = {pre_query}\n{e}")
+        return False
     # print ("yes") if mode in np.array(pre_query_results)[:,1] else print ("no")
     # is this logic correct for setting/updating node status?
     # set down -> if no record for current time for current node, insert new record set the status down
@@ -96,9 +103,13 @@ def status_update(node, mode):
         else:
             print (f"Not possible to apply same mode: < {mode} > to < {node} >") if MyPrintCondition.fprint else 0
             logger_win.info (f"Not possible to apply same < {mode} > mode to < {node} >") if MyCredentials.windows_node_name in node else logger_unix.info (f"Not possible to apply same < {mode} > mode to < {node} >")
+            if mode == "maint":
+                refresh(node)
+        return True
     except my_connection.Error as e:
         print (f"status record error for node < {node} > in post_query = {post_query}\n{e}") if MyPrintCondition.fprint else 0
         logger_win.error (f"status record error for node < {node} > in post_query = {post_query}\n{e}") if MyCredentials.windows_node_name in node else logger_unix.error (f"status record error for node < {node} > in post_query = {post_query}\n{e}")
+        return False
             
     
     

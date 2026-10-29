@@ -197,5 +197,5 @@
 
 ## C. RUN
 
-Enjoy the code! By having virtual environment activated, you can run `vmanage`, `vsync`, `vquota`, `valloc`, `vinfo`, `vset`, `vreport`, `vcontrol`, `vkill`, `vmaintenance` commands. `vmaintenance` logs off non-exempt desktop users from enabled nodes before maintenance; users from general-pool nodes are returned to the Guacamole pool, while booking nodes remain managed by the booking system. For more info, run any of these commands with `-h`.
+Enjoy the code! By having virtual environment activated, you can run `vmanage`, `vsync`, `vquota`, `valloc`, `vinfo`, `vset`, `vreport`, `vcontrol`, `vkill`, `vmaintenance`, and `vhealth` commands. `vmaintenance` marks enabled nodes as under maintenance, logs off non-exempt desktop users, and empties Guacamole general pools so new users do not receive a node. `vhealth` checks maintained nodes; after all checks pass, it prompts to return maintained nodes to service and restore the general pools. For more info, run any of these commands with `-h`.
 > **NOTE**: Separate log files will be created in `vscheduler/log` with the same name set in `vscheduler/lib/config/py` for `windows_node_name` and `linux_node_name`.

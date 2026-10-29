@@ -33,8 +33,8 @@ def who(node: str, include_exceptions: bool = False) -> Optional[List[str]]:
         users = []
         seen_users = set()
         exceptions = {name.casefold() for name in MyCredentials.exception}
-        if stderr:
-            error = stderr.read()
+        error = stderr.read() if stderr else b""
+        if error:
             print (f"Errors: {error}") if MyPrintCondition.fprint else 0
             logger_win.error (f"Errors: {error}") if MyCredentials.windows_node_name in node else logger_unix.error (f"Errors: {error}")
         for line in stdout:
