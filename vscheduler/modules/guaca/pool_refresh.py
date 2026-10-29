@@ -23,7 +23,7 @@ def refresh (node):
     balance being ON or OFF in the config.
     '''
     os = "windows" if MyCredentials.windows_node_name in node else "linux"
-    print (f"osososos = {os}")
+    print (f"os={os}")
     # find the current pool member identity in guacamole db
     pool_entity = entity(MyCredentials.windows_pool) if MyCredentials.windows_node_name in node else entity(MyCredentials.linux_pool)
     
@@ -43,6 +43,9 @@ def refresh (node):
     if len(check_results) > 0 and check_results[0][0] == connection_results[0][0]:
         hosts = generate_general_partition_hosts (os, node)
         logger_win.info (f"hosts: {hosts}") if os == "windows" else logger_unix.info (f"hosts: {hosts}")
+        if not hosts:
+            fill_up(node, hosts)
+            return
         # fill up pool by new member
         # load balance ON -> call mgmt_client to collect usage data from vis nodes to rank those for loadbalance
 
@@ -59,4 +62,38 @@ def refresh (node):
             fill_up(node, hosts)
     else:
         print (f"< {node} > was not in the pool, so no change in pool happened") if MyPrintCondition.fprint else 0
-        logger_win.info (f"< {node} > was not in the pool, so no change in pool happened") if os == "windows" else logger_unix.info (f"< {node} > was not in the pool, so no change in pool happened")    
+        logger_win.info (f"< {node} > was not in the pool, so no change in pool happened") if os == "windows" else logger_unix.info (f"< {node} > was not in the pool, so no change in pool happened")
+
+
+def restore_empty_general_pool(os, candidate_node):
+    pool = MyCredentials.windows_pool if os == "windows" else MyCredentials.linux_pool
+    pool_entity = entity(pool)
+    if not pool_entity:
+        raise RuntimeError("Guacamole pool entity was not found: {}".format(pool))
+
+    query = (
+        "SELECT connection_id FROM guacamole_connection_permission "
+        "WHERE entity_id = '{}'".format(pool_entity[0][0])
+    )
+    my_connection.ping()
+    with my_connection.cursor() as cursor:
+        cursor.execute(query)
+        if cursor.fetchall():
+            return True
+
+    hosts = generate_general_partition_hosts(os, candidate_node)
+    if not hosts:
+        return False
+
+    if MyCredentials.load_balance:
+        usage_data = data_agent(hosts, os)
+        if not usage_data:
+            return False
+        loadbalance(usage_data, pool)
+    else:
+        fill_up(candidate_node, hosts)
+
+    my_connection.ping()
+    with my_connection.cursor() as cursor:
+        cursor.execute(query)
+        return bool(cursor.fetchall())

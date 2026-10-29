@@ -1,4 +1,4 @@
-"""Read-only post-maintenance and post-restart health checks."""
+"""Post-maintenance and post-restart health checks."""
 import argparse
 import shutil
 import socket
@@ -6,6 +6,8 @@ import subprocess
 import sys
 
 from vscheduler.lib.config import Credentials as MyCredentials
+from vscheduler.modules.reports.status import status_update
+from vscheduler.modules.guaca.pool_refresh import restore_empty_general_pool
 
 
 MGMT_PORT = 65001
@@ -174,7 +176,7 @@ def check_nodes(timeout, current_status):
     for node, partition in nodes:
         fqdn = "{}.{}".format(node, MyCredentials.domain)
         state = current_status.get(node) if current_status is not None else None
-        if state in ("maint", "down", "dev"):
+        if state in ("down", "dev"):
             print_result("SKIP", node, "{} is marked {}; not probing SSH".format(partition, state))
             continue
 
@@ -202,6 +204,78 @@ def check_nodes(timeout, current_status):
                 print_result("FAIL", node + " usage socket", str(error))
                 failures += 1
     return failures
+
+
+def is_general_node(node, prefix, enabled, node_range, booking_enabled, booking_range):
+    if not node.startswith(prefix):
+        return False
+    node_number = int(node.removeprefix(prefix))
+    return (
+        enabled
+        and node_number in range(node_range[0], node_range[1] + 1)
+        and not (
+            booking_enabled
+            and node_number in range(booking_range[0], booking_range[1] + 1)
+        )
+    )
+
+
+def restore_maintenance_nodes(current_status):
+    maintenance_nodes = [
+        node for node, _ in configured_nodes()
+        if current_status.get(node) == "maint"
+    ]
+    if not maintenance_nodes:
+        return True
+
+    try:
+        answer = input(
+            "All health checks passed. Bring maintained nodes to status 'up'? [y/N]: "
+        ).strip().casefold()
+    except EOFError:
+        print_result("WARN", "maintenance state", "no confirmation received; left unchanged")
+        return True
+    if answer not in ("y", "yes"):
+        print_result("INFO", "maintenance state", "left unchanged")
+        return True
+
+    for node in maintenance_nodes:
+        if not status_update(node, "up"):
+            print_result("FAIL", "maintenance state", "could not mark {} up".format(node))
+            return False
+
+    general_candidates = {}
+    for node in maintenance_nodes:
+        if is_general_node(
+            node,
+            MyCredentials.windows_node_name,
+            MyCredentials.windows_general,
+            MyCredentials.windows_general_range,
+            MyCredentials.windows_booking,
+            MyCredentials.windows_booking_range,
+        ):
+            general_candidates.setdefault("windows", node)
+        elif is_general_node(
+            node,
+            MyCredentials.linux_node_name,
+            MyCredentials.linux_general,
+            MyCredentials.linux_general_range,
+            MyCredentials.linux_booking,
+            MyCredentials.linux_booking_range,
+        ):
+            general_candidates.setdefault("linux", node)
+
+    for operating_system, candidate_node in sorted(general_candidates.items()):
+        if not restore_empty_general_pool(operating_system, candidate_node):
+            print_result(
+                "FAIL",
+                "{} general pool".format(operating_system),
+                "could not restore a Guacamole pool connection",
+            )
+            return False
+
+    print_result("PASS", "maintenance state", "maintained nodes marked up")
+    return True
 
 
 def main():
@@ -238,6 +312,17 @@ def main():
     else:
         failures += check_nodes(args.timeout, current_status)
 
+    if failures:
+        if current_status and any(
+            status == "maint" for status in current_status.values()
+        ):
+            print_result(
+                "WARN",
+                "maintenance state",
+                "left unchanged because health checks failed",
+            )
+    elif current_status is not None and not restore_maintenance_nodes(current_status):
+        failures += 1
     print("\n{} check(s) failed".format(failures))
     return 1 if failures else 0
 

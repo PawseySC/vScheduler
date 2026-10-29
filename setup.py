@@ -31,6 +31,8 @@ setup(
             'vinfo = vscheduler.tools.info:main',
             'vexcept = vscheduler.tools.except:main',
             'vcontrol = vscheduler.tools.control:main',
+            'vhealth = vscheduler.tools.health:main',
+            'vmaintenance = vscheduler.tools.pre_maintenance:main',
         ],
     },
 )
