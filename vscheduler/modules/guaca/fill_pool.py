@@ -3,7 +3,7 @@
 from vscheduler.log.log import Capture_log
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.modules.guaca.entity import entity
-from vscheduler.modules.guaca.conn_permission import connection_permission
+from vscheduler.modules.guaca.conn_permission import connection_permission, del_connection
 
 pool_records = Capture_log("pool", __file__)
 logger_win = pool_records.log_agent("windows")
@@ -36,12 +36,17 @@ def toss(node):
 
 def fillup(node, hosts):
     logger_win.info (f"Current node in the pool is {node}") if MyCredentials.windows_node_name in node else logger_unix.info (f"Current node in the pool is {node}")
-    new_node = toss (node)
-    if len (hosts) > 0:
-        while new_node not in hosts:
-            new_node = toss (new_node)
-    
     pool_entity = entity(MyCredentials.windows_pool) if MyCredentials.windows_node_name in node else entity(MyCredentials.linux_pool)
+    if not hosts:
+        node_entity = entity(node)
+        if not node_entity or not pool_entity:
+            raise ValueError(f"Could not empty the pool for < {node} >: missing Guacamole node or pool entity")
+        del_connection(node_entity[0][1], pool_entity[0][0])
+        return
+
+    new_node = toss (node)
+    while new_node not in hosts:
+        new_node = toss (new_node)
 
     logger_win.info (f"New node in the pool is {new_node}") if MyCredentials.windows_node_name in node else logger_unix.info (f"New node in the pool is {new_node}")
     new_node_entity = entity(new_node)

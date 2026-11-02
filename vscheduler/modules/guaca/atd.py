@@ -37,3 +37,12 @@ def at_daemon(user, node, table, walltime):
     # instead of above commands, can add "python C:\ProgramData\Internal\vis_client_logout.py" to log_off module for Windows client
     
 # post_log_off approach is less risky because triggering vis_client_logout.py at client remotely could be missed in case of busy resources on that node - above suggesstion ignored.
+
+def atd_cancelation(user, node):
+    """
+    Cancels atd task in case of user logs off before wall-time is over
+    """
+    command = f'for id in $(atq | cut -f1); do at -c "$id" | grep -q "{user} && at -c "$id" | grep -l {node}" && echo "Found matched Job ID: $id" && at -r $id; done'
+    logger_unix.info (f"atd cancelation start for user, node: {user}, {node}; command:\n{command}")
+    subprocess.call(f"{command}", shell=True)
+    logger_unix.info ("atd cancelation end")
