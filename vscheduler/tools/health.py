@@ -189,6 +189,19 @@ def check_nodes(timeout, current_status):
             failures += 1
             continue
 
+        if partition.startswith(("Linux", "Windows")):
+            server = "xrdp" if partition.startswith("Linux") else "Microsoft RDP"
+            try:
+                check_tcp(fqdn, MyCredentials.rdp_port, timeout)
+                print_result(
+                    "PASS",
+                    node + " " + server + " server",
+                    "port {} accepts connections".format(MyCredentials.rdp_port),
+                )
+            except OSError as error:
+                print_result("FAIL", node + " " + server + " server", str(error))
+                failures += 1
+
         if MyCredentials.load_balance:
             try:
                 with socket.create_connection((fqdn, VIS_PORT), timeout=timeout) as connection:
