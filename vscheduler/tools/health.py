@@ -4,6 +4,9 @@ import shutil
 import socket
 import subprocess
 import sys
+from textwrap import fill
+
+from tabulate import tabulate
 
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.modules.reports.status import status_update
@@ -74,14 +77,17 @@ def configured_nodes():
     return nodes
 
 
-def print_result(status, check, detail):
-    print("{:<5} {}: {}".format(status, check, detail))
+def print_result(status, check, detail, results=None):
+    if results is not None:
+        results.append((check, status, fill(detail, width=65)))
+    else:
+        print("{:<5} {}: {}".format(status, check, detail))
 
 
-def check_systemd(service):
+def check_systemd(service, results=None):
     systemctl = shutil.which("systemctl")
     if not systemctl:
-        print_result("SKIP", "systemd service", "systemctl is not available")
+        print_result("SKIP", "systemd service", "systemctl is not available", results)
         return True
 
     result = subprocess.run(
@@ -91,13 +97,13 @@ def check_systemd(service):
         check=False,
     )
     if result.returncode == 0:
-        print_result("PASS", "systemd service", service + " is active")
+        print_result("PASS", "systemd service", service + " is active", results)
         return True
-    print_result("FAIL", "systemd service", service + " is not active")
+    print_result("FAIL", "systemd service", service + " is not active", results)
     return False
 
 
-def check_database(timeout):
+def check_database(timeout, results=None):
     try:
         import pymysql
 
@@ -112,7 +118,7 @@ def check_database(timeout):
             write_timeout=timeout,
         )
     except Exception as error:
-        print_result("FAIL", "report database", str(error))
+        print_result("FAIL", "report database", str(error), results)
         return None, 1
 
     required_tables = {
@@ -134,10 +140,10 @@ def check_database(timeout):
 
     failures = 0
     if missing_tables:
-        print_result("FAIL", "report database schema", "missing or inaccessible tables: " + ", ".join(missing_tables))
+        print_result("FAIL", "report database schema", "missing or inaccessible tables: " + ", ".join(missing_tables), results)
         failures += 1
     else:
-        print_result("PASS", "report database", "connection and required tables are available")
+        print_result("PASS", "report database", "connection and required tables are available", results)
 
     current_status = {}
     try:
@@ -153,11 +159,11 @@ def check_database(timeout):
             node for node, status in current_status.items() if status == "maint"
         )
         if maintenance_nodes:
-            print_result("WARN", "maintenance state", "still marked maint: " + ", ".join(maintenance_nodes))
+            print_result("WARN", "maintenance state", "still marked maint: " + ", ".join(maintenance_nodes), results)
         else:
-            print_result("PASS", "maintenance state", "no nodes are currently marked maint")
+            print_result("PASS", "maintenance state", "no nodes are currently marked maint", results)
     except Exception as error:
-        print_result("FAIL", "maintenance state", str(error))
+        print_result("FAIL", "maintenance state", str(error), results)
         current_status = None
         failures += 1
 
@@ -172,20 +178,34 @@ def check_nodes(timeout, current_status):
         print_result("WARN", "configured nodes", "no node partitions are enabled")
         return failures
 
-    print_result("INFO", "configured nodes", "checking {} enabled nodes".format(len(nodes)))
+    rows = []
     for node, partition in nodes:
         fqdn = "{}.{}".format(node, MyCredentials.domain)
         state = current_status.get(node) if current_status is not None else None
+        row = {
+            "NODE": node,
+            "PARTITION": partition,
+            "STAT": state or "-",
+            "SSH": "-",
+            "RDP": "-",
+        }
+        if MyCredentials.load_balance:
+            row["USAGE"] = "-"
+        row["DETAILS"] = ""
+        rows.append(row)
         if state in ("down", "dev"):
-            print_result("SKIP", node, "{} is marked {}; not probing SSH".format(partition, state))
+            row["SSH"] = row["RDP"] = "SKIP"
+            if MyCredentials.load_balance:
+                row["USAGE"] = "SKIP"
             continue
 
         try:
             socket.getaddrinfo(fqdn, SSH_PORT, type=socket.SOCK_STREAM)
             check_tcp(fqdn, SSH_PORT, timeout)
-            print_result("PASS", node, "{} resolves and SSH port {} accepts connections".format(partition, SSH_PORT))
+            row["SSH"] = "PASS"
         except (OSError, socket.gaierror) as error:
-            print_result("FAIL", node, "{} SSH probe failed: {}".format(partition, error))
+            row["SSH"] = "FAIL"
+            row["DETAILS"] = fill("SSH: " + str(error), width=55)
             failures += 1
             continue
 
@@ -193,13 +213,10 @@ def check_nodes(timeout, current_status):
             server = "xrdp" if partition.startswith("Linux") else "Microsoft RDP"
             try:
                 check_tcp(fqdn, MyCredentials.rdp_port, timeout)
-                print_result(
-                    "PASS",
-                    node + " " + server + " server",
-                    "port {} accepts connections".format(MyCredentials.rdp_port),
-                )
+                row["RDP"] = "PASS"
             except OSError as error:
-                print_result("FAIL", node + " " + server + " server", str(error))
+                row["RDP"] = "FAIL"
+                row["DETAILS"] = fill(server + ": " + str(error), width=55)
                 failures += 1
 
         if MyCredentials.load_balance:
@@ -209,13 +226,24 @@ def check_nodes(timeout, current_status):
                     connection.sendall(("health-check " + fqdn).encode("utf-8"))
                     response = connection.recv(1024).decode("utf-8", errors="replace")
                 if response.startswith(node + ","):
-                    print_result("PASS", node + " usage socket", "port {} returned usage data".format(VIS_PORT))
+                    row["USAGE"] = "PASS"
                 else:
-                    print_result("FAIL", node + " usage socket", "unexpected response: " + response[:120])
+                    row["USAGE"] = "FAIL"
+                    row["DETAILS"] += ("\n" if row["DETAILS"] else "") + fill(
+                        "Usage: unexpected response: " + response[:120], width=55,
+                    )
                     failures += 1
             except OSError as error:
-                print_result("FAIL", node + " usage socket", str(error))
+                row["USAGE"] = "FAIL"
+                row["DETAILS"] += ("\n" if row["DETAILS"] else "") + fill(
+                    "Usage: " + str(error), width=55,
+                )
                 failures += 1
+    print("\nNodes (SSH: {}; RDP: {} = Linux xrdp / Windows Microsoft RDP{})".format(
+        SSH_PORT, MyCredentials.rdp_port,
+        "; usage: {}".format(VIS_PORT) if MyCredentials.load_balance else "",
+    ))
+    print(tabulate(rows, headers="keys", tablefmt="plain"))
     return failures
 
 
@@ -306,20 +334,22 @@ def main():
         parser.error("--timeout must be greater than zero")
 
     failures = 0
+    results = []
     listener = management_listener(args.host, args.port)
     if listener is True:
-        print_result("PASS", "management socket", "{}:{} is listening".format(args.host, args.port))
+        print_result("PASS", "management socket", "{}:{} is listening".format(args.host, args.port), results)
     elif listener is False:
-        print_result("FAIL", "management socket", "{}:{} is not listening".format(args.host, args.port))
+        print_result("FAIL", "management socket", "{}:{} is not listening".format(args.host, args.port), results)
         failures += 1
     else:
-        print_result("SKIP", "management socket", "neither ss nor lsof is available for a safe listener check")
+        print_result("SKIP", "management socket", "neither ss nor lsof is available for a safe listener check", results)
 
-    if not check_systemd(args.service):
+    if not check_systemd(args.service, results):
         failures += 1
 
-    current_status, database_failures = check_database(args.timeout)
+    current_status, database_failures = check_database(args.timeout, results)
     failures += database_failures
+    print(tabulate(results, headers=["CHECK", "RESULT", "DETAILS"], tablefmt="plain"))
     if current_status is None:
         pass
     else:
