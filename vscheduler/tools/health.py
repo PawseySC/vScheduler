@@ -265,10 +265,11 @@ def is_general_node(node, prefix, enabled, node_range, booking_enabled, booking_
 
 
 def restore_maintenance_nodes(current_status):
-    maintenance_nodes = [
+    # configured_nodes lists a node once per active pool; overlapping pools would repeat it.
+    maintenance_nodes = list(dict.fromkeys(
         node for node, _ in configured_nodes()
         if current_status.get(node) == "maint"
-    ]
+    ))
     portal_in_maintenance = (
         portal_group_name() == MyCredentials.guaca_maintenance_group_name
     )
