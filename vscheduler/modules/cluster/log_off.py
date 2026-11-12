@@ -69,9 +69,9 @@ def logoff(user, node):
                 print (f"session for {user} was killed on {node}") if MyPrintCondition.fprint else 0
                 logger_win.info (f"session for {user} was killed on {node}")
                 node_number = int(node.removeprefix(MyCredentials.windows_node_name))
-                if node_number in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
+                if MyCredentials.windows_booking and node_number in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
                     record_logout(user, node, MyCredentials.report_windows_table, "booking")
-                elif node_number in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
+                elif MyCredentials.windows_general and node_number in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
                     record_logout(user, node, MyCredentials.report_windows_table, "general")
                     revert_back_to_pool(user, node, MyCredentials.windows_pool)
                     cancel_walltime_job(user, node, logger_win)
@@ -111,30 +111,15 @@ def logoff(user, node):
             logger_unix.info (f"session for {user} was killed on {node}")
             if MyCredentials.linux_node_name in node:
                 node_number = int(node.removeprefix(MyCredentials.linux_node_name))
-                if node_number in range(MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
+                if MyCredentials.linux_booking and node_number in range(MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
                     record_logout(user, node, MyCredentials.report_linux_table, "booking")
-                elif node_number in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
+                elif MyCredentials.linux_general and node_number in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
                     record_logout(user, node, MyCredentials.report_linux_table, "general")
                     revert_back_to_pool(user, node, MyCredentials.linux_pool)
                     cancel_walltime_job(user, node, logger_unix)
             # else:
             #     print (f"user < {user} > is not logged in < {node}>") if MyPrintCondition.fprint else 0
             #     logger_unix.info (f"user < {user} > is not logged in < {node}>")
-            
-            if user not in MyCredentials.exception:
-                stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command("sudo pkill -u %s" % (user))
-                std_print(stdin_logoff, stdout_logoff, stderr_logoff)
-                print (f"session for {user} was killed on {node}") if MyPrintCondition.fprint else 0
-                logger_unix.info (f"session for {user} was killed on {node}")
-                if MyCredentials.linux_node_name in node:
-                    if int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1): 
-                        record_logout(user, node, MyCredentials.report_linux_table, "general")
-                        revert_back_to_pool(user, node, MyCredentials.linux_pool)
-                    elif int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
-                        record_logout(user, node, MyCredentials.report_linux_table, "booking")
-            elif user in MyCredentials.exception:
-                print (f"{user} is exception") if MyPrintCondition.fprint else 0
-                logger_unix.info (f"{user} is exception")
 
         else:
             print (f"no os found for < {node} >") if MyPrintCondition.fprint else 0

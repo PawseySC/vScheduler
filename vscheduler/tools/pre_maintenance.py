@@ -26,8 +26,8 @@ VERIFY_DELAY = 2
 
 
 def configured_nodes():
+    """Return every node within the range of an active (enabled) booking or general pool."""
     nodes = []
-    unavailable_nodes = set()
     partitions = (
         (
             MyCredentials.windows_node_name,
@@ -51,15 +51,14 @@ def configured_nodes():
         ),
     )
     for prefix, enabled, node_range in partitions:
-        partition_nodes = [
-            f"{prefix}{number:02d}" if number <= 9 else f"{prefix}{number}"
-            for number in range(node_range[0], node_range[1] + 1)
-        ]
-        if enabled:
-            nodes.extend(node for node in partition_nodes if node not in nodes)
-        else:
-            unavailable_nodes.update(partition_nodes)
-    return [node for node in nodes if node not in unavailable_nodes]
+        if not enabled:
+            continue
+        for number in range(node_range[0], node_range[1] + 1):
+            node = f"{prefix}{number:02d}" if number <= 9 else f"{prefix}{number}"
+            # A node shared with an inactive pool's range is still an active pool member.
+            if node not in nodes:
+                nodes.append(node)
+    return nodes
 
 
 def general_pool_for_node(node):
