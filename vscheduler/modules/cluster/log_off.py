@@ -1,4 +1,5 @@
 # logs off user from node
+import subprocess
 from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.config import Credentials as MyCredentials
@@ -6,6 +7,7 @@ from vscheduler.lib.ssh import Node as MyNode
 from vscheduler.modules.cluster.os_type import find_os
 from vscheduler.modules.reports.record_log_io import record_logout
 from vscheduler.modules.guaca.revert_user import revert_back_to_pool
+from vscheduler.modules.cluster.atd_canceller import cancel_atd
 
 booking_records = Capture_log("booking", __file__)
 logger_win = booking_records.log_agent("windows")
@@ -21,6 +23,17 @@ def std_print(stdin, stdout, stderr):
         logger_win.info ("\n" + line.strip('\n'))
         stdout_copy.append(line)
     return stdout_copy
+
+def cancel_walltime_job(user, node, logger):
+    """Cancel the pending wall-time atd job of a session killed before wall-time."""
+    try:
+        cancelled_jobs = cancel_atd(user, node)
+    except (OSError, subprocess.CalledProcessError) as error:
+        print (f"Could not cancel atd jobs for {user} on {node}: {error}") if MyPrintCondition.fprint else 0
+        logger.error (f"Could not cancel atd jobs for {user} on {node}: {error}")
+        return
+    print (f"Cancelled atd jobs for {user} on {node}: {cancelled_jobs}") if MyPrintCondition.fprint else 0
+    logger.info (f"Cancelled atd jobs for {user} on {node}: {cancelled_jobs}")
 
 def logoff(user, node):
     if user.casefold() in {username.casefold() for username in MyCredentials.exception}:
@@ -60,6 +73,7 @@ def logoff(user, node):
                 elif node_number in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
                     record_logout(user, node, MyCredentials.report_windows_table, "general")
                     revert_back_to_pool(user, node, MyCredentials.windows_pool)
+                    cancel_walltime_job(user, node, logger_win)
             # else:
             #     print (f"user <", user, "> is not logged in <", node, ">") if MyPrintCondition.fprint else 0
             
@@ -101,6 +115,7 @@ def logoff(user, node):
                 elif node_number in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
                     record_logout(user, node, MyCredentials.report_linux_table, "general")
                     revert_back_to_pool(user, node, MyCredentials.linux_pool)
+                    cancel_walltime_job(user, node, logger_unix)
             # else:
             #     print (f"user < {user} > is not logged in < {node}>") if MyPrintCondition.fprint else 0
             #     logger_unix.info (f"user < {user} > is not logged in < {node}>")
