@@ -6,6 +6,7 @@ import sys
 from contextlib import redirect_stdout
 
 from vscheduler.lib.config import Credentials as MyCredentials
+from vscheduler.lib.service import MGMT_SERVICE, control_service
 from vscheduler.log.log import Capture_log
 from vscheduler.modules.cluster.log_off import logoff
 from vscheduler.modules.cluster.who import who
@@ -141,7 +142,8 @@ def prepare_node(node):
 def main():
     if any(argument in ("-h", "--help") for argument in sys.argv[1:]):
         print("Usage: vmaintenance")
-        print("Mark enabled nodes for maintenance and log off non-exempt users.")
+        print("Mark enabled nodes for maintenance, log off non-exempt users,")
+        print("then prompt to stop the {} service.".format(MGMT_SERVICE))
         return
 
     nodes = configured_nodes()
@@ -160,6 +162,12 @@ def main():
         pool = general_pool_for_node(node)
         if pool:
             empty_pool_connection(node, "maintenance", pool)
+
+    # Stopped last so mgmt_socket still records the logoffs above.
+    status, message = control_service("stop")
+    print("\n{:<5} {}".format(status, message))
+    log = logger_unix.error if status == "FAIL" else logger_unix.info
+    log(message)
 
 
 if __name__ == "__main__":

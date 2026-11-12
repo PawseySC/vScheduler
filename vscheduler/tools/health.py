@@ -4,11 +4,13 @@ import shutil
 import socket
 import subprocess
 import sys
+import time
 from textwrap import fill
 
 from tabulate import tabulate
 
 from vscheduler.lib.config import Credentials as MyCredentials
+from vscheduler.lib.service import MGMT_SERVICE, control_service
 from vscheduler.modules.reports.status import status_update
 from vscheduler.modules.guaca.pool_refresh import restore_empty_general_pool
 
@@ -321,12 +323,12 @@ def restore_maintenance_nodes(current_status):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Run read-only checks after vScheduler maintenance or a system restart.",
+        description="Prompt to start the management service, then run checks after vScheduler maintenance or a system restart.",
         epilog="Also manually verify a sample vinfo query, a controlled allocation/login/logout, and the mgmt_socket service logs.",
     )
     parser.add_argument("--host", default="127.0.0.1", help="expected local management listener address (default: 127.0.0.1)")
     parser.add_argument("--port", type=int, default=MGMT_PORT, help="management socket port (default: %(default)s)")
-    parser.add_argument("--service", default="mgmt_socket.service", help="systemd management service name")
+    parser.add_argument("--service", default=MGMT_SERVICE, help="systemd management service name")
     parser.add_argument("--timeout", type=float, default=3.0, help="connection timeout in seconds (default: %(default)s)")
     args = parser.parse_args()
 
@@ -335,7 +337,18 @@ def main():
 
     failures = 0
     results = []
+    start_status, start_message = control_service("start", args.service)
+    started = start_message.endswith("started")
+    if started or start_status == "FAIL" or start_message.endswith("declined"):
+        print_result(start_status, "service start", start_message, results)
+
     listener = management_listener(args.host, args.port)
+    if started:
+        # A freshly started service may need a moment to bind its port.
+        deadline = time.monotonic() + args.timeout
+        while listener is False and time.monotonic() < deadline:
+            time.sleep(0.5)
+            listener = management_listener(args.host, args.port)
     if listener is True:
         print_result("PASS", "management socket", "{}:{} is listening".format(args.host, args.port), results)
     elif listener is False:
