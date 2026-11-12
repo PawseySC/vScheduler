@@ -3,6 +3,7 @@
 import io
 import inspect
 import sys
+import time
 from contextlib import redirect_stdout
 
 from vscheduler.lib.config import Credentials as MyCredentials
@@ -11,12 +12,17 @@ from vscheduler.log.log import Capture_log
 from vscheduler.modules.cluster.log_off import logoff
 from vscheduler.modules.cluster.who import who
 from vscheduler.modules.guaca.empty_pool import empty_pool_connection
+from vscheduler.modules.guaca.portal import start_portal_maintenance
 from vscheduler.modules.guaca.revert_user import revert_back_to_pool
 from vscheduler.modules.reports.status import status_update
 
 records = Capture_log("maintenance", __file__)
 logger_win = records.log_agent("windows")
 logger_unix = records.log_agent("linux")
+
+# Session teardown (utmp/quser update) can lag behind pkill/logoff.
+VERIFY_ATTEMPTS = 3
+VERIFY_DELAY = 2
 
 
 def configured_nodes():
@@ -91,14 +97,43 @@ def general_pool_for_node(node):
     return None
 
 
-def prepare_node(node):
-    status_update(node, "maint")
+def logged_in_users(node):
     with redirect_stdout(io.StringIO()):
         if "include_exceptions" in inspect.signature(who).parameters:
-            users = who(node, include_exceptions=True)
-        else:
-            users = who(node)
+            return who(node, include_exceptions=True)
+        return who(node)
+
+
+def remaining_sessions(node, users, attempts=VERIFY_ATTEMPTS, delay=VERIFY_DELAY):
+    """Return users from `users` still logged in on `node`, or None if it can't be queried."""
+    targets = {user.casefold() for user in users}
+    remaining = None
+    for attempt in range(attempts):
+        if attempt:
+            time.sleep(delay)
+        current = logged_in_users(node)
+        if current is None:
+            continue
+        remaining = [user for user in current if user.casefold() in targets]
+        if not remaining:
+            return []
+    return remaining
+
+
+def prepare_node(node):
     logger = logger_win if MyCredentials.windows_node_name in node else logger_unix
+    try:
+        marked = status_update(node, "maint")
+        detail = ""
+    except Exception as error:
+        # status_update also refreshes the Guacamole pool; a failure there must not stop the logoffs.
+        marked = False
+        detail = f": {error!r}"
+    if not marked:
+        message = f"Could not set < {node} > status to maint{detail}; logging off users anyway"
+        print(f"{node}\n  {message}")
+        logger.error(message)
+    users = logged_in_users(node)
     if users is None:
         message = f"Unable to query logged-in users on < {node} >; skipping"
         print(f"{node}\n  {message}")
@@ -131,19 +166,41 @@ def prepare_node(node):
         booking_range[0], booking_range[1] + 1
     )
     pool = MyCredentials.windows_pool if is_windows else MyCredentials.linux_pool
-    for user in users:
-        if user.casefold() in exceptions:
-            continue
-        logoff(user, node)
-        if is_booking_node:
-            revert_back_to_pool(user, node, pool)
+    targets = [user for user in users if user.casefold() not in exceptions]
+    for user in targets:
+        try:
+            logoff(user, node)
+            if is_booking_node:
+                revert_back_to_pool(user, node, pool)
+        except Exception as error:
+            message = f"Error logging off < {user} > on < {node} >: {error!r}"
+            print(f"  {message}")
+            logger.error(message)
+    if not targets:
+        return
+
+    remaining = remaining_sessions(node, targets)
+    if remaining is None:
+        message = "Unable to verify that sessions were killed"
+        print(f"  WARN {message}")
+        logger.warning(message)
+    elif remaining:
+        message = f"Sessions still active after logoff: {', '.join(remaining)}"
+        print(f"  FAIL {message}")
+        logger.error(message)
+    else:
+        message = f"Sessions killed: {', '.join(targets)}"
+        print(f"  PASS {message}")
+        logger.info(message)
 
 
 def main():
     if any(argument in ("-h", "--help") for argument in sys.argv[1:]):
         print("Usage: vmaintenance")
         print("Mark enabled nodes for maintenance, log off non-exempt users,")
-        print("then prompt to stop the {} service.".format(MGMT_SERVICE))
+        print("empty general pools, rename the Guacamole portal group to")
+        print("'{}', then prompt to stop the {} service.".format(
+            MyCredentials.guaca_maintenance_group_name, MGMT_SERVICE))
         return
 
     nodes = configured_nodes()
@@ -161,11 +218,21 @@ def main():
     for node in nodes:
         pool = general_pool_for_node(node)
         if pool:
-            empty_pool_connection(node, "maintenance", pool)
+            try:
+                empty_pool_connection(node, "maintenance", pool)
+            except Exception as error:
+                message = f"Could not remove < {node} > from < {pool} > pool: {error!r}"
+                print(f"\nFAIL  {message}")
+                logger_unix.error(message)
+
+    status, message = start_portal_maintenance()
+    print("\n{:<5} {}".format(status, message))
+    log = logger_unix.error if status == "FAIL" else logger_unix.info
+    log(message)
 
     # Stopped last so mgmt_socket still records the logoffs above.
     status, message = control_service("stop")
-    print("\n{:<5} {}".format(status, message))
+    print("{:<5} {}".format(status, message))
     log = logger_unix.error if status == "FAIL" else logger_unix.info
     log(message)
 
