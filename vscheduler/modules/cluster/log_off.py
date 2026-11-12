@@ -47,7 +47,8 @@ def logoff(user, node):
     print (f"node os: {node_os}")
     try:
         if node_os == 'Windows':
-            stdin_query , stdout_query, stderr_query = connection.exec_command("query session")        
+            # quser (as used by who) always lists USERNAME first; "query session" puts SESSIONNAME first for active sessions.
+            stdin_query , stdout_query, stderr_query = connection.exec_command("quser")
             stdout_query_copy = std_print(stdin_query, stdout_query, stderr_query)
             for line in stdout_query_copy:
                 fields = line.split()

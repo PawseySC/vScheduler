@@ -16,6 +16,10 @@ class Credentials:
     guaca_passwd = '1234'
     guaca_db = 'guacamole_db'
     guaca_port = 3306
+    # guacamole connection group shown to users; vmaintenance renames it, vhealth restores it
+    guaca_portal_group_id = 1
+    guaca_portal_group_name = 'general pool RDP'
+    guaca_maintenance_group_name = 'general pool Maintenance'
 
     # report db credentials
     report_host = 'localhost'

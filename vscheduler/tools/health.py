@@ -13,6 +13,7 @@ from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.service import MGMT_SERVICE, control_service
 from vscheduler.modules.reports.status import status_update
 from vscheduler.modules.guaca.pool_refresh import restore_empty_general_pool
+from vscheduler.modules.guaca.portal import end_portal_maintenance, portal_group_name
 
 
 MGMT_PORT = 65001
@@ -268,12 +269,19 @@ def restore_maintenance_nodes(current_status):
         node for node, _ in configured_nodes()
         if current_status.get(node) == "maint"
     ]
-    if not maintenance_nodes:
+    portal_in_maintenance = (
+        portal_group_name() == MyCredentials.guaca_maintenance_group_name
+    )
+    if not maintenance_nodes and not portal_in_maintenance:
         return True
 
     try:
         answer = input(
-            "All health checks passed. Bring maintained nodes to status 'up'? [y/N]: "
+            "All health checks passed. Bring maintained nodes to status 'up' "
+            "and rename '{}' back to '{}'? [y/N]: ".format(
+                MyCredentials.guaca_maintenance_group_name,
+                MyCredentials.guaca_portal_group_name,
+            )
         ).strip().casefold()
     except EOFError:
         print_result("WARN", "maintenance state", "no confirmation received; left unchanged")
@@ -317,7 +325,14 @@ def restore_maintenance_nodes(current_status):
             )
             return False
 
-    print_result("PASS", "maintenance state", "maintained nodes marked up")
+    # Renamed last so users only see the normal portal once nodes and pools are back.
+    status, message = end_portal_maintenance()
+    print_result(status, "Guacamole portal", message)
+    if status == "FAIL":
+        return False
+
+    if maintenance_nodes:
+        print_result("PASS", "maintenance state", "maintained nodes marked up")
     return True
 
 
