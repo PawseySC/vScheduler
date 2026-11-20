@@ -5,6 +5,7 @@ from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.ssh import Node as MyNode
 from vscheduler.modules.cluster.os_type import find_os
+from vscheduler.modules.cluster.who import LINUX_LIST_USERS
 from vscheduler.modules.reports.record_log_io import record_logout
 from vscheduler.modules.guaca.revert_user import revert_back_to_pool
 from vscheduler.modules.cluster.atd_canceller import cancel_atd
@@ -79,7 +80,9 @@ def logoff(user, node):
             #     print (f"user <", user, "> is not logged in <", node, ">") if MyPrintCondition.fprint else 0
             
         elif node_os == 'Linux':
-            stdin_query , stdout_query, stderr_query = connection.exec_command("who -u")        
+            # stdin_query , stdout_query, stderr_query = connection.exec_command("who -u")
+            # utmp-based `who -u`/`users` can miss graphical sessions registered with logind.
+            stdin_query , stdout_query, stderr_query = connection.exec_command(LINUX_LIST_USERS)
             stdout_query_copy = std_print(stdin_query, stdout_query, stderr_query)
             
             # if any(user in x for x in stdout_query_copy):

@@ -11,6 +11,8 @@ booking_records = Capture_log("booking", __file__)
 logger_win = booking_records.log_agent("windows")
 logger_unix = booking_records.log_agent("linux")
 
+LINUX_LIST_USERS = "loginctl list-users --no-legend | awk '{print $2}'"
+
 
 def who(node: str, include_exceptions: bool = False) -> Optional[List[str]]:
     my_connection = None
@@ -24,7 +26,9 @@ def who(node: str, include_exceptions: bool = False) -> Optional[List[str]]:
         if node_os == 'Windows':
             stdin , stdout, stderr = my_connection.exec_command("quser")
         elif node_os == 'Linux':
-            stdin , stdout, stderr = my_connection.exec_command("who")
+            # stdin , stdout, stderr = my_connection.exec_command("who")
+            # utmp-based `who`/`users` can miss graphical sessions registered with logind.
+            stdin , stdout, stderr = my_connection.exec_command(LINUX_LIST_USERS)
         else:
             print (f"no os found for < {node} >") if MyPrintCondition.fprint else 0
             logger_win.warning (f"no os found for < {node} >") if MyCredentials.windows_node_name in node else logger_unix.warning (f"no os found for < {node} >")
@@ -35,6 +39,8 @@ def who(node: str, include_exceptions: bool = False) -> Optional[List[str]]:
         exceptions = {name.casefold() for name in MyCredentials.exception}
         error = stderr.read() if stderr else b""
         if error:
+            if node_os == "Linux":
+                raise RuntimeError(f"loginctl user query failed: {error.decode(errors='replace').strip()}")
             print (f"Errors: {error}") if MyPrintCondition.fprint else 0
             logger_win.error (f"Errors: {error}") if MyCredentials.windows_node_name in node else logger_unix.error (f"Errors: {error}")
         for line in stdout:
