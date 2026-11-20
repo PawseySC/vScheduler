@@ -21,16 +21,16 @@ def _connect():
 
 
 def portal_group_name():
-    """Return the current portal group name, or None if it cannot be read."""
-    try:
-        with _connect() as connection, connection.cursor() as cursor:
-            cursor.execute(
-                f"SELECT connection_group_name FROM {GROUP_TABLE} WHERE connection_group_id = %s",
-                (MyCredentials.guaca_portal_group_id,),
-            )
-            row = cursor.fetchone()
-    except pymysql.MySQLError:
-        return None
+    """Return the current portal group name, or None if the group does not exist.
+
+    Database errors are raised so callers can report them.
+    """
+    with _connect() as connection, connection.cursor() as cursor:
+        cursor.execute(
+            f"SELECT connection_group_name FROM {GROUP_TABLE} WHERE connection_group_id = %s",
+            (MyCredentials.guaca_portal_group_id,),
+        )
+        row = cursor.fetchone()
     return row[0] if row else None
 
 
