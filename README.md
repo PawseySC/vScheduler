@@ -202,6 +202,6 @@ When upgrading an existing deployment, add `guaca_portal_group_id`, `guaca_porta
 
 `vmaintenance` removes all direct connection grants from enabled general-pool groups, including grants left over from older node ranges. The pool cleanup and portal rename are committed together. Automatic pool refills are blocked while the portal has its configured maintenance name, even if the socket remains active; approved `vhealth` recovery can refill the pools. Deploy the updated code to the running scheduler service as well as the CLI.
 
-Confirming a service prompt does not grant systemd permissions. If systemd denies the confirmed `vmaintenance` stop, it retries `systemctl stop mgmt_socket.service` using `sudo` if available. The caller must be authorized by local policy. A failed stop is reported and does not undo the maintenance changes.
+Confirming a service prompt does not grant systemd permissions. If systemd denies a confirmed stop from `vmaintenance` or start from `vhealth` for `mgmt_socket.service`, the command retries that action using `sudo` if available. The caller must be authorized by local policy. A failed stop does not undo the maintenance changes, and a failed start leaves maintenance recovery blocked.
 
 > **NOTE**: Separate log files will be created in `vscheduler/log` with the same name set in `vscheduler/lib/config/py` for `windows_node_name` and `linux_node_name`.
