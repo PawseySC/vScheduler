@@ -152,6 +152,20 @@ def check_service(host, port, service, timeout, results=None, wait=False):
 
 def check_portal(results=None):
     """Report the Guacamole portal group name; return (name or None, failures)."""
+    missing = [
+        setting for setting in (
+            "guaca_portal_group_id",
+            "guaca_portal_group_name",
+            "guaca_maintenance_group_name",
+        )
+        if not hasattr(MyCredentials, setting)
+    ]
+    if missing:
+        print_result("FAIL", "Guacamole portal", "add missing Credentials settings in vscheduler/lib/config.py: {}".format(
+            ", ".join(missing),
+        ), results)
+        return None, 1
+
     group_id = MyCredentials.guaca_portal_group_id
     try:
         name = portal_group_name()
@@ -481,10 +495,10 @@ def main():
         new_service_failures = check_service(args.host, args.port, args.service, args.timeout, wait=True)
         failures += new_service_failures - service_failures
 
-    in_maintenance = portal_name == MyCredentials.guaca_maintenance_group_name or any(
-        status == "maint" for status in (current_status or {}).values()
-    )
     if failures:
+        in_maintenance = (
+            portal_name is not None and portal_name == MyCredentials.guaca_maintenance_group_name
+        ) or any(status == "maint" for status in (current_status or {}).values())
         if in_maintenance:
             print_result("WARN", "maintenance state", "left unchanged because health checks failed")
     elif not guarded(

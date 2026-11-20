@@ -11,7 +11,6 @@ from vscheduler.lib.service import MGMT_SERVICE, control_service
 from vscheduler.log.log import Capture_log
 from vscheduler.modules.cluster.log_off import logoff
 from vscheduler.modules.cluster.who import who
-from vscheduler.modules.guaca.empty_pool import empty_pool_connection
 from vscheduler.modules.guaca.portal import start_portal_maintenance
 from vscheduler.modules.guaca.revert_user import revert_back_to_pool
 from vscheduler.modules.reports.status import status_update
@@ -59,41 +58,6 @@ def configured_nodes():
             if node not in nodes:
                 nodes.append(node)
     return nodes
-
-
-def general_pool_for_node(node):
-    partitions = (
-        (
-            MyCredentials.windows_node_name,
-            MyCredentials.windows_general,
-            MyCredentials.windows_general_range,
-            MyCredentials.windows_pool,
-            MyCredentials.windows_booking,
-            MyCredentials.windows_booking_range,
-        ),
-        (
-            MyCredentials.linux_node_name,
-            MyCredentials.linux_general,
-            MyCredentials.linux_general_range,
-            MyCredentials.linux_pool,
-            MyCredentials.linux_booking,
-            MyCredentials.linux_booking_range,
-        ),
-    )
-    for prefix, enabled, node_range, pool, booking_enabled, booking_range in partitions:
-        if not node.startswith(prefix):
-            continue
-        node_number = int(node.removeprefix(prefix))
-        if (
-            enabled
-            and node_number in range(node_range[0], node_range[1] + 1)
-            and not (
-                booking_enabled
-                and node_number in range(booking_range[0], booking_range[1] + 1)
-            )
-        ):
-            return pool
-    return None
 
 
 def logged_in_users(node):
@@ -214,27 +178,19 @@ def main():
             print()
         prepare_node(node)
 
-    for node in nodes:
-        pool = general_pool_for_node(node)
-        if pool:
-            try:
-                empty_pool_connection(node, "maintenance", pool)
-            except Exception as error:
-                message = f"Could not remove < {node} > from < {pool} > pool: {error!r}"
-                print(f"\nFAIL  {message}")
-                logger_unix.error(message)
-
     status, message = start_portal_maintenance()
     print("\n{:<5} {}".format(status, message))
     log = logger_unix.error if status == "FAIL" else logger_unix.info
     log(message)
+    portal_failed = status == "FAIL"
 
     # Stopped last so mgmt_socket still records the logoffs above.
     status, message = control_service("stop")
     print("{:<5} {}".format(status, message))
     log = logger_unix.error if status == "FAIL" else logger_unix.info
     log(message)
+    return 1 if portal_failed or status == "FAIL" else 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

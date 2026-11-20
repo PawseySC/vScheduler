@@ -42,6 +42,18 @@ def control_service(action, service=MGMT_SERVICE):
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         universal_newlines=True, check=False,
     )
+    if (action == "stop" and service == MGMT_SERVICE and result.returncode != 0
+            and any(error in result.stderr.casefold() for error in (
+                "access denied", "interactive authentication required",
+            ))):
+        sudo = shutil.which("sudo")
+        if sudo:
+            print("Systemd denied the stop; retrying with sudo for {}.".format(service), flush=True)
+            result = subprocess.run(
+                [sudo, "--", systemctl, action, service],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                universal_newlines=True, check=False,
+            )
     if result.returncode != 0 or _is_active(systemctl, service) != want_active:
         error = result.stderr.strip() or "service state did not change"
         return "FAIL", "could not {} {}: {}".format(action, service, error)

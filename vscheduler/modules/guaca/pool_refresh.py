@@ -23,7 +23,8 @@ def refresh (node):
     balance being ON or OFF in the config.
     '''
     os = "windows" if MyCredentials.windows_node_name in node else "linux"
-    print (f"os={os}")
+    logger = logger_win if os == "windows" else logger_unix
+    logger.debug("os=%s", os)
     # find the current pool member identity in guacamole db
     pool_entity = entity(MyCredentials.windows_pool) if MyCredentials.windows_node_name in node else entity(MyCredentials.linux_pool)
     
@@ -33,7 +34,7 @@ def refresh (node):
     with my_connection.cursor() as cursor:
         cursor.execute(connection)
         connection_results = cursor.fetchall()
-    print (connection_results)
+    logger.debug("Connection lookup for %s: %s", node, connection_results)
     # is it same as out of order node? if Yes -> change the pool member
     check = f"SELECT connection_id, entity_id FROM guacamole_connection_permission WHERE entity_id = '{pool_entity[0][0]}'"                      # check if pool has any connection
     my_connection.ping()  # reconnecting mysql in case of connection timed out
@@ -76,6 +77,7 @@ def restore_empty_general_pool(os, candidate_node):
         "WHERE entity_id = '{}'".format(pool_entity[0][0])
     )
     my_connection.ping()
+    my_connection.commit()
     with my_connection.cursor() as cursor:
         cursor.execute(query)
         if cursor.fetchall():
@@ -89,11 +91,12 @@ def restore_empty_general_pool(os, candidate_node):
         usage_data = data_agent(hosts, os)
         if not usage_data:
             return False
-        loadbalance(usage_data, pool)
+        loadbalance(usage_data, pool, restoring=True)
     else:
-        fill_up(candidate_node, hosts)
+        fill_up(candidate_node, hosts, restoring=True)
 
     my_connection.ping()
+    my_connection.commit()
     with my_connection.cursor() as cursor:
         cursor.execute(query)
         return bool(cursor.fetchall())
