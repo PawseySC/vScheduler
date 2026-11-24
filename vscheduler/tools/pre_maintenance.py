@@ -1,4 +1,4 @@
-"""Mark configured nodes for maintenance and log off non-exempt desktop users."""
+"""Mark configured nodes for maintenance and log off non-exempt users."""
 
 import io
 import inspect
@@ -10,7 +10,7 @@ from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.service import MGMT_SERVICE, control_service
 from vscheduler.log.log import Capture_log
 from vscheduler.modules.cluster.log_off import logoff
-from vscheduler.modules.cluster.who import who
+from vscheduler.modules.cluster.who import linux_sessions, who
 from vscheduler.modules.guaca.portal import start_portal_maintenance
 from vscheduler.modules.guaca.revert_user import revert_back_to_pool
 from vscheduler.modules.reports.status import status_update
@@ -67,6 +67,40 @@ def logged_in_users(node):
         return who(node)
 
 
+def logged_in_sessions(node):
+    with redirect_stdout(io.StringIO()):
+        return linux_sessions(node)
+
+
+def print_session_table(sessions):
+    columns = (
+        ("USER", "user"),
+        ("SESSION", "session_id"),
+        ("KIND", "kind"),
+        ("TYPE", "type"),
+        ("REMOTE", "remote"),
+        ("REMOTE HOST", "remote_host"),
+        ("SERVICE", "service"),
+        ("STATE", "state"),
+    )
+    rows = [
+        [session.get(key, "") or "-" for _, key in columns]
+        for session in sessions
+    ]
+    widths = [
+        max([len(title)] + [len(row[index]) for row in rows])
+        for index, (title, _) in enumerate(columns)
+    ]
+    print("  " + " | ".join(
+        title.ljust(widths[index]) for index, (title, _) in enumerate(columns)
+    ))
+    print("  " + "-+-".join("-" * width for width in widths))
+    for row in rows:
+        print("  " + " | ".join(
+            value.ljust(widths[index]) for index, value in enumerate(row)
+        ))
+
+
 def remaining_sessions(node, users, attempts=VERIFY_ATTEMPTS, delay=VERIFY_DELAY):
     """Return users from `users` still logged in on `node`, or None if it can't be queried."""
     targets = {user.casefold() for user in users}
@@ -96,9 +130,23 @@ def prepare_node(node):
         message = f"Could not set < {node} > status to maint{detail}; logging off users anyway"
         print(f"{node}\n  {message}")
         logger.error(message)
-    users = logged_in_users(node)
+    is_windows = MyCredentials.windows_node_name in node
+    sessions = None
+    query_error = ""
+    if not is_windows:
+        try:
+            sessions = logged_in_sessions(node)
+        except Exception as error:
+            users = None
+            query_error = f": {error}"
+        else:
+            users = list(dict.fromkeys(
+                session["user"] for session in sessions if session.get("user")
+            ))
+    else:
+        users = logged_in_users(node)
     if users is None:
-        message = f"Unable to query logged-in users on < {node} >; skipping"
+        message = f"Unable to query logged-in users on < {node} >{query_error}; skipping"
         print(f"{node}\n  {message}")
         logger.error(message)
         return
@@ -109,12 +157,17 @@ def prepare_node(node):
         return
 
     print(node)
-    for user in users:
-        print(f"  {user}")
+    if sessions is not None:
+        if sessions:
+            print_session_table(sessions)
+        else:
+            print("  No logind sessions")
+    else:
+        for user in users:
+            print(f"  {user}")
     logger.info(f"Logged-in users: {', '.join(users)}")
 
     exceptions = {username.casefold() for username in MyCredentials.exception}
-    is_windows = MyCredentials.windows_node_name in node
     prefix = MyCredentials.windows_node_name if is_windows else MyCredentials.linux_node_name
     node_number = int(node.removeprefix(prefix))
     booking_enabled = (
@@ -130,6 +183,11 @@ def prepare_node(node):
     )
     pool = MyCredentials.windows_pool if is_windows else MyCredentials.linux_pool
     targets = [user for user in users if user.casefold() not in exceptions]
+    exempt = [user for user in users if user.casefold() in exceptions]
+    if exempt:
+        message = f"Exempt users not logged off: {', '.join(exempt)}"
+        print(f"  SKIP {message}")
+        logger.info(message)
     for user in targets:
         try:
             logoff(user, node)

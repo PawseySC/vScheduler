@@ -77,7 +77,8 @@ def print_info():
         return
 
     query_results_df = pd.DataFrame(query_results, columns=['NODE', 'STATUS', 'POOL'])
-    all_nodes_df = all_nodes_merged.merge(query_results_df, on='NODE', how='outer').fillna('idle')
+    # Status rows for nodes outside the configured ranges would have no system/partition.
+    all_nodes_df = all_nodes_merged.merge(query_results_df, on='NODE', how='left').fillna('idle')
     if not query_results:
         all_nodes_df['STATUS'] = 'up'
     all_nodes_df = all_nodes_df.drop(['POOL'], axis=1)

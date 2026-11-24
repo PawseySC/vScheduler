@@ -1,5 +1,6 @@
 # returns who's logged in each node
-from typing import List, Optional
+import re
+from typing import Dict, List, Optional
 
 from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
@@ -12,6 +13,85 @@ logger_win = booking_records.log_agent("windows")
 logger_unix = booking_records.log_agent("linux")
 
 LINUX_LIST_USERS = "loginctl list-users --no-legend | awk '{print $2}'"
+LINUX_LIST_SESSIONS = "loginctl list-sessions --no-legend --no-pager"
+
+
+def linux_sessions(node: str) -> List[Dict[str, str]]:
+    """Return logind sessions with enough metadata to identify SSH and GUI logins.
+
+    Raises an exception describing why the sessions could not be queried.
+    """
+    connection = None
+    try:
+        connection = MyNode.connect_node(node)
+        if connection is None:
+            raise ConnectionError(f"Could not connect to < {node} >")
+        if find_os(node) != "Linux":
+            raise RuntimeError(f"Cannot query Linux sessions on non-Linux node < {node} >")
+
+        _, stdout, stderr = connection.exec_command(LINUX_LIST_SESSIONS)
+        error = stderr.read() if stderr else b""
+        if error:
+            if isinstance(error, bytes):
+                error = error.decode(errors="replace")
+            raise RuntimeError(f"loginctl session query failed: {error.strip()}")
+
+        sessions = []
+        for line in stdout:
+            fields = line.split()
+            if not fields:
+                continue
+            # IDs are numeric, or e.g. "c1" for sessions without an audit session ID.
+            if len(fields) < 3 or not re.fullmatch(r"[A-Za-z0-9_-]+", fields[0]):
+                raise RuntimeError(f"Unexpected loginctl session row: {line.strip()}")
+
+            session_id, username = fields[0], fields[2]
+            _, detail_stdout, detail_stderr = connection.exec_command(
+                f"loginctl show-session {session_id} "
+                "-p Type -p Remote -p RemoteHost -p Service -p State"
+            )
+            detail_error = detail_stderr.read() if detail_stderr else b""
+            if detail_error:
+                if isinstance(detail_error, bytes):
+                    detail_error = detail_error.decode(errors="replace")
+                raise RuntimeError(
+                    f"loginctl could not inspect session {session_id}: {detail_error.strip()}"
+                )
+
+            details = {}
+            for detail in detail_stdout:
+                key, separator, value = detail.rstrip("\n").partition("=")
+                if separator:
+                    details[key] = value
+
+            session_type = details.get("Type", "")
+            service = details.get("Service", "")
+            remote = details.get("Remote", "")
+            normalized_type = session_type.casefold()
+            normalized_service = service.casefold()
+            if "ssh" in normalized_service:
+                kind = "SSH"
+            elif normalized_type in {"x11", "wayland"}:
+                kind = "GUI"
+            elif normalized_type == "tty":
+                kind = "TTY"
+            else:
+                kind = "Other"
+
+            sessions.append({
+                "session_id": session_id,
+                "user": username,
+                "kind": kind,
+                "type": session_type,
+                "remote": remote,
+                "remote_host": details.get("RemoteHost", ""),
+                "service": service,
+                "state": details.get("State", ""),
+            })
+        return sessions
+    finally:
+        if connection is not None:
+            connection.close()
 
 
 def who(node: str, include_exceptions: bool = False) -> Optional[List[str]]:
