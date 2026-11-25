@@ -14,11 +14,14 @@ logger_unix = booking_records.log_agent("linux")
 
 LINUX_LIST_USERS = "loginctl list-users --no-legend | awk '{print $2}'"
 LINUX_LIST_SESSIONS = "loginctl list-sessions --no-legend --no-pager"
+# logind session of vScheduler's own SSH connection; 4294967295 means no audit session.
+LINUX_OWN_SESSION = 'echo "${XDG_SESSION_ID:-$(cat /proc/self/sessionid 2>/dev/null)}"'
 
 
 def linux_sessions(node: str) -> List[Dict[str, str]]:
     """Return logind sessions with enough metadata to identify SSH and GUI logins.
 
+    vScheduler's own SSH session used for the query is excluded.
     Raises an exception describing why the sessions could not be queried.
     """
     connection = None
@@ -28,6 +31,11 @@ def linux_sessions(node: str) -> List[Dict[str, str]]:
             raise ConnectionError(f"Could not connect to < {node} >")
         if find_os(node) != "Linux":
             raise RuntimeError(f"Cannot query Linux sessions on non-Linux node < {node} >")
+
+        _, own_stdout, _ = connection.exec_command(LINUX_OWN_SESSION)
+        own_session = "".join(own_stdout).strip()
+        if own_session == "4294967295":
+            own_session = ""
 
         _, stdout, stderr = connection.exec_command(LINUX_LIST_SESSIONS)
         error = stderr.read() if stderr else b""
@@ -46,6 +54,8 @@ def linux_sessions(node: str) -> List[Dict[str, str]]:
                 raise RuntimeError(f"Unexpected loginctl session row: {line.strip()}")
 
             session_id, username = fields[0], fields[2]
+            if session_id == own_session:
+                continue
             _, detail_stdout, detail_stderr = connection.exec_command(
                 f"loginctl show-session {session_id} "
                 "-p Type -p Remote -p RemoteHost -p Service -p State"
