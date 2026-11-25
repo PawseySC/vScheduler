@@ -1,5 +1,13 @@
-"""Mark configured nodes for maintenance and log off non-exempt users."""
+"""vmaintenance on/off: apply every maintenance change to vScheduler.
 
+on  marks enabled nodes for maintenance, logs off non-exempt users, empties the
+    general pools, renames the Guacamole portal group and stops mgmt_socket.
+off starts mgmt_socket, runs the vhealth checks and, only if they all pass,
+    returns maintained nodes to service, refills the general pools and restores
+    the portal group name.
+"""
+
+import argparse
 import io
 import inspect
 import sys
@@ -11,9 +19,11 @@ from vscheduler.lib.service import MGMT_SERVICE, control_service
 from vscheduler.log.log import Capture_log
 from vscheduler.modules.cluster.log_off import logoff
 from vscheduler.modules.cluster.who import linux_sessions, who
-from vscheduler.modules.guaca.portal import start_portal_maintenance
+from vscheduler.modules.guaca.pool_refresh import restore_empty_general_pool
+from vscheduler.modules.guaca.portal import end_portal_maintenance, start_portal_maintenance
 from vscheduler.modules.guaca.revert_user import revert_back_to_pool
 from vscheduler.modules.reports.status import status_update
+from vscheduler.tools.health import MGMT_PORT, run_checks
 
 records = Capture_log("maintenance", __file__)
 logger_win = records.log_agent("windows")
@@ -215,22 +225,14 @@ def prepare_node(node):
         logger.info(message)
 
 
-def main():
-    if any(argument in ("-h", "--help") for argument in sys.argv[1:]):
-        print("Usage: vmaintenance")
-        print("Mark enabled nodes for maintenance, log off non-exempt users,")
-        print("empty general pools, rename the Guacamole portal group to")
-        print("'{}', then prompt to stop the {} service.".format(
-            MyCredentials.guaca_maintenance_group_name, MGMT_SERVICE))
-        return
-
+def maintenance_on(service=MGMT_SERVICE):
     nodes = configured_nodes()
     if not nodes:
         message = "No enabled nodes are configured; no maintenance preparation was performed"
         print(message)
         logger_win.warning(message)
         logger_unix.warning(message)
-        return
+        return 0
     for index, node in enumerate(nodes):
         if index:
             print()
@@ -243,11 +245,134 @@ def main():
     portal_failed = status == "FAIL"
 
     # Stopped last so mgmt_socket still records the logoffs above.
-    status, message = control_service("stop")
+    status, message = control_service("stop", service)
     print("{:<5} {}".format(status, message))
     log = logger_unix.error if status == "FAIL" else logger_unix.info
     log(message)
     return 1 if portal_failed or status == "FAIL" else 0
+
+
+def is_general_node(node, prefix, enabled, node_range, booking_enabled, booking_range):
+    if not node.startswith(prefix):
+        return False
+    node_number = int(node.removeprefix(prefix))
+    return (
+        enabled
+        and node_number in range(node_range[0], node_range[1] + 1)
+        and not (
+            booking_enabled
+            and node_number in range(booking_range[0], booking_range[1] + 1)
+        )
+    )
+
+
+def report(status, message):
+    print("{:<5} {}".format(status, message))
+    log = logger_unix.error if status == "FAIL" else logger_unix.info
+    log(message)
+
+
+def restore_maintenance(current_status, portal_name):
+    """Return maintained nodes to service, refill general pools, then restore the portal name."""
+    maintenance_nodes = [
+        node for node in configured_nodes() if current_status.get(node) == "maint"
+    ]
+    if not maintenance_nodes and portal_name != MyCredentials.guaca_maintenance_group_name:
+        report("PASS", "Maintenance is already off")
+        return True
+
+    for node in maintenance_nodes:
+        try:
+            marked = status_update(node, "up")
+            detail = ""
+        except Exception as error:
+            marked = False
+            detail = ": {}".format(error)
+        if not marked:
+            report("FAIL", "Could not mark {} up{}".format(node, detail))
+            return False
+
+    general_candidates = {}
+    for node in maintenance_nodes:
+        if is_general_node(
+            node,
+            MyCredentials.windows_node_name,
+            MyCredentials.windows_general,
+            MyCredentials.windows_general_range,
+            MyCredentials.windows_booking,
+            MyCredentials.windows_booking_range,
+        ):
+            general_candidates.setdefault("windows", node)
+        elif is_general_node(
+            node,
+            MyCredentials.linux_node_name,
+            MyCredentials.linux_general,
+            MyCredentials.linux_general_range,
+            MyCredentials.linux_booking,
+            MyCredentials.linux_booking_range,
+        ):
+            general_candidates.setdefault("linux", node)
+
+    for operating_system, candidate_node in sorted(general_candidates.items()):
+        try:
+            restored = restore_empty_general_pool(operating_system, candidate_node)
+            detail = ""
+        except Exception as error:
+            restored = False
+            detail = ": {}".format(error)
+        if not restored:
+            report("FAIL", "Could not restore a Guacamole {} general pool connection{}".format(
+                operating_system, detail))
+            return False
+
+    # Renamed last so users only see the normal portal once nodes and pools are back.
+    status, message = end_portal_maintenance()
+    report(status, message)
+    if status == "FAIL":
+        return False
+
+    if maintenance_nodes:
+        report("PASS", "Maintained nodes marked up: {}".format(", ".join(maintenance_nodes)))
+    return True
+
+
+def maintenance_off(host="127.0.0.1", port=MGMT_PORT, service=MGMT_SERVICE, timeout=3.0):
+    status, message = control_service("start", service)
+    report(status, message)
+    print()
+    failures, current_status, portal_name = run_checks(
+        host, port, service, timeout, wait=message.endswith("started"),
+    )
+    print()
+    if failures:
+        report("FAIL", "{} health check(s) failed; maintenance left on. Fix the failures and "
+               "run 'vmaintenance off' again".format(failures))
+        return 1
+    return 0 if restore_maintenance(current_status, portal_name) else 1
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog="vmaintenance",
+        description="Turn vScheduler maintenance on or off. 'on' marks enabled nodes for "
+        "maintenance, logs off non-exempt users, empties the general pools, renames the "
+        "Guacamole portal group to guaca_maintenance_group_name, then prompts to stop the "
+        "management service. 'off' prompts to start the management service, runs the vhealth "
+        "checks and, only if all pass, returns maintained nodes to service, refills the "
+        "general pools and renames the portal group back to guaca_portal_group_name.",
+    )
+    parser.add_argument("action", choices=("on", "off"), help="start or end maintenance")
+    parser.add_argument("--host", default="127.0.0.1", help="expected local management listener address for 'off' checks (default: 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=MGMT_PORT, help="management socket port for 'off' checks (default: %(default)s)")
+    parser.add_argument("--service", default=MGMT_SERVICE, help="systemd management service name")
+    parser.add_argument("--timeout", type=float, default=3.0, help="connection timeout in seconds for 'off' checks (default: %(default)s)")
+    args = parser.parse_args()
+    if args.timeout <= 0:
+        parser.error("--timeout must be greater than zero")
+
+    if args.action == "on":
+        return maintenance_on(args.service)
+    return maintenance_off(args.host, args.port, args.service, args.timeout)
 
 
 if __name__ == "__main__":

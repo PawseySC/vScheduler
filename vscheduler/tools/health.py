@@ -1,6 +1,8 @@
-"""Post-maintenance and post-restart health checks."""
+"""Read-only health checks after maintenance or a system restart.
+
+vhealth never changes the system; `vmaintenance on/off` applies all changes.
+"""
 import argparse
-import importlib
 import shutil
 import socket
 import subprocess
@@ -11,36 +13,13 @@ from textwrap import fill
 from tabulate import tabulate
 
 from vscheduler.lib.config import Credentials as MyCredentials
-from vscheduler.lib.service import MGMT_SERVICE, control_service
-from vscheduler.modules.guaca.portal import end_portal_maintenance, portal_group_name
+from vscheduler.lib.service import MGMT_SERVICE
+from vscheduler.modules.guaca.portal import portal_group_name
 
 
 MGMT_PORT = 65001
 VIS_PORT = 65002
 SSH_PORT = 22
-
-
-def load_helper(module, name):
-    """Import a database-backed helper on first use.
-
-    These modules connect to the report/Guacamole databases at import time and
-    exit if that fails, so importing them up front would stop vhealth before it
-    could report the failing database.
-    """
-    try:
-        return getattr(importlib.import_module(module), name)
-    except SystemExit as error:
-        raise RuntimeError(str(error) or "could not load " + module) from None
-
-
-def status_update(node, mode):
-    return load_helper("vscheduler.modules.reports.status", "status_update")(node, mode)
-
-
-def restore_empty_general_pool(operating_system, candidate_node):
-    return load_helper(
-        "vscheduler.modules.guaca.pool_refresh", "restore_empty_general_pool",
-    )(operating_system, candidate_node)
 
 
 def check_tcp(host, port, timeout):
@@ -360,104 +339,29 @@ def check_nodes(timeout, current_status):
     return failures
 
 
-def is_general_node(node, prefix, enabled, node_range, booking_enabled, booking_range):
-    if not node.startswith(prefix):
-        return False
-    node_number = int(node.removeprefix(prefix))
-    return (
-        enabled
-        and node_number in range(node_range[0], node_range[1] + 1)
-        and not (
-            booking_enabled
-            and node_number in range(booking_range[0], booking_range[1] + 1)
-        )
+def run_checks(host, port, service, timeout, wait=False):
+    """Run and print every check; return (failures, current_status, portal_name).
+
+    Changes nothing. wait=True gives a just-started service time to bind its port.
+    """
+    results = []
+    service_failures = check_service(host, port, service, timeout, results, wait=wait)
+    current_status, database_failures = guarded(
+        "report database", results, (None, 1), check_database, timeout, results,
     )
-
-
-def restore_maintenance_nodes(current_status, portal_name=None):
-    # configured_nodes lists a node once per active pool; overlapping pools would repeat it.
-    maintenance_nodes = list(dict.fromkeys(
-        node for node, _ in configured_nodes()
-        if current_status.get(node) == "maint"
-    ))
-    if portal_name is None:
-        portal_name = portal_group_name()
-    portal_in_maintenance = portal_name == MyCredentials.guaca_maintenance_group_name
-    if not maintenance_nodes and not portal_in_maintenance:
-        return True
-
-    try:
-        answer = input(
-            "All health checks passed. Bring maintained nodes to status 'up' "
-            "and rename '{}' back to '{}'? [y/N]: ".format(
-                MyCredentials.guaca_maintenance_group_name,
-                MyCredentials.guaca_portal_group_name,
-            )
-        ).strip().casefold()
-    except EOFError:
-        print_result("WARN", "maintenance state", "no confirmation received; left unchanged")
-        return True
-    if answer not in ("y", "yes"):
-        print_result("INFO", "maintenance state", "left unchanged")
-        return True
-
-    for node in maintenance_nodes:
-        try:
-            marked = status_update(node, "up")
-        except Exception as error:
-            print_result("FAIL", "maintenance state", "could not mark {} up: {}".format(node, error))
-            return False
-        if not marked:
-            print_result("FAIL", "maintenance state", "could not mark {} up".format(node))
-            return False
-
-    general_candidates = {}
-    for node in maintenance_nodes:
-        if is_general_node(
-            node,
-            MyCredentials.windows_node_name,
-            MyCredentials.windows_general,
-            MyCredentials.windows_general_range,
-            MyCredentials.windows_booking,
-            MyCredentials.windows_booking_range,
-        ):
-            general_candidates.setdefault("windows", node)
-        elif is_general_node(
-            node,
-            MyCredentials.linux_node_name,
-            MyCredentials.linux_general,
-            MyCredentials.linux_general_range,
-            MyCredentials.linux_booking,
-            MyCredentials.linux_booking_range,
-        ):
-            general_candidates.setdefault("linux", node)
-
-    for operating_system, candidate_node in sorted(general_candidates.items()):
-        try:
-            restored = restore_empty_general_pool(operating_system, candidate_node)
-            detail = "could not restore a Guacamole pool connection"
-        except Exception as error:
-            restored = False
-            detail = "could not restore a Guacamole pool connection: {}".format(error)
-        if not restored:
-            print_result("FAIL", "{} general pool".format(operating_system), detail)
-            return False
-
-    # Renamed last so users only see the normal portal once nodes and pools are back.
-    status, message = end_portal_maintenance()
-    print_result(status, "Guacamole portal", message)
-    if status == "FAIL":
-        return False
-
-    if maintenance_nodes:
-        print_result("PASS", "maintenance state", "maintained nodes marked up")
-    return True
+    portal_name, portal_failures = check_portal(results)
+    print(tabulate(results, headers=["CHECK", "RESULT", "DETAILS"], tablefmt="plain"))
+    node_failures = guarded(
+        "node checks", None, 1, check_nodes, timeout, current_status or {},
+    )
+    failures = service_failures + database_failures + portal_failures + node_failures
+    return failures, current_status, portal_name
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Check vScheduler after maintenance or a system restart: report every check first, "
-        "then prompt to start the management service and to end maintenance.",
+        description="Check vScheduler after maintenance or a system restart. Only reports; "
+        "it changes nothing. Use 'vmaintenance on' or 'vmaintenance off' to apply changes.",
         epilog="Also manually verify a sample vinfo query, a controlled allocation/login/logout, and the mgmt_socket service logs.",
     )
     parser.add_argument("--host", default="127.0.0.1", help="expected local management listener address (default: 127.0.0.1)")
@@ -469,42 +373,15 @@ def main():
     if args.timeout <= 0:
         parser.error("--timeout must be greater than zero")
 
-    # 1. Report: every check runs and shows its own result or error; nothing is changed yet.
-    results = []
-    service_failures = check_service(args.host, args.port, args.service, args.timeout, results)
-    current_status, database_failures = guarded(
-        "report database", results, (None, 1), check_database, args.timeout, results,
+    failures, current_status, portal_name = run_checks(
+        args.host, args.port, args.service, args.timeout,
     )
-    portal_name, portal_failures = check_portal(results)
-    print(tabulate(results, headers=["CHECK", "RESULT", "DETAILS"], tablefmt="plain"))
-    node_failures = guarded(
-        "node checks", None, 1, check_nodes, args.timeout, current_status or {},
-    )
-    failures = service_failures + database_failures + portal_failures + node_failures
-
-    # 2. Changes: prompted only after all results are shown.
-    print()
-    try:
-        start_status, start_message = control_service("start", args.service)
-    except Exception as error:
-        start_status, start_message = "FAIL", "could not start {}: {}".format(args.service, describe(error))
-    started = start_message.endswith("started")
-    if started or start_status == "FAIL" or start_message.endswith("declined"):
-        print_result(start_status, "service start", start_message)
-    if started:
-        new_service_failures = check_service(args.host, args.port, args.service, args.timeout, wait=True)
-        failures += new_service_failures - service_failures
-
-    if failures:
-        in_maintenance = (
-            portal_name is not None and portal_name == MyCredentials.guaca_maintenance_group_name
-        ) or any(status == "maint" for status in (current_status or {}).values())
-        if in_maintenance:
-            print_result("WARN", "maintenance state", "left unchanged because health checks failed")
-    elif not guarded(
-        "maintenance state", None, False, restore_maintenance_nodes, current_status, portal_name,
-    ):
-        failures += 1
+    in_maintenance = (
+        portal_name is not None and portal_name == MyCredentials.guaca_maintenance_group_name
+    ) or any(status == "maint" for status in (current_status or {}).values())
+    if in_maintenance:
+        print()
+        print_result("INFO", "maintenance state", "maintenance is on; run 'vmaintenance off' to end it")
     print("\n{} check(s) failed".format(failures))
     return 1 if failures else 0
 
