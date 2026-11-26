@@ -1,11 +1,14 @@
 # logs off user from node
+import subprocess
 from vscheduler.log.log import Capture_log
 from vscheduler.general.initiate import PrintCondition as MyPrintCondition
 from vscheduler.lib.config import Credentials as MyCredentials
 from vscheduler.lib.ssh import Node as MyNode
 from vscheduler.modules.cluster.os_type import find_os
+from vscheduler.modules.cluster.who import LINUX_LIST_USERS
 from vscheduler.modules.reports.record_log_io import record_logout
 from vscheduler.modules.guaca.revert_user import revert_back_to_pool
+from vscheduler.modules.cluster.atd_canceller import cancel_atd
 
 booking_records = Capture_log("booking", __file__)
 logger_win = booking_records.log_agent("windows")
@@ -22,40 +25,64 @@ def std_print(stdin, stdout, stderr):
         stdout_copy.append(line)
     return stdout_copy
 
+def cancel_walltime_job(user, node, logger):
+    """Cancel the pending wall-time atd job of a session killed before wall-time."""
+    try:
+        cancelled_jobs = cancel_atd(user, node)
+    except (OSError, subprocess.CalledProcessError) as error:
+        print (f"Could not cancel atd jobs for {user} on {node}: {error}") if MyPrintCondition.fprint else 0
+        logger.error (f"Could not cancel atd jobs for {user} on {node}: {error}")
+        return
+    print (f"Cancelled atd jobs for {user} on {node}: {cancelled_jobs}") if MyPrintCondition.fprint else 0
+    logger.info (f"Cancelled atd jobs for {user} on {node}: {cancelled_jobs}")
+
 def logoff(user, node):
+    if user.casefold() in {username.casefold() for username in MyCredentials.exception}:
+        message = f"{user} is exception"
+        print(message) if MyPrintCondition.fprint else 0
+        logger_win.info(message) if MyCredentials.windows_node_name in node else logger_unix.info(message)
+        return
+
     connection = MyNode.connect_node(node)
     node_os = find_os(node)
     print (f"node os: {node_os}")
     try:
         if node_os == 'Windows':
-            stdin_query , stdout_query, stderr_query = connection.exec_command("query session")        
+            # quser (as used by who) always lists USERNAME first; "query session" puts SESSIONNAME first for active sessions.
+            stdin_query , stdout_query, stderr_query = connection.exec_command("quser")
             stdout_query_copy = std_print(stdin_query, stdout_query, stderr_query)
-            # if any(user in x for x in stdout_query_copy):
             for line in stdout_query_copy:
-                if (line.split()[0] == user or line.split()[1] == user) and user not in MyCredentials.exception:
-                    if line.split()[0] == user:
-                        stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command(f"logoff {line.split()[1]}")
-                    elif line.split()[1] == user:
-                        stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command(f"logoff {line.split()[2]}")
-                    std_print(stdin_logoff, stdout_logoff, stderr_logoff)
-                    print (f"session for {user} was killed on {node}") if MyPrintCondition.fprint else 0
-                    logger_win.info (f"session for {user} was killed on {node}")
-                    if MyCredentials.windows_node_name in node:
-                        if int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
-                            record_logout(user, node, MyCredentials.report_windows_table, "general")
-                            revert_back_to_pool(user, node, MyCredentials.windows_pool)
-                        elif int(node.removeprefix(MyCredentials.windows_node_name)) in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
-                            record_logout(user, node, MyCredentials.report_windows_table, "booking")
-                elif user in MyCredentials.exception:
-                    print (f"{user} is exception") if MyPrintCondition.fprint else 0
-                    logger_win.info (f"{user} is exception")
-                else:
+                fields = line.split()
+                if not fields or fields[0].casefold() == "username":
                     continue
+                if fields[0] == ">":
+                    fields = fields[1:]
+                    if not fields:
+                        continue
+                session_user = fields[0].lstrip(">")
+                if session_user.casefold() != user.casefold():
+                    continue
+                session_id = next((field for field in fields[1:] if field.isdigit()), None)
+                if session_id is None:
+                    continue
+                stdin_logoff , stdout_logoff, stderr_logoff = connection.exec_command(f"logoff {session_id}")
+                std_print(stdin_logoff, stdout_logoff, stderr_logoff)
+                print (f"session for {user} was killed on {node}") if MyPrintCondition.fprint else 0
+                logger_win.info (f"session for {user} was killed on {node}")
+                node_number = int(node.removeprefix(MyCredentials.windows_node_name))
+                if MyCredentials.windows_booking and node_number in range(MyCredentials.windows_booking_range[0], MyCredentials.windows_booking_range[1]+1):
+                    record_logout(user, node, MyCredentials.report_windows_table, "booking")
+                elif MyCredentials.windows_general and node_number in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
+                    record_logout(user, node, MyCredentials.report_windows_table, "general")
+                    revert_back_to_pool(user, node, MyCredentials.windows_pool)
+                    cancel_walltime_job(user, node, logger_win)
             # else:
             #     print (f"user <", user, "> is not logged in <", node, ">") if MyPrintCondition.fprint else 0
             
         elif node_os == 'Linux':
-            stdin_query , stdout_query, stderr_query = connection.exec_command("who -u")        
+            # stdin_query , stdout_query, stderr_query = connection.exec_command("who -u")
+            # utmp-based `who -u`/`users` can miss graphical sessions registered with logind.
+            stdin_query , stdout_query, stderr_query = connection.exec_command(LINUX_LIST_USERS)
             stdout_query_copy = std_print(stdin_query, stdout_query, stderr_query)
             
             # if any(user in x for x in stdout_query_copy):
@@ -86,15 +113,17 @@ def logoff(user, node):
             print (f"session for {user} was killed on {node}") if MyPrintCondition.fprint else 0
             logger_unix.info (f"session for {user} was killed on {node}")
             if MyCredentials.linux_node_name in node:
-                if int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1): 
+                node_number = int(node.removeprefix(MyCredentials.linux_node_name))
+                if MyCredentials.linux_booking and node_number in range(MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
+                    record_logout(user, node, MyCredentials.report_linux_table, "booking")
+                elif MyCredentials.linux_general and node_number in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
                     record_logout(user, node, MyCredentials.report_linux_table, "general")
                     revert_back_to_pool(user, node, MyCredentials.linux_pool)
-                elif int(node.removeprefix(MyCredentials.linux_node_name)) in range(MyCredentials.linux_booking_range[0], MyCredentials.linux_booking_range[1]+1):
-                    record_logout(user, node, MyCredentials.report_linux_table, "booking")
+                    cancel_walltime_job(user, node, logger_unix)
             # else:
             #     print (f"user < {user} > is not logged in < {node}>") if MyPrintCondition.fprint else 0
             #     logger_unix.info (f"user < {user} > is not logged in < {node}>")
-            
+
         else:
             print (f"no os found for < {node} >") if MyPrintCondition.fprint else 0
             logger_win.warning (f"no os found for < {node} >")

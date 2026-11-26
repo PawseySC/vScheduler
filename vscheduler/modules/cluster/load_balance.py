@@ -13,7 +13,7 @@ pool_records = Capture_log("pool", __file__)
 logger_unix = pool_records.log_agent("linux")   # **** logger_win needs to be added; win flag should be sent when calling the function ****
 
 
-def loadbalance(usage_data, pool):
+def loadbalance(usage_data, pool, *, restoring=False):
     # x = {}
     # for i in range (MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
     #     node = MyCredentials.linux_node_name + '0' + str(i) if i <= 9 else MyCredentials.linux_node_name + str(i)
@@ -48,4 +48,4 @@ def loadbalance(usage_data, pool):
 
     logger_unix.info (f"least busy node_entity: {node_entity}")
     logger_unix.info (f"pool_entity: {pool_entity}")
-    connection_permission(node_entity[0][1], pool_entity[0][0])
+    connection_permission(node_entity[0][1], pool_entity[0][0], restoring=restoring)

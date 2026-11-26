@@ -39,7 +39,8 @@ class Database:
             print (f"error connecting booked db\n{e}") if MyPrintCondition.fprint else 0
             mailFunction("db error", f"error connecting booked database\n{e}", "", "")
             logger_db.critical (f"error connecting booked database\n{e}")
-            quit()
+            # Report the cause on stderr and exit non-zero (quit() exited 0 silently).
+            sys.exit(f"error connecting booked database: {e}")
 
     def connect_guaca_db():
         try:
@@ -55,7 +56,8 @@ class Database:
             print (f"error connecting guaca db\n{e}") if MyPrintCondition.fprint else 0
             mailFunction("db error", f"error connecting guaca database\n{e}", "", "")
             logger_db.critical (f"error connecting guaca database\n{e}")
-            quit()
+            # Report the cause on stderr and exit non-zero (quit() exited 0 silently).
+            sys.exit(f"error connecting guaca database: {e}")
 
     def connect_report_db():
         try:
@@ -71,4 +73,5 @@ class Database:
             print (f"error connecting report db\n{e}") if MyPrintCondition.fprint else 0
             mailFunction("db error", f"error connecting report database\n{e}", "", "")
             logger_db.critical (f"error connecting report database\n{e}")
-            quit()
+            # Report the cause on stderr and exit non-zero (quit() exited 0 silently).
+            sys.exit(f"error connecting report database: {e}")
