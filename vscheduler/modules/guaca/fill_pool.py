@@ -34,7 +34,7 @@ def toss(node):
     return new_node
 
 
-def fillup(node, hosts):
+def fillup(node, hosts, *, restoring=False):
     logger_win.info (f"Current node in the pool is {node}") if MyCredentials.windows_node_name in node else logger_unix.info (f"Current node in the pool is {node}")
     pool_entity = entity(MyCredentials.windows_pool) if MyCredentials.windows_node_name in node else entity(MyCredentials.linux_pool)
     if not hosts:
@@ -53,4 +53,4 @@ def fillup(node, hosts):
     logger_win.info (f"new_node_entity: {new_node_entity}") if MyCredentials.windows_node_name in node else logger_unix.info (f"new_node_entity: {new_node_entity}")
     logger_win.info (f"pool_entity: {pool_entity}") if MyCredentials.windows_node_name in node else logger_unix.info (f"pool_entity: {pool_entity}")
 
-    connection_permission(new_node_entity[0][1], pool_entity[0][0])
+    connection_permission(new_node_entity[0][1], pool_entity[0][0], restoring=restoring)

@@ -38,6 +38,10 @@ def cancel_atd(user, node):
             continue
 
         job_id = fields[0]
+        # Queue "=" is a job atd is executing now, e.g. the wall-time vkill that
+        # triggered this logoff; it must not remove itself.
+        if len(fields) >= 2 and fields[-2] == "=":
+            continue
         try:
             job_script = subprocess.run(
                 ["/usr/bin/at", "-c", job_id], check=True, capture_output=True, text=True

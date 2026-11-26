@@ -85,7 +85,6 @@ def status_update(node, mode) -> bool:
     #             '''
     # elif mode == "up":
     #     post_query = f"UPDATE {MyCredentials.report_status_table} SET end = '{MyBrackets.local_time}' WHERE node = '{node}' AND start = end"
-    print (f"post_query: {post_query}")
     logger_win.info (f"post_query: {post_query}") if MyCredentials.windows_node_name in node else logger_unix.info (f"post_query: {post_query}")
     try:
         my_connection.ping()  # reconnecting mysql in case of connection timed out

@@ -1,7 +1,6 @@
 # management socket server in charge of managing general/booking connections and members
 from tabulate import tabulate
 import socket, threading, subprocess
-import numpy as np
 from vscheduler.log.log import Capture_log
 from vscheduler.lib.database import Database as MyDatabase
 # from vscheduler.general.timer import Brackets as MyBrackets
@@ -85,25 +84,22 @@ def check_status(os):
     
 # return list of production nodes which are functional
 def generate_general_partition_hosts(os, node):
-    hosts = []
-    if os == "linux":
-        # for i in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1):
-        #     host = MyCredentials.linux_node_name + "0" + i if i < 10 else MyCredentials.linux_node_name + i
-        #     if host not in exception_results:
-        #         print (f"linux node < {host} > not in exception list") if MyPrintCondition.fprint else 0
-        #         logger.info (f"linux node < {host} > not in exception list")
-        #         hosts.append(host)
-        hosts = [MyCredentials.linux_node_name + "0" + str(i) if i < 10 else MyCredentials.linux_node_name + str(i) for i in range(MyCredentials.linux_general_range[0], MyCredentials.linux_general_range[1]+1)]
-    elif os == "windows":
-        # for i in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1):
-        #     host = MyCredentials.windows_node_name + "0" + i if i < 10 else MyCredentials.windows_node_name + i
-        #     if host not in exception_results:
-        #         print (f"windows node < {host} > not in exception list") if MyPrintCondition.fprint else 0
-        #         logger.info (f"windows node < {host} > not in exception list")
-        #         hosts.append(host)
-        hosts = [MyCredentials.windows_node_name + "0" + str(i) if i < 10 else MyCredentials.windows_node_name + str(i) for i in range(MyCredentials.windows_general_range[0], MyCredentials.windows_general_range[1]+1)]
+    if os not in ("linux", "windows") or not getattr(MyCredentials, f"{os}_general"):
+        return []
+    prefix = getattr(MyCredentials, f"{os}_node_name")
+    first, last = getattr(MyCredentials, f"{os}_general_range")
+    booking = range(0)
+    if getattr(MyCredentials, f"{os}_booking"):
+        booking_first, booking_last = getattr(MyCredentials, f"{os}_booking_range")
+        booking = range(booking_first, booking_last + 1)
     status_results = check_status(os)
-    hosts = [x for x in hosts if x not in np.array(status_results)[:,0]] if status_results != 0 else hosts
+    if status_results is None:
+        raise RuntimeError(f"Could not determine node status for the {os} general pool")
+    unavailable = {row[0] for row in (status_results or ())}
+    hosts = [
+        f"{prefix}{number:02d}" for number in range(first, last + 1)
+        if number not in booking and f"{prefix}{number:02d}" not in unavailable
+    ]
     logger_win.info (f"hosts: {hosts}") if os == "windows" else logger_unix.info (f"hosts: {hosts}")
     return hosts
 
@@ -130,6 +126,8 @@ def manage_pool(msg, node, user, walltime, os):
     if MyCredentials.load_balance:
         logger_win.warning ("load_balance = TRUE") if os == "windows" else logger_unix.warning ("load_balance = TRUE")
         hosts = generate_general_partition_hosts(os, node)
+        if not hosts:
+            return
         usage_data = data_agent(hosts, os)
         logger_win.info (f"Usage data obtained from accessible nodes: {usage_data}") if os == "windows" else logger_unix.info (f"Usage data obtained from accessible nodes: {usage_data}")
         logger_win.info (f"{os} nodes load balancing in < {MyCredentials.windows_pool} >") if os == "windows" else logger_unix.info (f"{os} nodes load balancing in < {MyCredentials.linux_pool} >")
